@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F6F1FF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PaKu" />
+  <title>PaKu — Drip Book Reader</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #EADFFB;
+      --surface: #F6F1FF;
+      --text: #2B2140;
+      --muted: #6B5B8A;
+      --accent: #7C3AED;
+      --accent-soft: #DDCCFA;
+      --border: #D3C2F2;
+      --on-accent: #FFFFFF;
+      --reader-size: 18px;
+    }
+    [data-theme="sepia"] {
+      --bg: #F4ECD8;
+      --surface: #FAF3E3;
+      --text: #3B2F2F;
+      --muted: #7C6A5A;
+      --accent: #9A3412;
+      --accent-soft: #FDE68A;
+      --border: #DFD3BC;
+    }
+    [data-theme="dark"] {
+      --bg: #1B1530;
+      --surface: #271F42;
+      --text: #ECE6FA;
+      --muted: #B3A7D1;
+      --accent: #B8A1FF;
+      --accent-soft: #3A2E63;
+      --border: #3D3360;
+      --on-accent: #1B1530;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding-bottom: calc(74px + env(safe-area-inset-bottom));
+      transition: background 0.25s, color 0.25s;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    main {
+      flex: 1;
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    h1, h2, h3 { margin-top: 0; }
+    .chapter-title {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .chapter-meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .reader-body {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: var(--reader-size);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+    .reader-body p { margin: 0 0 1.1em; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: var(--on-accent);
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-small { padding: 8px 12px; font-size: 13px; width: auto; }
+    .lock-box {
+      text-align: center;
+      padding: 28px 16px;
+    }
+    .countdown {
+      font-size: 28px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      margin: 12px 0;
+    }
+    .progress-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 4px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+    .controls-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+    }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    input[type="text"], input[type="number"], input[type="time"], select, textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    .schedule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+    .schedule-item:last-child { border-bottom: none; }
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .st-done { background: #DCFCE7; color: #166534; }
+    .st-open { background: var(--accent-soft); color: var(--accent); }
+    .st-lock { background: var(--border); color: var(--muted); }
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 30;
+    }
+    nav button {
+      flex: 1;
+      border: none;
+      background: none;
+      color: var(--muted);
+      padding: 10px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    nav button.active { color: var(--accent); }
+    .hidden { display: none !important; }
+    #installBanner {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">📖 PaKu</div>
+    <span class="badge" id="offlineBadge">PWA Offline</span>
+  </header>
+
+  <main>
+    <div id="installBanner" class="hidden">
+      <div style="font-size:13px;"><strong>Zainstaluj aplikację</strong><br/>Dodaj ikonę na ekran główny telefonu.</div>
+      <button class="btn btn-small" id="btnInstallPwa">Zainstaluj</button>
+    </div>
+
+    <!-- TAB 1: CZYTNIK -->
+    <section id="tab-reader">
+      <div class="controls-row">
+        <button class="chip" onclick="setTheme('light')">☀️ Jasny</button>
+        <button class="chip" onclick="setTheme('sepia')">📜 Sepia</button>
+        <button class="chip" onclick="setTheme('dark')">🌙 Noc</button>
+        <button class="chip" onclick="changeFont(-1)">A-</button>
+        <button class="chip" onclick="changeFont(1)">A+</button>
+      </div>
+
+      <div id="readerContent" class="card"></div>
+    </section>
+
+    <!-- TAB 2: HARMONOGRAM / KALENDARZ -->
+    <section id="tab-calendar" class="hidden">
+      <div class="card">
+        <h3>📅 Harmonogram odblokowań</h3>
+        <p style="font-size:13px;color:var(--muted);margin-top:-6px;">
+          Zsynchronizuj plan czytania z Kalendarzem Google, Apple lub Outlook.
+        </p>
+        <button class="btn" onclick="exportICS()">⬇️ Pobierz plik do kalendarza (.ics)</button>
+      </div>
+      <div class="card" id="scheduleList"></div>
+    </section>
+
+    <!-- TAB 3: KSIĄŻKA I USTAWIENIA -->
+    <section id="tab-settings" class="hidden">
+      <div class="card">
+        <h3>⏱️ Częstotliwość udostępniania</h3>
+        <label>Co ile dni odblokować kolejny rozdział?</label>
+        <select id="freqDays" onchange="updateScheduleSettings()">
+          <option value="1">Codziennie (co 1 dzień)</option>
+          <option value="2">Co 2 dni</option>
+          <option value="3">Co 3 dni</option>
+          <option value="7">Raz w tygodniu (co 7 dni)</option>
+          <option value="14">Co 2 tygodnie (co 14 dni)</option>
+        </select>
+
+        <label>Godzina odblokowania nowego rozdziału</label>
+        <input type="time" id="unlockTime" value="08:00" onchange="updateScheduleSettings()" />
+      </div>
+
+      <div class="card">
+        <h3>📚 Wgraj własny e-book (.epub lub .txt)</h3>
+        <input type="file" id="bookFile" accept=".txt,.epub" onchange="handleFileUpload(event)" />
+
+        <label>Lub wklej tekst książki ręcznie</label>
+        <input type="text" id="customTitle" placeholder="Tytuł książki..." />
+        <textarea id="customText" rows="5" placeholder="Wklej treść książki. Aplikacja automatycznie podzieli ją według nagłówków 'Rozdział' lub co ~1200 słów..."></textarea>
+        <button class="btn" onclick="importPastedText()">Utwórz książkę i podziel na rozdziały</button>
+      </div>
+
+      <div class="card">
+        <h3>🧪 Testowanie i zarządzanie</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary" onclick="simulateNextDay()">⏩ Symuluj +1 dzień</button>
+          <button class="btn btn-secondary" onclick="resetProgress()">🔄 Resetuj postęp</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button id="nav-reader" class="active" onclick="switchTab('reader')">📖<span>Czytaj</span></button>
+    <button id="nav-calendar" onclick="switchTab('calendar')">📅<span>Kalendarz</span></button>
+    <button id="nav-settings" onclick="switchTab('settings')">⚙️<span>Książka</span></button>
+  </nav>
+
+  <script>
+    // Rejestracja Service Workera dla pełnego działania Offline PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // Obsługa natywnego monitu instalacji PWA
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.remove('hidden');
+    });
+
+    document.getElementById('btnInstallPwa').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.add('hidden');
+    });
+
+    const DEFAULT_BOOK = {
+      title: "Sztuka Spokojnego Czytania (Przykładowa książka)",
+      chapters: [
+        {
+          title: "Rozdział 1: Dlaczego jeden rozdział wystarcza",
+          content: "W świecie nieustannego pośpiechu czytanie zamieniło się w wyścig o liczbę zaliczonych pozycji. Tymczasem prawdziwa lektura wymaga przestrzeni na refleksję.\n\nKiedy dawkujesz sobie opowieść po jednym rozdziale dziennie lub tygodniowo, każda scena ma czas osiąść w pamięci. Zaczynasz zauważać detale, styl autora i własne emocje.\n\nPrzeczytaj ten fragment spokojnie, oznacz go jako ukończony i wróć, gdy otworzy się kolejny rozdział."
+        },
+        {
+          title: "Rozdział 2: Rytm zamiast pośpiechu",
+          content: "Stała pora dnia buduje nawyk znacznie skuteczniej niż jednorazowy zryw. Wystarczy piętnaście minut rano przy kawie albo wieczorem przed snem.\n\nSynchronizacja z kalendarzem sprawia, że lektura staje się pełnoprawnym spotkaniem z samym sobą — dokładnie takim jak trening czy spotkanie z przyjacielem."
+        },
+        {
+          title: "Rozdział 3: Siła oczekiwania",
+          content: "Pamiętasz czasy, gdy na kolejny odcinek ulubionej powieści w odcinkach czekało się cały tydzień? Oczekiwanie potęguje zaangażowanie.\n\nGdy aplikacja blokuje kolejny rozdział do wyznaczonego dnia, chroni Cię przed zmęczeniem materiału i przywraca radość odkrywania historii krok po kroku."
+        }
+      ]
+    };
+
+    let state = loadSavedState() || {
+      book: DEFAULT_BOOK,
+      currentIndex: 0,
+      completed: [],
+      freqDays: 1,
+      unlockTime: "08:00",
+      startDateISO: new Date().toISOString(),
+      timeOffsetMs: 0,
+      theme: "light",
+      fontSize: 18
+    };
+
+    function loadSavedState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('dripReaderStateV2'));
+        if (saved && saved.book && Array.isArray(saved.book.chapters) && saved.book.chapters.length) return saved;
+      } catch (e) {}
+      return null;
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('dripReaderStateV2', JSON.stringify(state));
+        return true;
+      } catch (e) {
+        return false; // np. przekroczony limit localStorage przy dużej książce
+      }
+    }
+
+    function nowMs() {
+      return Date.now() + (state.timeOffsetMs || 0);
+    }
+
+    function getChapterUnlockDate(index) {
+      if (index === 0) return new Date(state.startDateISO);
+      const base = new Date(state.startDateISO);
+      const [hh, mm] = (state.unlockTime || "08:00").split(':').map(Number);
+      base.setDate(base.getDate() + index * state.freqDays);
+      base.setHours(hh || 8, mm || 0, 0, 0);
+      return base;
+    }
+
+    function setTheme(t) {
+      state.theme = t;
+      document.documentElement.setAttribute('data-theme', t === 'light' ? '' : t);
+      saveState();
+    }
+
+    function changeFont(delta) {
+      state.fontSize = Math.min(26, Math.max(14, (state.fontSize || 18) + delta));
+      document.documentElement.style.setProperty('--reader-size', state.fontSize + 'px');
+      saveState();
+    }
+
+    function switchTab(tab) {
+      ['reader', 'calendar', 'settings'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+        document.getElementById('nav-' + t).classList.toggle('active', t === tab);
+      });
+      if (tab === 'calendar') renderCalendar();
+      if (tab === 'reader') renderReader();
+    }
+
+    let lockedUntilMs = null;
+
+    function formatCountdown(diff) {
+      const pad = n => String(n).padStart(2, '0');
+      const days = Math.floor(diff / 86400000);
+      const hrs = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      return (days ? days + 'd ' : '') + pad(hrs) + 'h ' + pad(mins) + 'm ' + pad(secs) + 's';
+    }
+
+    function renderReader() {
+      const box = document.getElementById('readerContent');
+      const total = state.book.chapters.length;
+      const idx = Math.min(state.currentIndex, total - 1);
+      const chap = state.book.chapters[idx];
+      const unlockDate = getChapterUnlockDate(idx);
+      const isLocked = nowMs() < unlockDate.getTime();
+      const pct = Math.round((state.completed.length / total) * 100);
+
+      let html = `
+        <div style="font-size:12px;color:var(--muted);font-weight:600;">${escapeHtml(state.book.title)}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="chapter-meta">
+          <span>Rozdział ${idx + 1} z ${total}</span>
+          <span>Ukończono: ${pct}%</span>
+        </div>
+      `;
+
+      if (isLocked) {
+        lockedUntilMs = unlockDate.getTime();
+        const diff = Math.max(0, lockedUntilMs - nowMs());
+        html += `
+          <div class="lock-box">
+            <div style="font-size:40px;">🔒</div>
+            <h2 style="margin:8px 0 4px;">Kolejny rozdział czeka na swój czas</h2>
+            <p style="color:var(--muted);font-size:14px;">
+              <strong>${escapeHtml(chap.title)}</strong><br/>
+              Odblokowanie: ${unlockDate.toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </p>
+            <div class="countdown" id="countdown">${formatCountdown(diff)}</div>
+            <button class="btn btn-secondary" onclick="switchTab('calendar')">Zobacz pełny harmonogram</button>
+          </div>
+        `;
+      } else {
+        lockedUntilMs = null;
+        const isDone = state.completed.includes(idx);
+        const paragraphs = chap.content.split(/\n+/).filter(p => p.trim()).map(p => `<p>${escapeHtml(p)}</p>`).join('');
+        html += `
+          <h1 class="chapter-title">${escapeHtml(chap.title)}</h1>
+          <div class="reader-body">${paragraphs}</div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:22px 0;" />
+          ${idx < total - 1
+            ? `<button class="btn" onclick="completeChapter(${idx})">${isDone ? 'Przejdź do następnego rozdziału ➡️' : '✅ Oznacz rozdział jako przeczytany'}</button>`
+            : `<div style="text-align:center;font-weight:700;color:var(--accent);">🎉 Gratulacje! Ukończyłeś całą książkę!</div>`
+          }
+        `;
+      }
+      box.innerHTML = html;
+    }
+
+    // Odświeża tylko licznik (zamiast przebudowywać cały ekran co sekundę)
+    function tickCountdown() {
+      if (lockedUntilMs === null) return;
+      const diff = lockedUntilMs - nowMs();
+      if (diff <= 0) { renderReader(); return; }
+      const el = document.getElementById('countdown');
+      if (el) el.textContent = formatCountdown(diff);
+    }
+
+    function completeChapter(idx) {
+      if (!state.completed.includes(idx)) state.completed.push(idx);
+      if (idx + 1 < state.book.chapters.length) {
+        state.currentIndex = idx + 1;
+      }
+      saveState();
+      renderReader();
+      window.scrollTo(0, 0);
+    }
+
+    function renderCalendar() {
+      const list = document.getElementById('scheduleList');
+      const currentNow = nowMs();
+      list.innerHTML = state.book.chapters.map((ch, i) => {
+        const d = getChapterUnlockDate(i);
+        const done = state.completed.includes(i);
+        const open = currentNow >= d.getTime();
+        let pill = `<span class="status-pill st-lock">🔒 ${d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}</span>`;
+        if (done) pill = `<span class="status-pill st-done">✅ Przeczytane</span>`;
+        else if (open) pill = `<span class="status-pill st-open">📖 Dostępny</span>`;
+        return `
+          <div class="schedule-item" onclick="openChapterIfAllowed(${i})" style="cursor:pointer;">
+            <div>
+              <div style="font-weight:600;font-size:14px;">${escapeHtml(ch.title)}</div>
+              <div style="font-size:12px;color:var(--muted);">${d.toLocaleString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+            ${pill}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openChapterIfAllowed(i) {
+      state.currentIndex = i;
+      saveState();
+      switchTab('reader');
+    }
+
+    function updateScheduleSettings() {
+      state.freqDays = parseInt(document.getElementById('freqDays').value, 10) || 1;
+      state.unlockTime = document.getElementById('unlockTime').value || "08:00";
+      saveState();
+      renderReader();
+    }
+
+    function splitTextIntoChapters(rawText) {
+      const cleaned = rawText.replace(/\r\n/g, '\n').trim();
+      const regex = /(?:^|\n)(?=(?:Rozdział|ROZDZIAŁ|Chapter|CHAPTER|Część|CZĘŚĆ)\s+[0-9IVXLCDM]+[^\n]*)/g;
+      const parts = cleaned.split(regex).map(s => s.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        return parts.map((p, idx) => {
+          const lines = p.split('\n');
+          const title = lines[0].slice(0, 80);
+          const content = lines.slice(1).join('\n').trim() || p;
+          return { title: title || `Rozdział ${idx + 1}`, content };
+        });
+      }
+      // Podział po ~1200 słów jeśli brak nagłówków rozdziałów
+      const words = cleaned.split(/\s+/);
+      const chunkSize = 1200;
+      const chapters = [];
+      for (let i = 0; i < words.length; i += chunkSize) {
+        chapters.push({
+          title: `Część ${chapters.length + 1}`,
+          content: words.slice(i, i + chunkSize).join(' ')
+        });
+      }
+      return chapters.length ? chapters : DEFAULT_BOOK.chapters;
+    }
+
+    function importPastedText() {
+      const title = document.getElementById('customTitle').value.trim() || "Moja Książka";
+      const text = document.getElementById('customText').value.trim();
+      if (!text) return alert("Wklej najpierw treść książki.");
+      loadNewBook(title, splitTextIntoChapters(text));
+    }
+
+    function htmlToText(doc) {
+      const blocks = doc.body.querySelectorAll('p, li');
+      const parts = [];
+      blocks.forEach(b => {
+        const t = b.textContent.replace(/\s+/g, ' ').trim();
+        if (t) parts.push(t);
+      });
+      if (!parts.length) return (doc.body.textContent || '').trim();
+      return parts.join('\n\n');
+    }
+
+    // Kolejność plików wg "spine" z pliku OPF (a nie alfabetycznie)
+    async function getEpubOrder(zip) {
+      try {
+        const container = await zip.file('META-INF/container.xml').async('text');
+        const opfPath = new DOMParser().parseFromString(container, 'application/xml')
+          .querySelector('rootfile').getAttribute('full-path');
+        const opf = new DOMParser().parseFromString(await zip.file(opfPath).async('text'), 'application/xml');
+        const base = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/') + 1) : '';
+        const manifest = {};
+        opf.querySelectorAll('manifest > item').forEach(it => { manifest[it.getAttribute('id')] = it.getAttribute('href'); });
+        const order = [];
+        opf.querySelectorAll('spine > itemref').forEach(ref => {
+          const href = manifest[ref.getAttribute('idref')];
+          if (!href) return;
+          const name = decodeURIComponent(base + href.split('#')[0]);
+          if (zip.file(name)) order.push(name);
+        });
+        return order;
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const title = file.name.replace(/\.(txt|epub)$/i, '');
+      const lower = file.name.toLowerCase();
+      try {
+        if (lower.endsWith('.txt')) {
+          const text = await file.text();
+          loadNewBook(title, splitTextIntoChapters(text));
+        } else if (lower.endsWith('.epub')) {
+          if (!window.JSZip) return alert("Biblioteka do czytania EPUB nie została wczytana (wymagany internet przy pierwszym uruchomieniu).");
+          const zip = await JSZip.loadAsync(file);
+          let files = await getEpubOrder(zip);
+          if (!files.length) {
+            files = Object.keys(zip.files)
+              .filter(name => /\.(xhtml|html|htm)$/i.test(name) && !/nav|toc/i.test(name))
+              .sort();
+          }
+          const chapters = [];
+          for (const fname of files) {
+            const raw = await zip.file(fname).async('text');
+            const doc = new DOMParser().parseFromString(raw, 'text/html');
+            const text = htmlToText(doc);
+            if (text.length > 250) {
+              const h = doc.querySelector('h1, h2, h3');
+              chapters.push({
+                title: h ? h.textContent.replace(/\s+/g, ' ').trim().slice(0, 80) : `Rozdział ${chapters.length + 1}`,
+                content: text
+              });
+            }
+          }
+          if (!chapters.length) return alert("Nie udało się odczytać rozdziałów z pliku EPUB.");
+          loadNewBook(title, chapters);
+        }
+      } catch (err) {
+        alert("Błąd odczytu pliku: " + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    }
+
+    function loadNewBook(title, chapters) {
+      state.book = { title, chapters };
+      state.currentIndex = 0;
+      state.completed = [];
+      state.startDateISO = new Date().toISOString();
+      state.timeOffsetMs = 0;
+      if (!saveState()) {
+        alert("Książka jest zbyt duża, żeby zapisać ją w pamięci przeglądarki. Po zamknięciu aplikacji wróci poprzednia książka.");
+      } else {
+        alert(`Wczytano "${title}" (${chapters.length} rozdz.)!`);
+      }
+      switchTab('reader');
+    }
+
+    function exportICS() {
+      const pad = n => String(n).padStart(2, '0');
+      const toICSDate = d => `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
+      const esc = t => String(t).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PaKu//PWA//PL', 'CALSCALE:GREGORIAN'];
+      state.book.chapters.forEach((ch, i) => {
+        const start = getChapterUnlockDate(i);
+        const end = new Date(start.getTime() + 30 * 60000);
+        lines.push(
+          'BEGIN:VEVENT',
+          `UID:drip-ch-${i}@czytnik`,
+          `DTSTAMP:${toICSDate(new Date())}`,
+          `DTSTART:${toICSDate(start)}`,
+          `DTEND:${toICSDate(end)}`,
+          `SUMMARY:${esc('📖 ' + state.book.title + ' — ' + ch.title)}`,
+          'DESCRIPTION:Czas na kolejny rozdział w aplikacji PaKu.',
+          'END:VEVENT'
+        );
+      });
+      lines.push('END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'harmonogram-czytania.ics';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    function simulateNextDay() {
+      state.timeOffsetMs = (state.timeOffsetMs || 0) + 24 * 3600 * 1000;
+      saveState();
+      renderReader();
+    }
+
+    function resetProgress() {
+      if (!confirm("Zresetować postęp czytania?")) return;
+      state.currentIndex = 0;
+      state.completed = [];
+      state.startDateISO = new Date().toISOString();
+      state.timeOffsetMs = 0;
+      saveState();
+      renderReader();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+
+    // Init
+    setTheme(state.theme || 'light');
+    document.documentElement.style.setProperty('--reader-size', (state.fontSize || 18) + 'px');
+    document.getElementById('freqDays').value = state.freqDays || 1;
+    document.getElementById('unlockTime').value = state.unlockTime || "08:00";
+    renderReader();
+    setInterval(() => {
+      if (!document.getElementById('tab-reader').classList.contains('hidden')) tickCountdown();
+    }, 1000);
+  </script>
+</body>
+</html>
