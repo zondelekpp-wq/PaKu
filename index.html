@@ -183,7 +183,7 @@
       border-color: var(--accent);
     }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
-    input[type="text"], input[type="number"], input[type="time"], input[type="date"], select, textarea {
+    input[type="text"], input[type="url"], input[type="number"], input[type="time"], input[type="date"], select, textarea {
       width: 100%;
       padding: 11px 12px;
       border-radius: 10px;
@@ -277,6 +277,20 @@
     @media (prefers-reduced-motion: reduce) {
       #splash img, .splash-name, .splash-tag { animation: none; }
     }
+    #praise { position: fixed; inset: 0; z-index: 950; background: rgba(27, 21, 48, 0.55); display: flex; align-items: center; justify-content: center; padding: 18px; }
+    .pr-box { width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 22px 18px 18px; text-align: center; box-shadow: 0 18px 50px rgba(40, 20, 90, 0.35); animation: prPop 0.45s cubic-bezier(.2,.9,.3,1.25) both; }
+    .pr-ico { font-size: 54px; line-height: 1; margin-bottom: 8px; animation: prBounce 1.2s ease 0.3s 2; }
+    .pr-head { font-size: 20px; line-height: 1.3; margin: 0 0 8px; }
+    .pr-facts { font-size: 12px; color: var(--accent); font-weight: 700; margin: 0 0 14px; }
+    .pr-quote { margin: 0 0 16px; padding: 12px 14px; background: var(--accent-soft); border-radius: 14px; font-style: italic; font-size: 14px; line-height: 1.45; }
+    .pr-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 12px; color: var(--muted); font-weight: 600; }
+    .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; margin: 0; }
+    .chk input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; margin: 0; }
+    @keyframes prPop { from { opacity: 0; transform: scale(0.8) translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes prBounce { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px) rotate(-6deg); } 70% { transform: translateY(0) rotate(4deg); } }
+    @media (prefers-reduced-motion: reduce) { .pr-box, .pr-ico { animation: none; } }
+    .web-msg { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+    .web-msg a { color: var(--accent); }
     .hdr-right { display: flex; align-items: center; gap: 8px; }
     .icon-btn { border: 1px solid var(--border); background: var(--accent-soft); border-radius: 999px; width: 36px; height: 36px; font-size: 18px; cursor: pointer; line-height: 1; }
     .pct-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin: 0 0 14px; }
@@ -373,6 +387,15 @@
       </div>
     </div>
   </div>
+  <div id="praise" class="hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closePraise()">
+    <div class="pr-box">
+      <div class="pr-ico" id="prIco">🌟</div>
+      <h2 id="prHead" class="pr-head"></h2>
+      <p id="prFacts" class="pr-facts"></p>
+      <blockquote class="pr-quote"><span id="prText"></span><cite id="prAuthor"></cite></blockquote>
+      <button class="btn" id="prBtn" onclick="closePraise()"></button>
+    </div>
+  </div>
   <div id="busy" class="hidden"><div class="busy-box" data-i18n="busy">⏳ Wczytywanie książki…</div></div>
   <header>
     <div class="brand">📖 PaKu</div>
@@ -457,6 +480,28 @@
       </div>
 
       <div class="card">
+        <h3 data-i18n="webTitle">🌐 Wczytaj książkę z internetu</h3>
+        <label data-i18n="webUrlLabel">Link do pliku książki</label>
+        <input type="url" id="webUrl" placeholder="https://..." autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <button class="btn" data-i18n="webUrlBtn" onclick="importFromUrl()">⬇️ Pobierz i dodaj</button>
+
+        <label data-i18n="webSearchLabel">Lub wyszukaj darmową książkę</label>
+        <select id="webSource">
+          <option value="wl" data-i18n="srcWL">Wolne Lektury (po polsku)</option>
+          <option value="pg" data-i18n="srcPG">Project Gutenberg</option>
+        </select>
+        <input type="text" id="webQuery" data-i18n-ph="webQueryPh" placeholder="Tytuł lub autor..." onkeydown="if(event.key==='Enter')searchWeb()" />
+        <button class="btn btn-secondary" data-i18n="webSearchBtn" onclick="searchWeb()">🔎 Szukaj</button>
+        <div id="webResults" style="margin-top:10px;"></div>
+        <p class="web-msg" data-i18n="webHint"></p>
+        <p class="web-msg"><a href="https://wolnelektury.pl" target="_blank" rel="noopener">wolnelektury.pl</a> · <a href="https://www.gutenberg.org" target="_blank" rel="noopener">gutenberg.org</a> · <a href="https://standardebooks.org" target="_blank" rel="noopener">standardebooks.org</a></p>
+      </div>
+
+      <div class="card">
+        <label class="chk"><input type="checkbox" id="praiseOn" onchange="togglePraise(this.checked)" /> <span data-i18n="praiseToggle">🎉 Słowa uznania po każdym rozdziale</span></label>
+      </div>
+
+      <div class="card">
         <h3 data-i18n="testTitle">🧪 Testowanie i zarządzanie</h3>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-secondary" data-i18n="simDay" onclick="simulateNextDay()">⏩ Symuluj +1 dzień</button>
@@ -520,6 +565,34 @@
         pasteFirst: "Wklej najpierw treść książki.",
         epubLib: "Biblioteka do czytania EPUB nie została wczytana (wymagany internet przy pierwszym uruchomieniu).",
         epubNone: "Nie udało się odczytać rozdziałów z pliku EPUB.", fileError: "Błąd odczytu pliku: ",
+        webTitle: "🌐 Wczytaj książkę z internetu",
+        webUrlLabel: "Link do pliku książki (.epub, .txt, .pdf, .mobi, .doc, .docx)",
+        webUrlBtn: "⬇️ Pobierz i dodaj",
+        webSearchLabel: "Lub wyszukaj darmową książkę",
+        srcWL: "Wolne Lektury (po polsku)",
+        srcPG: "Project Gutenberg (język aplikacji)",
+        webQueryPh: "Tytuł lub autor...",
+        webSearchBtn: "🔎 Szukaj",
+        webSearching: "Szukam…",
+        webNoResults: "Nic nie znaleziono. Spróbuj innego tytułu lub autora.",
+        webAdd: "Dodaj",
+        webHint: "Potrzebny jest internet. Jeśli pobranie się nie uda, pobierz książkę w przeglądarce (strony poniżej) i dodaj ją polem wyboru pliku wyżej.",
+        netOffline: "Brak połączenia z internetem. Połącz się z siecią i spróbuj ponownie.",
+        netBlocked: "Nie udało się pobrać pliku. Brak połączenia albo serwer blokuje pobieranie z aplikacji. Pobierz książkę w przeglądarce i dodaj ją polem wyboru pliku wyżej.",
+        netTimeout: "Pobieranie trwało zbyt długo. Sprawdź połączenie i spróbuj ponownie.",
+        netHttp: "Serwer nie udostępnił pliku (błąd adresu lub brak dostępu).",
+        netTooBig: "Plik jest zbyt duży (maks. 60 MB).",
+        netNotBook: "Ten adres prowadzi do strony internetowej, a nie do pliku książki. Wklej bezpośredni link do pliku (.epub, .txt, .pdf…).",
+        webBadUrl: "Wpisz pełny adres zaczynający się od https://",
+        webNoFile: "Dla tej książki nie ma pliku do pobrania.",
+        praiseNext: "Dalej ➡️",
+        praiseToggle: "🎉 Słowa uznania i cytaty po każdym rozdziale",
+        praiseFacts: "+{w} słów · rozdziały: {d} z {n} ({p}%)",
+        praiseList: ["Rozdział zaliczony! PaKu jest z Ciebie naprawdę dumne. 💜", "Brawo! Każda przeczytana strona to krok do przodu.", "Świetna robota — tak właśnie buduje się nawyk czytania!", "Kolejny rozdział za Tobą! Tak trzymać!", "Jesteśmy pod wrażeniem Twojej konsekwencji.", "To było mocne czytanie. Należy Ci się chwila satysfakcji!", "Dzień po dniu, rozdział po rozdziale — idzie Ci znakomicie.", "Cierpliwość procentuje. Brawo!", "Czytasz jak prawdziwy mistrz!", "Kolejny rozdział odhaczony — wspaniałe tempo!", "Duma, duma, duma! Tak wygląda wytrwałość.", "Świetnie Ci idzie — widać, że to Twój rytm.", "Książka kontra rozproszenia: 1:0. Gratulacje!", "To zasługuje na brawa! 👏", "Czytanie to trening dla umysłu — właśnie zaliczona kolejna seria!", "Ten rozdział jest już Twój. Znakomicie!", "Znalezienie czasu na książkę to sztuka. Gratulacje!", "Fantastyczna robota! Teraz chwila oddechu, a potem dalej.", "Jeszcze krok bliżej końca książki — i jeszcze jeden powód do dumy.", "PaKu bije Ci brawo! 🍁"],
+        praiseFirst: ["Pierwszy rozdział za Tobą — to najważniejszy krok. Witamy w klubie czytelników PaKu! 🎉", "Start udany! Pierwszy rozdział zaliczony, PaKu jest z Ciebie dumne.", "Pierwszy raz zawsze jest wyjątkowy. Brawo za dobry początek!"],
+        praiseHalf: ["Półmetek! Połowa książki już za Tobą.", "Równo połowa drogi pokonana — tak trzymać!", "Już połowa! Wytrwałość naprawdę procentuje.", "Półmetek zaliczony — dalej pójdzie jeszcze lepiej."],
+        praiseFinish: ["KONIEC! Cała książka za Tobą — PaKu jest z Ciebie niesamowicie dumne! 🎉", "Dotarcie do ostatniej strony to wielkie osiągnięcie. Gratulacje!", "Książka ukończona! To zasługuje na prawdziwe świętowanie.", "Mistrzowska wytrwałość — od pierwszej do ostatniej strony!", "Ostatnia kartka obrócona — to się nazywa konsekwencja!"],
+        quoteList: [["Czytelnik żyje tysiąc żyć, zanim umrze.", "George R.R. Martin"], ["Dziś czytelnik, jutro przywódca.", "Margaret Fuller"], ["Im więcej czytasz, tym więcej wiesz. Im więcej się uczysz, tym dalej zajdziesz.", "Dr Seuss"], ["Czytanie jest dla umysłu tym, czym ćwiczenia dla ciała.", "Joseph Addison"], ["Podróż tysiąca mil zaczyna się od jednego kroku.", "Lao Tzu"], ["Nie ma znaczenia, jak wolno idziesz, dopóki się nie zatrzymujesz.", "Konfucjusz"], ["Książki to wyjątkowo przenośna magia.", "Stephen King"], ["Czytanie daje nam miejsce, dokąd możemy pójść, gdy musimy zostać tam, gdzie jesteśmy.", "Mason Cooley"], ["Nie ma filiżanki herbaty dość dużej ani książki dość długiej, by mi odpowiadały.", "C.S. Lewis"], ["Czytanie dobrych książek to rozmowa z najwybitniejszymi umysłami minionych wieków.", "René Descartes"], ["Wielkie rzeczy dokonują się przez wiele małych rzeczy zebranych razem.", "Vincent van Gogh"], ["Zawsze wyobrażałem sobie, że raj jest rodzajem biblioteki.", "Jorge Luis Borges"]],
         tooBig: "Książka jest zbyt duża, żeby zapisać ją w pamięci przeglądarki. Po zamknięciu aplikacji wróci poprzednia książka.",
         loaded: "Wczytano \"{t}\" ({n} rozdz.)!", confirmReset: "Zresetować postęp czytania?",
         defaultTitle: "Moja Książka", partN: "Część {n}", chapterN: "Rozdział {n}", icsDesc: "Czas na kolejny rozdział w aplikacji PaKu.",
@@ -604,6 +677,34 @@
         pasteFirst: "Please paste the book text first.",
         epubLib: "The EPUB library didn't load (internet is required on first launch).",
         epubNone: "Couldn't read any chapters from the EPUB file.", fileError: "File read error: ",
+        webTitle: "🌐 Load a book from the internet",
+        webUrlLabel: "Link to the book file (.epub, .txt, .pdf, .mobi, .doc, .docx)",
+        webUrlBtn: "⬇️ Download and add",
+        webSearchLabel: "Or search for a free book",
+        srcWL: "Wolne Lektury (Polish)",
+        srcPG: "Project Gutenberg (app language)",
+        webQueryPh: "Title or author...",
+        webSearchBtn: "🔎 Search",
+        webSearching: "Searching…",
+        webNoResults: "Nothing found. Try another title or author.",
+        webAdd: "Add",
+        webHint: "An internet connection is required. If the download fails, download the book in your browser (sites below) and add it with the file picker above.",
+        netOffline: "No internet connection. Connect to a network and try again.",
+        netBlocked: "Couldn't download the file. You may be offline, or the server blocks downloads from apps. Download the book in your browser and add it with the file picker above.",
+        netTimeout: "The download took too long. Check your connection and try again.",
+        netHttp: "The server didn't provide the file (wrong address or no access).",
+        netTooBig: "The file is too large (max 60 MB).",
+        netNotBook: "This address leads to a web page, not a book file. Paste a direct link to the file (.epub, .txt, .pdf…).",
+        webBadUrl: "Enter a full address starting with https://",
+        webNoFile: "No downloadable file is available for this book.",
+        praiseNext: "Continue ➡️",
+        praiseToggle: "🎉 Praise and quotes after every chapter",
+        praiseFacts: "+{w} words · chapters: {d} of {n} ({p}%)",
+        praiseList: ["Chapter done! PaKu is truly proud of you. 💜", "Well done! Every page you read is a step forward.", "Great job — this is exactly how a reading habit is built!", "Another chapter behind you! Keep it up!", "We're impressed by how consistent you are.", "That was solid reading. You deserve a moment of satisfaction!", "Day by day, chapter by chapter — you're doing wonderfully.", "Patience pays off. Well done!", "You read like a true master!", "Another chapter ticked off — wonderful pace!", "Proud, proud, proud! This is what perseverance looks like.", "You're doing great — this is clearly your rhythm.", "Book versus distractions: 1–0. Congratulations!", "That deserves applause! 👏", "Reading is a workout for the mind — and you just finished another set!", "This chapter is yours now. Excellent!", "Finding time for a book is an art. Congratulations!", "Fantastic work! Take a breather, then carry on.", "One step closer to the end of the book — and one more reason to be proud.", "PaKu is giving you a standing ovation! 🍁"],
+        praiseFirst: ["Your first chapter is done — the most important step. Welcome to the PaKu readers' club! 🎉", "Great start! First chapter complete, and PaKu is proud of you.", "Your first time is always special. Well done on a great beginning!"],
+        praiseHalf: ["Halfway there! Half of the book is behind you.", "Exactly half of the way done — keep going!", "Already halfway! Perseverance really pays off.", "Halfway point reached — it will only get better from here."],
+        praiseFinish: ["THE END! The whole book is behind you — PaKu is incredibly proud of you! 🎉", "Reaching the last page is a great achievement. Congratulations!", "Book finished! This deserves a real celebration.", "Masterful perseverance — from the first page to the last!", "Last page turned — that's what consistency looks like!"],
+        quoteList: [["A reader lives a thousand lives before he dies.", "George R.R. Martin"], ["Today a reader, tomorrow a leader.", "Margaret Fuller"], ["The more that you read, the more things you will know. The more that you learn, the more places you'll go.", "Dr. Seuss"], ["Reading is to the mind what exercise is to the body.", "Joseph Addison"], ["A journey of a thousand miles begins with a single step.", "Lao Tzu"], ["It does not matter how slowly you go as long as you do not stop.", "Confucius"], ["Books are a uniquely portable magic.", "Stephen King"], ["Reading gives us someplace to go when we have to stay where we are.", "Mason Cooley"], ["You can never get a cup of tea large enough or a book long enough to suit me.", "C.S. Lewis"], ["Reading good books is like a conversation with the finest minds of past centuries.", "René Descartes"], ["Great things are done by a series of small things brought together.", "Vincent van Gogh"], ["I have always imagined that Paradise will be a kind of library.", "Jorge Luis Borges"]],
         tooBig: "The book is too large to save in the browser's storage. When you close the app, the previous book will return.",
         loaded: "Loaded \"{t}\" ({n} chapters)!", confirmReset: "Reset reading progress?",
         defaultTitle: "My Book", partN: "Part {n}", chapterN: "Chapter {n}", icsDesc: "Time for the next chapter in the PaKu app.",
@@ -688,6 +789,34 @@
         pasteFirst: "Bitte füge zuerst den Buchtext ein.",
         epubLib: "Die EPUB-Bibliothek wurde nicht geladen (beim ersten Start wird Internet benötigt).",
         epubNone: "Aus der EPUB-Datei konnten keine Kapitel gelesen werden.", fileError: "Fehler beim Lesen der Datei: ",
+        webTitle: "🌐 Buch aus dem Internet laden",
+        webUrlLabel: "Link zur Buchdatei (.epub, .txt, .pdf, .mobi, .doc, .docx)",
+        webUrlBtn: "⬇️ Herunterladen und hinzufügen",
+        webSearchLabel: "Oder ein kostenloses Buch suchen",
+        srcWL: "Wolne Lektury (Polnisch)",
+        srcPG: "Project Gutenberg (App-Sprache)",
+        webQueryPh: "Titel oder Autor...",
+        webSearchBtn: "🔎 Suchen",
+        webSearching: "Suche…",
+        webNoResults: "Nichts gefunden. Versuche einen anderen Titel oder Autor.",
+        webAdd: "Hinzufügen",
+        webHint: "Eine Internetverbindung ist erforderlich. Schlägt der Download fehl, lade das Buch im Browser herunter (Seiten unten) und füge es über die Dateiauswahl oben hinzu.",
+        netOffline: "Keine Internetverbindung. Verbinde dich mit einem Netzwerk und versuche es erneut.",
+        netBlocked: "Die Datei konnte nicht geladen werden. Du bist offline, oder der Server blockiert Downloads aus Apps. Lade das Buch im Browser herunter und füge es über die Dateiauswahl oben hinzu.",
+        netTimeout: "Der Download hat zu lange gedauert. Prüfe die Verbindung und versuche es erneut.",
+        netHttp: "Der Server hat die Datei nicht bereitgestellt (falsche Adresse oder kein Zugriff).",
+        netTooBig: "Die Datei ist zu groß (max. 60 MB).",
+        netNotBook: "Diese Adresse führt zu einer Webseite, nicht zu einer Buchdatei. Füge einen direkten Link zur Datei ein (.epub, .txt, .pdf…).",
+        webBadUrl: "Gib eine vollständige Adresse ein, die mit https:// beginnt",
+        webNoFile: "Für dieses Buch gibt es keine herunterladbare Datei.",
+        praiseNext: "Weiter ➡️",
+        praiseToggle: "🎉 Lob und Zitate nach jedem Kapitel",
+        praiseFacts: "+{w} Wörter · Kapitel: {d} von {n} ({p}%)",
+        praiseList: ["Kapitel geschafft! PaKu ist wirklich stolz auf dich. 💜", "Bravo! Jede gelesene Seite ist ein Schritt nach vorn.", "Tolle Arbeit – so entsteht eine Lesegewohnheit!", "Das nächste Kapitel liegt hinter dir! Weiter so!", "Wir sind beeindruckt von deiner Beständigkeit.", "Das war starkes Lesen. Du hast dir einen Moment der Zufriedenheit verdient!", "Tag für Tag, Kapitel für Kapitel – das läuft hervorragend.", "Geduld zahlt sich aus. Bravo!", "Du liest wie ein wahrer Meister!", "Wieder ein Kapitel abgehakt – tolles Tempo!", "Stolz, stolz, stolz! So sieht Ausdauer aus.", "Das läuft richtig gut – das ist eindeutig dein Rhythmus.", "Buch gegen Ablenkung: 1:0. Glückwunsch!", "Dafür gibt es Applaus! 👏", "Lesen ist Training für den Geist – und du hast gerade einen weiteren Satz geschafft!", "Dieses Kapitel gehört jetzt dir. Ausgezeichnet!", "Zeit für ein Buch zu finden ist eine Kunst. Glückwunsch!", "Fantastische Arbeit! Gönn dir kurz eine Pause und mach dann weiter.", "Wieder ein Schritt näher am Ende des Buches – und ein Grund mehr, stolz zu sein.", "PaKu applaudiert dir im Stehen! 🍁"],
+        praiseFirst: ["Dein erstes Kapitel ist geschafft – der wichtigste Schritt. Willkommen im PaKu-Leseclub! 🎉", "Guter Start! Erstes Kapitel erledigt, und PaKu ist stolz auf dich.", "Das erste Mal ist immer besonders. Bravo für den schönen Anfang!"],
+        praiseHalf: ["Halbzeit! Die Hälfte des Buches liegt hinter dir.", "Genau die Hälfte des Weges geschafft – weiter so!", "Schon die Hälfte! Ausdauer zahlt sich wirklich aus.", "Halbzeit erreicht – ab jetzt wird es nur noch besser."],
+        praiseFinish: ["ENDE! Das ganze Buch liegt hinter dir – PaKu ist unglaublich stolz auf dich! 🎉", "Die letzte Seite zu erreichen ist eine große Leistung. Glückwunsch!", "Buch beendet! Das verdient eine richtige Feier.", "Meisterhafte Ausdauer – von der ersten bis zur letzten Seite!", "Letzte Seite umgeblättert – so sieht Beständigkeit aus!"],
+        quoteList: [["Ein Leser lebt tausend Leben, bevor er stirbt.", "George R.R. Martin"], ["Heute ein Leser, morgen ein Anführer.", "Margaret Fuller"], ["Je mehr du liest, desto mehr weißt du. Je mehr du lernst, desto weiter wirst du kommen.", "Dr. Seuss"], ["Lesen ist für den Geist, was Training für den Körper ist.", "Joseph Addison"], ["Eine Reise von tausend Meilen beginnt mit einem einzigen Schritt.", "Laozi"], ["Es spielt keine Rolle, wie langsam du gehst, solange du nicht stehen bleibst.", "Konfuzius"], ["Bücher sind eine einzigartig tragbare Magie.", "Stephen King"], ["Lesen gibt uns einen Ort, an den wir gehen können, wenn wir bleiben müssen, wo wir sind.", "Mason Cooley"], ["Keine Tasse Tee ist mir groß genug und kein Buch lang genug.", "C.S. Lewis"], ["Gute Bücher zu lesen ist wie ein Gespräch mit den besten Köpfen vergangener Jahrhunderte.", "René Descartes"], ["Große Dinge entstehen durch viele kleine Dinge, die zusammenkommen.", "Vincent van Gogh"], ["Ich habe mir das Paradies immer als eine Art Bibliothek vorgestellt.", "Jorge Luis Borges"]],
         tooBig: "Das Buch ist zu groß, um im Browserspeicher gespeichert zu werden. Nach dem Schließen der App kehrt das vorherige Buch zurück.",
         loaded: "„{t}“ geladen ({n} Kapitel)!", confirmReset: "Lesefortschritt zurücksetzen?",
         defaultTitle: "Mein Buch", partN: "Teil {n}", chapterN: "Kapitel {n}", icsDesc: "Zeit für das nächste Kapitel in der PaKu-App.",
@@ -772,6 +901,34 @@
         pasteFirst: "Primero pega el texto del libro.",
         epubLib: "No se cargó la biblioteca para leer EPUB (se necesita internet la primera vez).",
         epubNone: "No se pudieron leer capítulos del archivo EPUB.", fileError: "Error al leer el archivo: ",
+        webTitle: "🌐 Cargar un libro desde internet",
+        webUrlLabel: "Enlace al archivo del libro (.epub, .txt, .pdf, .mobi, .doc, .docx)",
+        webUrlBtn: "⬇️ Descargar y añadir",
+        webSearchLabel: "O busca un libro gratuito",
+        srcWL: "Wolne Lektury (polaco)",
+        srcPG: "Project Gutenberg (idioma de la app)",
+        webQueryPh: "Título o autor...",
+        webSearchBtn: "🔎 Buscar",
+        webSearching: "Buscando…",
+        webNoResults: "No se encontró nada. Prueba con otro título o autor.",
+        webAdd: "Añadir",
+        webHint: "Se necesita conexión a internet. Si la descarga falla, descarga el libro en el navegador (sitios de abajo) y añádelo con el selector de archivos de arriba.",
+        netOffline: "Sin conexión a internet. Conéctate a una red e inténtalo de nuevo.",
+        netBlocked: "No se pudo descargar el archivo. Quizá no hay conexión o el servidor bloquea descargas desde apps. Descarga el libro en el navegador y añádelo con el selector de archivos de arriba.",
+        netTimeout: "La descarga tardó demasiado. Revisa la conexión e inténtalo de nuevo.",
+        netHttp: "El servidor no proporcionó el archivo (dirección incorrecta o sin acceso).",
+        netTooBig: "El archivo es demasiado grande (máx. 60 MB).",
+        netNotBook: "Esta dirección lleva a una página web, no a un archivo de libro. Pega un enlace directo al archivo (.epub, .txt, .pdf…).",
+        webBadUrl: "Escribe una dirección completa que empiece por https://",
+        webNoFile: "No hay ningún archivo descargable para este libro.",
+        praiseNext: "Continuar ➡️",
+        praiseToggle: "🎉 Elogios y citas tras cada capítulo",
+        praiseFacts: "+{w} palabras · capítulos: {d} de {n} ({p}%)",
+        praiseList: ["¡Capítulo completado! PaKu está muy orgulloso de ti. 💜", "¡Bravo! Cada página leída es un paso adelante.", "¡Gran trabajo! Así se construye un hábito de lectura.", "¡Otro capítulo a tus espaldas! ¡Sigue así!", "Nos impresiona tu constancia.", "Ha sido una lectura potente. ¡Te mereces un momento de satisfacción!", "Día a día, capítulo a capítulo: te va de maravilla.", "La paciencia da frutos. ¡Bravo!", "¡Qué manera tan magistral de leer!", "Otro capítulo tachado: ¡un ritmo estupendo!", "¡Orgullo, orgullo, orgullo! Así se ve la perseverancia.", "Te va genial: se nota que este es tu ritmo.", "Libro contra distracciones: 1-0. ¡Felicidades!", "¡Esto merece un aplauso! 👏", "Leer es entrenamiento para la mente, ¡y acabas de completar otra serie!", "Este capítulo ya es tuyo. ¡Excelente!", "Encontrar tiempo para un libro es un arte. ¡Felicidades!", "¡Trabajo fantástico! Respira un momento y sigue.", "Un paso más cerca del final del libro y un motivo más de orgullo.", "¡PaKu te dedica una ovación! 🍁"],
+        praiseFirst: ["Tu primer capítulo está hecho: el paso más importante. ¡Te damos la bienvenida al club de lectores de PaKu! 🎉", "¡Buen comienzo! Primer capítulo completado y PaKu está orgulloso de ti.", "La primera vez siempre es especial. ¡Bravo por un gran comienzo!"],
+        praiseHalf: ["¡Mitad del camino! La mitad del libro ya está atrás.", "Justo la mitad recorrida: ¡sigue así!", "¡Ya a la mitad! La perseverancia da frutos de verdad.", "Mitad alcanzada: a partir de aquí irá aún mejor."],
+        praiseFinish: ["¡FIN! El libro entero queda atrás: ¡PaKu está increíblemente orgulloso de ti! 🎉", "Llegar a la última página es un gran logro. ¡Felicidades!", "¡Libro terminado! Esto merece una verdadera celebración.", "Perseverancia magistral: ¡de la primera a la última página!", "Última página pasada: ¡así se ve la constancia!"],
+        quoteList: [["Un lector vive mil vidas antes de morir.", "George R.R. Martin"], ["Hoy lector, mañana líder.", "Margaret Fuller"], ["Cuanto más lees, más cosas sabrás. Cuanto más aprendes, a más lugares irás.", "Dr. Seuss"], ["La lectura es para la mente lo que el ejercicio es para el cuerpo.", "Joseph Addison"], ["Un viaje de mil millas comienza con un solo paso.", "Lao Tse"], ["No importa lo despacio que vayas, siempre que no te detengas.", "Confucio"], ["Los libros son una magia singularmente portátil.", "Stephen King"], ["Leer nos da un lugar adonde ir cuando tenemos que quedarnos donde estamos.", "Mason Cooley"], ["Nunca hay una taza de té lo bastante grande ni un libro lo bastante largo para mí.", "C.S. Lewis"], ["Leer buenos libros es como conversar con las mejores mentes de siglos pasados.", "René Descartes"], ["Las grandes cosas se hacen con una serie de pequeñas cosas juntas.", "Vincent van Gogh"], ["Siempre imaginé que el Paraíso sería una especie de biblioteca.", "Jorge Luis Borges"]],
         tooBig: "El libro es demasiado grande para guardarlo en la memoria del navegador. Al cerrar la aplicación volverá el libro anterior.",
         loaded: "«{t}» cargado ({n} capítulos).", confirmReset: "¿Restablecer el progreso de lectura?",
         defaultTitle: "Mi libro", partN: "Parte {n}", chapterN: "Capítulo {n}", icsDesc: "Es hora del siguiente capítulo en la aplicación PaKu.",
@@ -856,6 +1013,34 @@
         pasteFirst: "Спершу вставте текст книги.",
         epubLib: "Бібліотеку для читання EPUB не завантажено (під час першого запуску потрібен інтернет).",
         epubNone: "Не вдалося прочитати розділи з файлу EPUB.", fileError: "Помилка читання файлу: ",
+        webTitle: "🌐 Завантажити книгу з інтернету",
+        webUrlLabel: "Посилання на файл книги (.epub, .txt, .pdf, .mobi, .doc, .docx)",
+        webUrlBtn: "⬇️ Завантажити й додати",
+        webSearchLabel: "Або знайдіть безкоштовну книгу",
+        srcWL: "Wolne Lektury (польською)",
+        srcPG: "Project Gutenberg (мова застосунку)",
+        webQueryPh: "Назва або автор...",
+        webSearchBtn: "🔎 Шукати",
+        webSearching: "Шукаю…",
+        webNoResults: "Нічого не знайдено. Спробуйте іншу назву або автора.",
+        webAdd: "Додати",
+        webHint: "Потрібне підключення до інтернету. Якщо завантаження не вдалося, завантажте книгу в браузері (сайти нижче) і додайте її вибором файлу вище.",
+        netOffline: "Немає підключення до інтернету. Підключіться до мережі й спробуйте ще раз.",
+        netBlocked: "Не вдалося завантажити файл. Можливо, немає зв’язку або сервер блокує завантаження із застосунків. Завантажте книгу в браузері й додайте її вибором файлу вище.",
+        netTimeout: "Завантаження тривало надто довго. Перевірте з’єднання й спробуйте ще раз.",
+        netHttp: "Сервер не надав файл (хибна адреса або немає доступу).",
+        netTooBig: "Файл завеликий (макс. 60 МБ).",
+        netNotBook: "Ця адреса веде на вебсторінку, а не на файл книги. Вставте пряме посилання на файл (.epub, .txt, .pdf…).",
+        webBadUrl: "Введіть повну адресу, що починається з https://",
+        webNoFile: "Для цієї книги немає файлу для завантаження.",
+        praiseNext: "Далі ➡️",
+        praiseToggle: "🎉 Слова підтримки та цитати після кожного розділу",
+        praiseFacts: "+{w} слів · розділи: {d} з {n} ({p}%)",
+        praiseList: ["Розділ зараховано! PaKu щиро пишається вами. 💜", "Браво! Кожна прочитана сторінка — це крок уперед.", "Чудова робота — саме так формується звичка читати!", "Ще один розділ позаду! Так тримати!", "Ми вражені вашою послідовністю.", "Це було сильне читання. Ви заслужили хвилину задоволення!", "День за днем, розділ за розділом — виходить чудово.", "Терпіння окупається. Браво!", "Ось це майстерне читання!", "Ще один розділ позначено — чудовий темп!", "Гордість, гордість, гордість! Ось так виглядає наполегливість.", "Виходить чудово — одразу видно, що це ваш ритм.", "Книжка проти відволікань: 1:0. Вітаємо!", "Це заслуговує на оплески! 👏", "Читання — це тренування для розуму, а ви щойно завершили ще один підхід!", "Цей розділ тепер ваш. Чудово!", "Знайти час на книжку — це мистецтво. Вітаємо!", "Фантастична робота! Перепочиньте хвилинку й рухайтеся далі.", "Ще один крок до кінця книжки — і ще одна причина для гордості.", "PaKu аплодує вам стоячи! 🍁"],
+        praiseFirst: ["Перший розділ позаду — це найважливіший крок. Ласкаво просимо до клубу читачів PaKu! 🎉", "Вдалий старт! Перший розділ зараховано, і PaKu пишається вами.", "Перший раз завжди особливий. Браво за чудовий початок!"],
+        praiseHalf: ["Півшляху! Половина книжки вже позаду.", "Рівно половину шляху подолано — так тримати!", "Уже половина! Наполегливість справді окупається.", "Середину досягнуто — далі буде ще краще."],
+        praiseFinish: ["КІНЕЦЬ! Усю книжку прочитано — PaKu неймовірно пишається вами! 🎉", "Дійти до останньої сторінки — велике досягнення. Вітаємо!", "Книжку завершено! Це заслуговує на справжнє святкування.", "Майстерна наполегливість — від першої до останньої сторінки!", "Остання сторінка перегорнута — ось що таке послідовність!"],
+        quoteList: [["Читач живе тисячу життів, перш ніж помре.", "Джордж Р. Р. Мартін"], ["Сьогодні читач, завтра лідер.", "Маргарет Фуллер"], ["Чим більше ти читаєш, тим більше знаєш. Чим більше вчишся, тим далі зайдеш.", "Доктор Сьюз"], ["Читання для розуму — те саме, що вправи для тіла.", "Джозеф Аддісон"], ["Подорож у тисячу миль починається з одного кроку.", "Лао-цзи"], ["Неважливо, як повільно ти йдеш, головне — не зупинятися.", "Конфуцій"], ["Книжки — це особливо портативна магія.", "Стівен Кінг"], ["Читання дає нам місце, куди піти, коли ми мусимо залишатися там, де є.", "Мейсон Кулі"], ["Не існує чашки чаю, достатньо великої, чи книжки, достатньо довгої для мене.", "К. С. Льюїс"], ["Читати хороші книжки — це як розмовляти з найкращими умами минулих століть.", "Рене Декарт"], ["Великі справи робляться з багатьох дрібних речей, зібраних разом.", "Вінсент ван Гог"], ["Я завжди уявляв, що рай — це свого роду бібліотека.", "Хорхе Луїс Борхес"]],
         tooBig: "Книга завелика, щоб зберегти її в пам’яті браузера. Після закриття застосунку повернеться попередня книга.",
         loaded: "Завантажено «{t}» ({n} розд.)!", confirmReset: "Скинути прогрес читання?",
         defaultTitle: "Моя книга", partN: "Частина {n}", chapterN: "Розділ {n}", icsDesc: "Час для наступного розділу в застосунку PaKu.",
@@ -1047,7 +1232,7 @@
     function freshState() {
       const db = defaultBook(initialLang);
       const rec = makeRec({ id: 'b1', title: db.title, isDefault: true, chapterCount: db.chapters.length });
-      return { lang: initialLang, theme: 'light', fontSize: 18, timeOffsetMs: 0, activeBookId: rec.id, books: [rec], log: [] };
+      return { lang: initialLang, theme: 'light', fontSize: 18, timeOffsetMs: 0, activeBookId: rec.id, books: [rec], log: [], praise: defPraise() };
     }
 
     function loadSavedState() {
@@ -1090,6 +1275,7 @@
       st.theme = st.theme || 'light';
       st.fontSize = st.fontSize || 18;
       st.timeOffsetMs = st.timeOffsetMs || 0;
+      st.praise = Object.assign(defPraise(), st.praise || {});
       st.log = Array.isArray(st.log) ? st.log.filter(e => e && Number.isFinite(e.ts)) : [];
       st.books = st.books.slice(0, MAX_BOOKS).map((r, i) => {
         const rec = Object.assign(makeRec({ color: BOOK_COLORS[i % BOOK_COLORS.length] }), r);
@@ -1375,18 +1561,92 @@
     function completeChapter(idx) {
       const rec = activeRec();
       const book = bookOf(rec);
-      let reached = -1;
+      const total = book.chapters.length;
+      let reached = -1, fresh = false, words = 0;
+      const before = rec.completed.length;
       if (!rec.completed.includes(idx)) {
+        fresh = true;
         rec.completed.push(idx);
-        reached = logRead(countWords(book.chapters[idx].content), 0);
+        words = countWords(book.chapters[idx].content);
+        reached = logRead(words, 0);
       }
-      if (idx + 1 < book.chapters.length) rec.currentIndex = idx + 1;
+      if (idx + 1 < total) rec.currentIndex = idx + 1;
       saveState();
       renderReader();
       renderLibrary();
       window.scrollTo(0, 0);
-      if (reached >= 0) showRewards({ title: t('rwReached', { n: bodyName(reached) }) });
+      const afterFn = reached >= 0 ? () => showRewards({ title: t('rwReached', { n: bodyName(reached) }) }) : null;
+      if (fresh && state.praise.on) {
+        const P = state.praise;
+        let kind = 'chapter';
+        if (!P.first) { kind = 'first'; P.first = true; }
+        else if (total >= 4 && before < Math.ceil(total / 2) && rec.completed.length >= Math.ceil(total / 2) && !P.half[rec.id]) { kind = 'half'; P.half[rec.id] = true; }
+        saveState();
+        showPraise({ kind, w: words, done: rec.completed.length, n: total, after: afterFn });
+      } else if (afterFn) {
+        afterFn();
+      }
     }
+
+    // ===== Słowa uznania i cytaty po przeczytanym rozdziale (bez powtórek, dopóki nie zużyje się cała pula) =====
+    const PRAISE_ICONS = ['🌟', '🎉', '🏅', '🚀', '💜', '✨', '📚', '🔥', '👏', '🍁'];
+    const FINISH_ICONS = ['🎉', '🏁', '🥳'];
+
+    function defPraise() { return { on: true, first: false, half: {}, bags: {}, last: {} }; }
+    function L(key) { return (I18N[state.lang] && I18N[state.lang][key]) || I18N.pl[key]; }
+
+    // Losowanie z "koszyka": każdy element wypada raz, zanim któryś wróci
+    function drawIdx(name, n) {
+      const P = state.praise;
+      let bag = (P.bags[name] || []).filter(i => i < n);
+      if (!bag.length) {
+        bag = Array.from({ length: n }, (_, i) => i);
+        for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
+        if (n > 1 && bag[bag.length - 1] === P.last[name]) { const k = bag.length - 1; [bag[0], bag[k]] = [bag[k], bag[0]]; }
+      }
+      const idx = bag.pop();
+      P.bags[name] = bag;
+      P.last[name] = idx;
+      return idx;
+    }
+
+    function pickPraise(kind) {
+      const key = { first: 'praiseFirst', half: 'praiseHalf', finish: 'praiseFinish' }[kind] || 'praiseList';
+      const list = L(key);
+      const text = list[drawIdx(kind, list.length)];
+      const qs = L('quoteList');
+      const q = qs[drawIdx('quote', qs.length)];
+      const icons = kind === 'finish' ? FINISH_ICONS : PRAISE_ICONS;
+      return { text, quote: q[0], author: q[1], icon: icons[drawIdx('icon' + kind, icons.length)] };
+    }
+
+    let praiseAfter = null;
+    function showPraise(o) {
+      const box = document.getElementById('praise');
+      if (!box) { if (o.after) o.after(); return; }
+      const p = pickPraise(o.kind);
+      saveState();
+      document.getElementById('prIco').textContent = p.icon;
+      document.getElementById('prHead').textContent = p.text;
+      const pct = Math.round(o.done / o.n * 100);
+      document.getElementById('prFacts').textContent = o.kind === 'finish' && !o.w ? '' : t('praiseFacts', { w: fmtNum(o.w), d: o.done, n: o.n, p: pct });
+      document.getElementById('prText').textContent = '„' + p.quote + '”';
+      document.getElementById('prAuthor').textContent = '— ' + p.author;
+      document.getElementById('prBtn').textContent = t('praiseNext');
+      praiseAfter = o.after || null;
+      box.classList.remove('hidden');
+      const bx = box.querySelector('.pr-box');
+      bx.style.animation = 'none'; void bx.offsetWidth; bx.style.animation = '';
+    }
+
+    function closePraise() {
+      const box = document.getElementById('praise');
+      if (box) box.classList.add('hidden');
+      const fn = praiseAfter; praiseAfter = null;
+      if (fn) fn();
+    }
+
+    function togglePraise(on) { state.praise.on = !!on; saveState(); }
 
     // Zakończenie książki: normalnie (ostatni rozdział przeczytany) albo wcześniej – zaliczona jako przeczytana
     function finishBook(early) {
@@ -1411,7 +1671,9 @@
       renderReader();
       renderLibrary();
       window.scrollTo(0, 0);
-      showRewards({ title: reached >= 0 ? t('rwReached', { n: bodyName(reached) }) : t('rwFinished', { t: recTitle(rec) }) });
+      const rewardFn = () => showRewards({ title: reached >= 0 ? t('rwReached', { n: bodyName(reached) }) : t('rwFinished', { t: recTitle(rec) }) });
+      if (!early && state.praise.on) showPraise({ kind: 'finish', w: words, done: total, n: total, after: rewardFn });
+      else rewardFn();
     }
 
     // ===== Nagrody: podsumowania + podróż przez Układ Słoneczny i dalej =====
@@ -1570,8 +1832,8 @@
       fill.style.animation = 'none';
       void fill.offsetWidth;
       if (auto) {
-        fill.style.animation = 'rwCountdown 4s linear forwards';
-        rewardsTimer = setTimeout(closeRewards, 4000);
+        fill.style.animation = 'rwCountdown 30s linear forwards';
+        rewardsTimer = setTimeout(closeRewards, 30000);
       }
     }
 
@@ -1676,6 +1938,7 @@
       document.getElementById('unlockTime').value = rec.unlockTime;
       document.getElementById('startDate').value = localDateStr(new Date(rec.startDateISO));
       document.getElementById('limitNote').classList.toggle('hidden', canAddBook());
+      const pc = document.getElementById('praiseOn'); if (pc) pc.checked = !!state.praise.on;
     }
 
     function updateScheduleSettings() {
@@ -2338,6 +2601,160 @@
     }
 
     // --- Obsługa wyboru pliku ---
+    async function parseByExt(buf, ext) {
+      let chapters;
+      if (ext === 'txt') chapters = splitTextIntoChapters(decodeText(buf));
+      else if (ext === 'epub') chapters = await parseEpub(buf);
+      else if (ext === 'mobi' || ext === 'azw' || ext === 'azw3') chapters = parseMobi(buf);
+      else if (ext === 'docx') chapters = await parseDocx(buf);
+      else if (ext === 'doc') chapters = parseDoc(buf);
+      else if (ext === 'pdf') chapters = await parsePdf(buf);
+      else throw new UserError('unsupportedFile');
+      if (!chapters || !chapters.length) throw new UserError('noText');
+      return chapters;
+    }
+
+    // ===== Wczytywanie książek z internetu =====
+    const MAX_DOWNLOAD = 60 * 1024 * 1024;
+
+    function errText(err) {
+      return err instanceof UserError ? t(err.key) : t('fileError') + (err && err.message ? err.message : err);
+    }
+
+    async function fetchBuffer(url, as) {
+      if (!navigator.onLine) throw new UserError('netOffline');
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 90000);
+      try {
+        let res;
+        try {
+          res = await fetch(url, { signal: ctl.signal, credentials: 'omit', cache: 'no-store' });
+        } catch (e) {
+          throw new UserError(e && e.name === 'AbortError' ? 'netTimeout' : 'netBlocked');
+        }
+        if (!res.ok) throw new UserError('netHttp');
+        const len = parseInt(res.headers.get('content-length') || '0', 10);
+        if (len > MAX_DOWNLOAD) throw new UserError('netTooBig');
+        let data;
+        try { data = as === 'json' ? await res.json() : await res.arrayBuffer(); }
+        catch (e) { throw new UserError(e && e.name === 'AbortError' ? 'netTimeout' : 'netBlocked'); }
+        if (as !== 'json' && data.byteLength > MAX_DOWNLOAD) throw new UserError('netTooBig');
+        return { data, type: (res.headers.get('content-type') || '').toLowerCase(), url: res.url || url };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // Rozpoznaje format pobranego pliku: po rozszerzeniu, typie MIME, a na końcu po zawartości
+    function sniffExt(buf, url, type) {
+      const m = (new URL(url, location.href).pathname.match(/\.([a-z0-9]{2,5})$/i) || [])[1];
+      const known = ['epub', 'mobi', 'azw', 'azw3', 'pdf', 'doc', 'docx', 'txt'];
+      const u8 = new Uint8Array(buf.slice(0, 80));
+      const head = String.fromCharCode.apply(null, u8);
+      const isHtml = /^\s*(<!doctype html|<html|<\?xml[^>]*>\s*<!doctype html)/i.test(head) || type.includes('text/html');
+      if (isHtml) throw new UserError('netNotBook');
+      if (head.startsWith('%PDF')) return 'pdf';
+      if (head.startsWith('PK')) return head.includes('application/epub+zip') || /epub/i.test(type) || m === 'epub' ? 'epub' : 'docx';
+      if (u8[0] === 0xD0 && u8[1] === 0xCF && u8[2] === 0x11 && u8[3] === 0xE0) return 'doc';
+      if (head.slice(60, 68) === 'BOOKMOBI' || head.slice(60, 68) === 'TEXtREAd') return 'mobi';
+      if (m && known.includes(m.toLowerCase())) return m.toLowerCase();
+      return 'txt';
+    }
+
+    function titleFromUrl(url) {
+      try {
+        const last = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() || '');
+        return last.replace(/\.[^.]+$/, '').replace(/[_\-+]+/g, ' ').trim() || t('defaultTitle');
+      } catch (e) { return t('defaultTitle'); }
+    }
+
+    // Pobiera plik z adresu, rozpoznaje format i dodaje książkę do biblioteki
+    async function downloadAndAdd(url, title, extHint) {
+      if (!canAddBook()) return alert(t('limitReached'));
+      setBusy(true);
+      let chapters;
+      try {
+        const r = await fetchBuffer(url, 'buf');
+        const ext = extHint || sniffExt(r.data, r.url, r.type);
+        chapters = await parseByExt(r.data, ext);
+      } catch (err) {
+        setBusy(false);
+        alert(errText(err));
+        return;
+      }
+      setBusy(false);
+      await loadNewBook(title || titleFromUrl(url), chapters);
+    }
+
+    async function importFromUrl() {
+      let url = document.getElementById('webUrl').value.trim();
+      if (!/^https?:\/\//i.test(url)) return alert(t('webBadUrl'));
+      url = url.replace(/^http:\/\//i, 'https://'); // strona działa po HTTPS – http byłoby zablokowane
+      await downloadAndAdd(url, null, null);
+      document.getElementById('webUrl').value = '';
+    }
+
+    // Wyszukiwanie darmowych książek: Wolne Lektury (PL) i Project Gutenberg (przez Gutendex)
+    let webResults = [];
+    let wlIndex = null;
+    const normQ = s => String(s || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    async function searchWeb() {
+      const q = document.getElementById('webQuery').value.trim();
+      const src = document.getElementById('webSource').value;
+      const box = document.getElementById('webResults');
+      if (!q) return;
+      box.innerHTML = `<p class="web-msg">${t('webSearching')}</p>`;
+      try {
+        if (src === 'wl') {
+          if (!wlIndex) wlIndex = (await fetchBuffer('https://wolnelektury.pl/api/books/?format=json', 'json')).data;
+          const words = normQ(q).split(/\s+/).filter(Boolean);
+          webResults = (Array.isArray(wlIndex) ? wlIndex : []).filter(b => {
+            const hay = normQ((b.title || '') + ' ' + (b.author || ''));
+            return words.every(w => hay.includes(w));
+          }).slice(0, 20).map(b => ({ src: 'wl', title: b.title, author: b.author || '', href: b.href || (b.slug ? 'https://wolnelektury.pl/api/books/' + b.slug + '/' : '') }));
+        } else {
+          const lang = state.lang;
+          const d = (await fetchBuffer('https://gutendex.com/books/?search=' + encodeURIComponent(q) + '&languages=' + lang, 'json')).data;
+          webResults = (d.results || []).map(b => {
+            const f = b.formats || {};
+            const ek = Object.keys(f).find(k => k.startsWith('application/epub+zip'));
+            const tk = Object.keys(f).find(k => k.startsWith('text/plain'));
+            return { src: 'pg', title: b.title, author: (b.authors && b.authors[0] ? b.authors[0].name : ''), file: ek ? f[ek] : (tk ? f[tk] : ''), ext: ek ? 'epub' : 'txt' };
+          }).filter(b => b.file).slice(0, 20);
+        }
+      } catch (err) {
+        box.innerHTML = `<p class="web-msg">${escapeHtml(errText(err))}</p>`;
+        return;
+      }
+      if (!webResults.length) { box.innerHTML = `<p class="web-msg">${t('webNoResults')}</p>`; return; }
+      box.innerHTML = webResults.map((r, i) => `
+        <div class="lib-item" style="cursor:default;">
+          <div class="lib-main"><div class="lib-title" style="white-space:normal;">${escapeHtml(r.title)}</div><div class="lib-meta">${escapeHtml(r.author)}</div></div>
+          <button class="btn" style="width:auto;margin:0;padding:8px 14px;" onclick="addWebResult(${i})">${t('webAdd')}</button>
+        </div>`).join('');
+    }
+
+    async function addWebResult(i) {
+      const r = webResults[i];
+      if (!r) return;
+      if (!canAddBook()) return alert(t('limitReached'));
+      let url = r.file, ext = r.ext;
+      if (r.src === 'wl') {
+        setBusy(true);
+        try {
+          const d = (await fetchBuffer(r.href, 'json')).data;
+          if (d.epub) { url = d.epub; ext = 'epub'; }
+          else if (d.txt) { url = d.txt; ext = 'txt'; }
+          else if (d.mobi) { url = d.mobi; ext = 'mobi'; }
+          else if (d.pdf) { url = d.pdf; ext = 'pdf'; }
+          else throw new UserError('webNoFile');
+        } catch (err) { setBusy(false); return alert(errText(err)); }
+        setBusy(false);
+      }
+      await downloadAndAdd(url, r.title, ext);
+    }
+
     async function handleFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -2348,19 +2765,12 @@
       setBusy(true);
       try {
         const buf = await file.arrayBuffer();
-        if (ext === 'txt') chapters = splitTextIntoChapters(decodeText(buf));
-        else if (ext === 'epub') chapters = await parseEpub(buf);
-        else if (ext === 'mobi' || ext === 'azw') chapters = parseMobi(buf);
-        else if (ext === 'docx') chapters = await parseDocx(buf);
-        else if (ext === 'doc') chapters = parseDoc(buf);
-        else if (ext === 'pdf') chapters = await parsePdf(buf);
-        else throw new UserError('unsupportedFile');
-        if (!chapters || !chapters.length) throw new UserError('noText');
+        chapters = await parseByExt(buf, ext);
       } catch (err) {
         chapters = null;
         setBusy(false);
         e.target.value = '';
-        alert(err instanceof UserError ? t(err.key) : t('fileError') + (err && err.message ? err.message : err));
+        alert(errText(err));
         return;
       }
       setBusy(false);

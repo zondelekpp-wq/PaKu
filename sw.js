@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v11';
+const CACHE_NAME = 'drip-reader-pwa-v15';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -32,6 +32,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // Pobierane z internetu książki (inne domeny) przechodzą bez cache'owania
+  if (new URL(req.url).origin !== self.location.origin) return;
 
   // Strona (index.html): najpierw sieć, żeby aktualizacje były widoczne od razu; offline -> cache
   if (req.mode === 'navigate') {
