@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v15';
+const CACHE_NAME = 'drip-reader-pwa-v18';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,14 +8,16 @@ const ASSETS_TO_CACHE = [
   './icon-512.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
-  './lib/jszip.min.js',
   './lib/pdf.min.mjs',
   './lib/pdf.worker.min.mjs'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) =>
+      // każdy plik osobno: brak jednego (np. folderu lib) nie blokuje instalacji aplikacji
+      Promise.all(ASSETS_TO_CACHE.map((a) => cache.add(a).catch(() => {})))
+    )
   );
   self.skipWaiting();
 });
