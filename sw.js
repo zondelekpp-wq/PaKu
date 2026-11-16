@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v19';
+const CACHE_NAME = 'drip-reader-pwa-v26';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -66,4 +66,73 @@ self.addEventListener('fetch', (event) => {
       });
     })
   );
+});
+
+// ===== Codzienne przypomnienie (Periodic Background Sync – tylko tam, gdzie przeglądarka na to pozwala) =====
+function idbRead(key) {
+  return new Promise((resolve) => {
+    try {
+      const r = indexedDB.open('paku-db', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onerror = () => resolve(null);
+      r.onsuccess = () => {
+        const db = r.result;
+        const req = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+        req.onsuccess = () => { db.close(); resolve(req.result || null); };
+        req.onerror = () => { db.close(); resolve(null); };
+      };
+    } catch (e) { resolve(null); }
+  });
+}
+function idbWrite(key, val) {
+  return new Promise((resolve) => {
+    try {
+      const r = indexedDB.open('paku-db', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onerror = () => resolve();
+      r.onsuccess = () => {
+        const db = r.result, tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put(val, key);
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = tx.onabort = () => { db.close(); resolve(); };
+      };
+    } catch (e) { resolve(); }
+  });
+}
+function ymdLocal(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+async function dailyReminder() {
+  const cfg = await idbRead('reminder');
+  if (!cfg || !cfg.on || !cfg.time) return;
+  if (self.Notification && self.Notification.permission !== 'granted') return;
+  const now = new Date(), today = ymdLocal(now);
+  if (cfg.openedDate === today || cfg.lastDate === today) return; // dziś już czytasz lub przypomnienie było
+  const [h, m] = String(cfg.time).split(':').map(Number);
+  const mins = now.getHours() * 60 + now.getMinutes(), due = (h || 0) * 60 + (m || 0);
+  if (mins < due || mins > due + 12 * 60) return;
+  const bodies = (cfg.bodies && cfg.bodies.length) ? cfg.bodies : ['📖 PaKu czeka na Ciebie!'];
+  const day = Math.floor(now.getTime() / 86400000);
+  await self.registration.showNotification(cfg.title || 'PaKu', {
+    body: bodies[day % bodies.length], icon: './icon-192.png', badge: './icon-192.png', tag: 'paku-daily', data: { url: './' }
+  });
+  cfg.lastDate = today;
+  await idbWrite('reminder', cfg);
+}
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'paku-daily') event.waitUntil(dailyReminder());
+});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ('focus' in c) return c.focus(); }
+      return self.clients.openWindow('./');
+    })
+  );
+});
+// pomocniczo dla testów i ręcznego wywołania z aplikacji
+self.addEventListener('message', (event) => {
+  if (event.data === 'paku-run-reminder') event.waitUntil(dailyReminder());
 });

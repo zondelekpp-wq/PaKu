@@ -130,6 +130,41 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       white-space: pre-wrap;
     }
     .reader-body p { margin: 0 0 1.1em; overflow-wrap: anywhere; hyphens: auto; }
+    @media (min-width: 700px) {
+      main { max-width: 1100px; padding: 22px 28px; }
+      #tab-calendar, #tab-settings, #installBanner { max-width: 700px; margin-left: auto; margin-right: auto; }
+      .chapter-title { font-size: 26px; }
+      header { padding-left: 28px; padding-right: 28px; }
+    }
+    @media (min-width: 700px) and (orientation: landscape) { .pg-bar { max-width: 760px; margin-left: auto; margin-right: auto; } }
+    body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+    body.focus { padding: 0; }
+    body.focus header, body.focus nav, body.focus .controls-row, body.focus #installBanner, body.focus .pg-extra { display: none !important; }
+    body.focus main { max-width: none; padding: 0; }
+    body.focus #readerContent { position: fixed; inset: 0; z-index: 25; margin: 0; border-radius: 0; border: none; box-shadow: none;
+      padding: calc(12px + env(safe-area-inset-top)) calc(max(18px, env(safe-area-inset-right))) calc(12px + env(safe-area-inset-bottom)) calc(max(18px, env(safe-area-inset-left))); overflow: hidden; }
+    body.focus #readerContent .chapter-meta, body.focus #readerContent .progress-line { display: none; }
+    .qr-wrap { display: flex; justify-content: center; margin-bottom: 8px; }
+    #qrCanvas { width: min(260px, 70vw); height: auto; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--border); image-rendering: pixelated; background: #fff; }
+    .qr-url { text-align: center; font-size: 12px; color: var(--muted); word-break: break-all; margin-bottom: 10px; }
+    .hol-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; padding: 12px 14px; border-radius: 14px; font-weight: 700; font-size: 15px;
+      color: var(--on-accent); background: linear-gradient(120deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #fff)); box-shadow: 0 4px 14px rgba(0,0,0,.12); animation: holIn .6s ease both; }
+    .hol-x { border: none; background: rgba(255,255,255,.25); color: inherit; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 13px; flex: none; }
+    @keyframes holIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+    html[data-snark] .brand::after { content: ' 😈'; }
+    html[data-snark] .pr-head, html[data-snark] .hol-banner { font-style: italic; }
+    .remind-banner { background: var(--accent-soft); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; color: var(--text); }
+    body.focus .remind-banner { display: none; }
+    #bday, #wback { position: fixed; inset: 0; z-index: 960; background: rgba(27, 21, 48, 0.6); display: flex; align-items: center; justify-content: center; padding: 18px; }
+    .bd-box { position: relative; overflow: hidden; width: 100%; max-width: 420px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 28px 20px 22px; box-shadow: 0 18px 50px rgba(40,20,90,.4); animation: prPop .5s cubic-bezier(.2,.9,.3,1.25) both; }
+    .bd-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .bd-confetti .hol-p { opacity: .4; }
+    #holLayer { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+    main { position: relative; z-index: 1; }
+    .hol-p { position: absolute; top: -8vh; opacity: .8; animation: holFall linear infinite; }
+    @keyframes holFall { 0% { transform: translateY(-8vh) rotate(0deg); } 50% { transform: translateY(52vh) translateX(18px) rotate(180deg); } 100% { transform: translateY(112vh) translateX(-14px) rotate(360deg); } }
+    body.focus #holLayer, body.focus .hol-banner { display: none; }
+    @media (prefers-reduced-motion: reduce) { #holLayer { display: none; } .hol-banner { animation: none; } }
     .pager { overflow: hidden; position: relative; touch-action: pan-y; user-select: text; }
     .pager-inner { column-fill: auto; transition: transform 0.28s ease; will-change: transform; }
     .pager-inner .chapter-title { margin-top: 0; }
@@ -420,9 +455,26 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <button class="btn" id="prBtn" onclick="closePraise()"></button>
     </div>
   </div>
+  <div id="bday" class="hidden" role="dialog" aria-modal="true">
+    <div class="bd-box"><div id="bdConfetti" class="bd-confetti" aria-hidden="true"></div>
+      <div style="font-size:64px;line-height:1;position:relative;">🎂</div>
+      <h2 id="bdTitle" style="margin:10px 0 8px;position:relative;"></h2>
+      <p id="bdText" style="color:var(--muted);line-height:1.5;margin:0 0 16px;position:relative;"></p>
+      <button class="btn" id="bdBtn" style="position:relative;" onclick="closeBirthday()"></button>
+    </div>
+  </div>
+  <div id="wback" class="hidden" role="dialog" aria-modal="true">
+    <div class="bd-box">
+      <div id="wbIco" style="font-size:60px;line-height:1;">💜</div>
+      <h2 id="wbTitle" style="margin:10px 0 8px;"></h2>
+      <p id="wbText" style="color:var(--muted);line-height:1.5;margin:0 0 10px;"></p>
+      <p id="wbWait" style="color:var(--accent);font-weight:700;font-size:14px;margin:0 0 14px;"></p>
+      <button class="btn" id="wbBtn" onclick="closeWelcome()"></button>
+    </div>
+  </div>
   <div id="busy" class="hidden"><div class="busy-box" data-i18n="busy">⏳ Wczytywanie książki…</div></div>
   <header>
-    <div class="brand">📖 PaKu</div>
+    <div class="brand">📖 PaKu<span id="brandDeco" style="margin-left:2px;"></span></div>
     <div class="hdr-right">
     <button class="icon-btn" id="rwBtn" aria-label="Rewards" onclick="showRewards()">🌙</button>
     <select id="langSelect" class="lang-select" aria-label="Language" onchange="setLanguage(this.value)">
@@ -436,8 +488,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   </header>
 
   <main>
+    <div id="holBanner" class="hol-banner hidden"><span id="holBannerText"></span><button class="hol-x" aria-label="Close" onclick="dismissHoliday()">✕</button></div>
+    <div id="remindBanner" class="remind-banner hidden">
+      <div data-i18n="remPrompt" style="font-size:14px;font-weight:600;"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;"><button class="btn btn-small" onclick="enableReminders()" data-i18n="remEnable"></button><button class="chip" onclick="dismissRemindPrompt()" data-i18n="remLater"></button></div>
+    </div>
     <div id="installBanner" class="hidden">
-      <div style="font-size:13px;"><strong data-i18n="installTitle">Zainstaluj aplikację</strong><br/><span data-i18n="installText">Dodaj ikonę na ekran główny telefonu.</span></div>
+      <div style="font-size:13px;"><strong data-i18n="installTitle">Zainstaluj aplikację</strong><br/><span data-i18n="installText">Dodaj ikonę na ekran główny telefonu lub tabletu.</span></div>
       <button class="btn btn-small" id="btnInstallPwa" data-i18n="installBtn">Zainstaluj</button>
     </div>
 
@@ -472,6 +529,55 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <div class="card">
         <h3 id="libraryTitle">📚</h3>
         <div id="libraryList"></div>
+      </div>
+
+      <div class="card" id="shareCard">
+        <h3 data-i18n="qrTitle">📲 Udostępnij aplikację</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 12px;" data-i18n="qrText"></p>
+        <div class="qr-wrap"><canvas id="qrCanvas" width="0" height="0" aria-label="QR"></canvas></div>
+        <div class="qr-url" id="qrUrl"></div>
+        <div class="controls-row" style="justify-content:center;">
+          <button class="chip" id="qrShareBtn" onclick="shareApp()" data-i18n="qrShare">📤 Wyślij</button>
+          <button class="chip" id="qrCopyBtn" onclick="copyAppLink()" data-i18n="qrCopy">🔗 Kopiuj link</button>
+          <button class="chip" id="qrSaveBtn" onclick="saveQr()" data-i18n="qrSave">💾 Zapisz kod</button>
+        </div>
+      </div>
+
+      <div class="card" id="snarkCard">
+        <h3 data-i18n="snarkTitle">😈 Tryb złośliwy</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 10px;" data-i18n="snarkText"></p>
+        <div class="controls-row"><button class="chip" id="snarkToggle" onclick="toggleSnark()"></button></div>
+        <div id="snarkMsg" style="font-size:13px;font-weight:600;color:var(--accent);margin-top:4px;"></div>
+      </div>
+
+      <div class="card" id="remindCard">
+        <h3 data-i18n="remTitle">🔔 Przypomnienia</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 10px;" data-i18n="remText"></p>
+        <div class="controls-row"><button class="chip" id="remToggle" onclick="toggleReminders()"></button></div>
+        <div style="display:flex;align-items:center;gap:10px;margin:2px 0 10px;"><span style="font-size:14px;font-weight:600;" data-i18n="remTimeLabel"></span><input type="time" id="remTime" onchange="setRemTime(this.value)" style="width:auto;margin:0;" /></div>
+        <div class="controls-row"><button class="chip" onclick="sendTestNotification()" data-i18n="remTestBtn"></button><button class="chip" onclick="downloadIcs()" data-i18n="remIcsBtn"></button></div>
+        <div id="remMsg" style="font-size:13px;font-weight:600;color:var(--accent);margin-top:6px;"></div>
+        <p style="color:var(--muted);font-size:12px;margin:8px 0 12px;" data-i18n="remNote"></p>
+        <div class="controls-row" style="margin:0;"><button class="chip" id="wbToggle" onclick="toggleWelcome()"></button></div>
+      </div>
+
+      <div class="card" id="bdayCard">
+        <h3 data-i18n="bdayTitle">🎂 Moje urodziny</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 10px;" data-i18n="bdayText"></p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="bdDay" aria-label="Day" onchange="setBirthday()" style="flex:1;margin:0;"></select>
+          <select id="bdMonth" aria-label="Month" onchange="setBirthday()" style="flex:2;margin:0;"></select>
+        </div>
+        <button class="chip hidden" id="bdClear" style="margin-top:10px;" onclick="clearBirthday()" data-i18n="bdayClear">Usuń datę</button>
+      </div>
+
+      <div class="card" id="holCard">
+        <h3 data-i18n="holTitle">🎉 Motywy świąteczne</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 10px;" data-i18n="holText"></p>
+        <div class="controls-row"><button class="chip" id="holToggle" onclick="toggleHolidays()"></button></div>
+        <div id="holStatus" style="font-size:13px;font-weight:600;color:var(--accent);margin:4px 0 10px;"></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;" data-i18n="holPreviewHint"></div>
+        <div class="controls-row" id="holChips"></div>
       </div>
 
       <div class="card">
@@ -573,7 +679,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const I18N = {
       pl: {
         docTitle: "PaKu — Drip Book Reader",
-        installTitle: "Zainstaluj aplikację", installText: "Dodaj ikonę na ekran główny telefonu.", installBtn: "Zainstaluj",
+        installTitle: "Zainstaluj aplikację", installText: "Dodaj ikonę na ekran główny telefonu lub tabletu.", installBtn: "Zainstaluj",
         themeLight: "☀️ Jasny", themeSepia: "📜 Sepia", themeDark: "🌙 Noc",
         calTitle: "📅 Harmonogram odblokowań", calDesc: "Zsynchronizuj plan czytania z Kalendarzem Google, Apple lub Outlook.", calExport: "⬇️ Pobierz plik do kalendarza (.ics)",
         freqTitle: "⏱️ Częstotliwość udostępniania", freqLabel: "Co ile dni odblokować kolejny rozdział?",
@@ -593,6 +699,67 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         epubBad: "Ten plik jest uszkodzony albo nie jest prawidłowym plikiem EPUB. Spróbuj pobrać książkę ponownie.",
         pagePrev: "Poprzednia strona",
         pageNext: "Następna strona",
+        fullPage: "Pełny ekran",
+        tomorrow: "jutro",
+        schedShifted: "⚡ Czytasz szybciej niż plan – harmonogram został przeliczony.",
+        bdayTitle: "🎂 Moje urodziny",
+        bdayText: "Możesz podać dzień i miesiąc urodzin (to nieobowiązkowe). W tym dniu aplikacja będzie świętować razem z Tobą. Data zostaje tylko na tym urządzeniu.",
+        bdayClear: "Usuń datę",
+        bdayModalTitle: "Wszystkiego najlepszego! 🎂",
+        bdayModalText: "To Twój wyjątkowy dzień, a Ty mimo to znajdujesz czas na lekturę. Dziękuję, że jesteś ze mną – to dla mnie najpiękniejszy prezent. Miłego świętowania! 💜",
+        bdayThanks: "Dziękuję! 🎉",
+        bdayPraise: "🎂 W dniu urodzin też czytasz – dziękuję!",
+        remTitle: "🔔 Przypomnienia",
+        remText: "Aplikacja może codziennie o wybranej godzinie przypomnieć, że czeka na Ciebie kolejna porcja lektury. Powiadomienie nie pojawi się w dniu, w którym już otworzysz aplikację.",
+        remToggleOn: "🔔 Przypomnienia: włączone",
+        remToggleOff: "🔕 Przypomnienia: wyłączone",
+        remTimeLabel: "Godzina przypomnienia",
+        remTestBtn: "🔔 Wyślij próbne",
+        remIcsBtn: "📅 Dodaj do kalendarza",
+        remNote: "Uwaga: przeglądarki nie pozwalają aplikacji bez serwera na powiadomienia co do minuty. Na Androidzie (aplikacja zainstalowana z Chrome) przypomnienie zwykle pojawia się o ustawionej porze lub z opóźnieniem, a na iPhonie bywa zawodne. Najpewniejsze jest przypomnienie w kalendarzu telefonu – dodasz je przyciskiem „Dodaj do kalendarza”.",
+        remPrompt: "🔔 Chcesz, żebym codziennie o stałej porze przypominała, że książka na Ciebie czeka?",
+        remEnable: "Włącz przypomnienia",
+        remLater: "Nie teraz",
+        remUnsupported: "Ta przeglądarka nie obsługuje powiadomień. Użyj przypomnienia w kalendarzu.",
+        remDenied: "Powiadomienia są zablokowane w ustawieniach przeglądarki. Zezwól na nie dla tej aplikacji albo użyj kalendarza.",
+        remOn: "✅ Przypomnienia włączone.",
+        remOff: "Przypomnienia wyłączone.",
+        remTest: "Tak będzie wyglądać przypomnienie: Twoja książka czeka na Ciebie! 📖",
+        remTestSent: "✅ Wysłano próbne powiadomienie.",
+        remBodies: ["📖 Twoja książka czeka na kolejny rozdział!", "🍁 PaKu tęskni – wpadnij na chwilę lektury.", "✨ Dziś jest dobry dzień na kolejny rozdział.", "💜 Mała przerwa na czytanie? Książka już na Ciebie czeka.", "🌙 Chwila z książką przed końcem dnia? PaKu czeka."],
+        icsTitle: "📖 PaKu na Ciebie czeka",
+        icsDesc: "Czas na kolejny rozdział w aplikacji PaKu.",
+        icsDone: "✅ Plik pobrany – otwórz go, aby dodać codzienne przypomnienie do kalendarza.",
+        wbToggleOn: "💜 Witaj mnie po przerwie: włączone",
+        wbToggleOff: "💜 Witaj mnie po przerwie: wyłączone",
+        wbBtn: "Czytam dalej 📖",
+        wbWaiting: "Odblokowane rozdziały do przeczytania: {k}",
+        snarkTitle: "😈 Tryb złośliwy",
+        snarkText: "Wszystkie komunikaty, pochwały, cytaty i życzenia stają się dowcipne, ale złośliwe. Dla ludzi z poczuciem humoru – nic nie obrażam na serio. Działa we wszystkich językach aplikacji.",
+        snarkOn: "😈 Tryb złośliwy: włączony",
+        snarkOff: "😇 Tryb złośliwy: wyłączony",
+        snarkWelcome: "Uwaga! Od teraz nie będę się patyczkować. 😈",
+        snarkBye: "Dobra, wracam do słodkiego tonu. Nuda. 😇",
+        snarkLangNote: "Tryb złośliwy jest dostępny tylko po polsku i angielsku – w tym języku teksty zostaną zwykłe.",
+        wb1: [["Jak dobrze Cię widzieć! 💜", "Minęło {d} dni, a ja tęskniłam. Dziękuję, że wracasz do czytania – naprawdę wiele to dla mnie znaczy."], ["Witaj z powrotem! 🍁", "Cieszę się, że znów jesteśmy razem w książce. Dziękuję, że o nas pamiętasz!"]],
+        wb2: [["Nareszcie jesteś! 🎉", "Nie było Cię {d} dni, a ja cały czas trzymałam książkę w gotowości. Cieszę się z Twojego powrotu i jestem wdzięczna, że wracasz do czytania. Nic nie przepadło – czytamy dalej!"], ["Ale miło Cię widzieć! 🌟", "Minęło {d} dni, ale liczy się to, że jesteś tu znowu. Dziękuję, że wracasz – wznawiamy lekturę dokładnie tam, gdzie się przerwała."]],
+        wb3: [["Co za niespodzianka! 🥹", "Minęło {d} dni – a Ty jesteś z powrotem! Dziękuję, że o nas pamiętasz. Nie liczy się przerwa, tylko to, że wracasz. Czytamy w Twoim tempie 🍁"], ["Wspaniale, że wracasz! 💜", "Po {d} dniach przerwy znów tu jesteś, a ja jestem szczęśliwa. Książka cierpliwie czekała. Zaczynajmy, bez pośpiechu!"]],
+        qrTitle: "📲 Udostępnij aplikację",
+        qrText: "Znajomy skanuje kod aparatem telefonu, otwiera stronę i wybiera „Zainstaluj” (Android) albo Udostępnij → „Dodaj do ekranu początkowego” (iPhone/iPad).",
+        qrShare: "📤 Wyślij",
+        qrCopy: "🔗 Kopiuj link",
+        qrCopied: "✔ Skopiowano",
+        qrSave: "💾 Zapisz kod",
+        qrSaved: "✔ Zapisano",
+        qrShareText: "Czytam książki w aplikacji PaKu – jeden rozdział na raz. Zainstaluj ją:",
+        holTitle: "🎉 Motywy świąteczne",
+        holText: "W dni świąt aplikacja zmienia kolory, wita Cię życzeniami i sypie delikatne ozdoby.",
+        holAuto: "Włącz motywy świąteczne",
+        holPreviewHint: "Podejrzyj motyw (dotknij ponownie, by wyłączyć podgląd):",
+        holPreviewing: "Podgląd:",
+        holNone: "Dziś nie ma święta – motyw włączy się sam w odpowiednim dniu.",
+        holToday: "Dziś:",
+        holTxt: {"birthday": ["Urodziny", "Wszystkiego najlepszego! 🎂"], "xmas": ["Boże Narodzenie", "Wesołych Świąt Bożego Narodzenia! 🎄"], "newyear": ["Nowy Rok", "Szczęśliwego Nowego Roku! 🎆"], "valentine": ["Walentynki", "Miłych Walentynek! ❤️"], "womens": ["Dzień Kobiet", "Wszystkiego dobrego w Dniu Kobiet! 🌷"], "stpat": ["Dzień św. Patryka", "Szczęśliwego Dnia św. Patryka! ☘️"], "easter": ["Wielkanoc", "Wesołych Świąt Wielkanocnych! 🐣"], "earth": ["Dzień Ziemi", "Miłego Dnia Ziemi! 🌍"], "mothers": ["Dzień Matki", "Wszystkiego dobrego w Dniu Matki! 💐"], "children": ["Dzień Dziecka", "Wesołego Dnia Dziecka! 🎈"], "halloween": ["Halloween", "Straszliwie udanego Halloween! 🎃"], "allsaints": ["Wszystkich Świętych", "Dzień zadumy i wspomnień 🕯️"], "indep": ["Święto Niepodległości", "Z okazji Święta Niepodległości! 🇵🇱"], "santa": ["Mikołajki", "Wesołych Mikołajek! 🎅"]},
         acsmFile: "To nie jest książka, tylko plik licencji Adobe DRM (.acsm). Taką książkę da się otworzyć tylko w programie lub czytniku obsługującym Adobe DRM (np. Adobe Digital Editions, czytnik e-booków). PaKu otwiera pliki bez DRM lub ze znakiem wodnym.",
         formatsHint: "Obsługiwane formaty: EPUB, MOBI, PDF, FB2, DOC, DOCX, ODT, RTF, HTML, TXT oraz ZIP z książką w środku. Legalnie kupione książki otworzysz tutaj, jeśli są bez DRM lub ze znakiem wodnym (imię i dane kupującego w pliku). Książek z zabezpieczeniem DRM aplikacja nie otwiera – czytaj je w aplikacji sprzedawcy.",
         epubDrm: "Ta książka ma zabezpieczenie DRM, więc nie da się jej otworzyć w aplikacji. Takie książki czyta się w aplikacji sprzedawcy (np. Kindle, Legimi). Wiele księgarni oferuje też pliki bez DRM lub ze znakiem wodnym – takie otworzysz tutaj.", fileError: "Błąd odczytu pliku: ",
@@ -691,7 +858,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       },
       en: {
         docTitle: "PaKu — Drip Book Reader",
-        installTitle: "Install the app", installText: "Add the icon to your phone's home screen.", installBtn: "Install",
+        installTitle: "Install the app", installText: "Add the icon to your phone or tablet home screen.", installBtn: "Install",
         themeLight: "☀️ Light", themeSepia: "📜 Sepia", themeDark: "🌙 Night",
         calTitle: "📅 Unlock schedule", calDesc: "Sync your reading plan with Google, Apple or Outlook Calendar.", calExport: "⬇️ Download calendar file (.ics)",
         freqTitle: "⏱️ Release frequency", freqLabel: "How many days between chapter unlocks?",
@@ -711,6 +878,67 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         epubBad: "This file is damaged or isn't a valid EPUB. Try downloading the book again.",
         pagePrev: "Previous page",
         pageNext: "Next page",
+        fullPage: "Full screen",
+        tomorrow: "tomorrow",
+        schedShifted: "⚡ You're reading ahead – the schedule has been recalculated.",
+        bdayTitle: "🎂 My birthday",
+        bdayText: "You can enter your birthday (day and month, optional). On that day the app celebrates with you. The date stays on this device only.",
+        bdayClear: "Remove date",
+        bdayModalTitle: "Happy Birthday! 🎂",
+        bdayModalText: "It's your special day and you still found time to read. Thank you for being here – it's the loveliest gift. Have a wonderful celebration! 💜",
+        bdayThanks: "Thank you! 🎉",
+        bdayPraise: "🎂 Reading on your birthday too – thank you!",
+        remTitle: "🔔 Reminders",
+        remText: "Every day at the time you choose, the app can remind you that your next reading is waiting. No notification appears on a day you have already opened the app.",
+        remToggleOn: "🔔 Reminders: on",
+        remToggleOff: "🔕 Reminders: off",
+        remTimeLabel: "Reminder time",
+        remTestBtn: "🔔 Send a test",
+        remIcsBtn: "📅 Add to calendar",
+        remNote: "Note: without a server, browsers don't allow exact-to-the-minute notifications. On Android (app installed from Chrome) the reminder usually appears around the set time, possibly late, and on iPhone it can be unreliable. The most reliable option is a calendar reminder – add it with “Add to calendar”.",
+        remPrompt: "🔔 Want me to remind you every day at a set time that your book is waiting?",
+        remEnable: "Turn on reminders",
+        remLater: "Not now",
+        remUnsupported: "This browser doesn't support notifications. Use the calendar reminder.",
+        remDenied: "Notifications are blocked in your browser settings. Allow them for this app or use the calendar.",
+        remOn: "✅ Reminders on.",
+        remOff: "Reminders off.",
+        remTest: "This is how a reminder looks: your book is waiting for you! 📖",
+        remTestSent: "✅ Test notification sent.",
+        remBodies: ["📖 Your book is waiting for the next chapter!", "🍁 PaKu misses you – drop by for a little reading.", "✨ Today is a good day for another chapter.", "💜 A little reading break? Your book is waiting.", "🌙 A moment with your book before the day ends? PaKu is waiting."],
+        icsTitle: "📖 PaKu is waiting for you",
+        icsDesc: "Time for the next chapter in the PaKu app.",
+        icsDone: "✅ File downloaded – open it to add the daily reminder to your calendar.",
+        wbToggleOn: "💜 Welcome me back after a break: on",
+        wbToggleOff: "💜 Welcome me back after a break: off",
+        wbBtn: "Keep reading 📖",
+        wbWaiting: "Unlocked chapters waiting for you: {k}",
+        snarkTitle: "😈 Snark mode",
+        snarkText: "All messages, praise, quotes and greetings turn witty but mean. For people with a sense of humour – nothing is meant seriously. Works in every language of the app.",
+        snarkOn: "😈 Snark mode: on",
+        snarkOff: "😇 Snark mode: off",
+        snarkWelcome: "Warning! From now on I won't be going easy on you. 😈",
+        snarkBye: "Fine, back to the sweet tone. Boring. 😇",
+        snarkLangNote: "Snark mode is only available in Polish and English – in this language the regular texts stay.",
+        wb1: [["So good to see you! 💜", "It's been {d} days and I missed you. Thank you for coming back to reading – it means a lot to me."], ["Welcome back! 🍁", "I'm happy we're in the book together again. Thank you for remembering us!"]],
+        wb2: [["You're finally here! 🎉", "You've been away for {d} days and I kept your book ready the whole time. I'm so glad you're back and grateful you returned to reading. Nothing is lost – let's read on!"], ["What a joy to see you! 🌟", "{d} days have passed, but what matters is that you're here again. Thank you for coming back – we resume exactly where we left off."]],
+        wb3: [["What a surprise! 🥹", "{d} days have passed – and you're back! Thank you for remembering us. It's not the break that counts, it's that you return. We read at your pace 🍁"], ["Wonderful that you're back! 💜", "After {d} days away you're here again and I'm so happy. The book waited patiently. Let's begin, no rush!"]],
+        qrTitle: "📲 Share the app",
+        qrText: "A friend scans the code with their phone camera, opens the page and taps “Install” (Android) or Share → “Add to Home Screen” (iPhone/iPad).",
+        qrShare: "📤 Send",
+        qrCopy: "🔗 Copy link",
+        qrCopied: "✔ Copied",
+        qrSave: "💾 Save code",
+        qrSaved: "✔ Saved",
+        qrShareText: "I read books in PaKu – one chapter at a time. Install it:",
+        holTitle: "🎉 Holiday themes",
+        holText: "On holidays the app changes colours, greets you and sprinkles gentle decorations.",
+        holAuto: "Enable holiday themes",
+        holPreviewHint: "Preview a theme (tap again to stop):",
+        holPreviewing: "Preview:",
+        holNone: "No holiday today – the theme turns on by itself on the right day.",
+        holToday: "Today:",
+        holTxt: {"birthday": ["Birthday", "Happy Birthday! 🎂"], "xmas": ["Christmas", "Merry Christmas! 🎄"], "newyear": ["New Year", "Happy New Year! 🎆"], "valentine": ["Valentine's Day", "Happy Valentine's Day! ❤️"], "womens": ["Women's Day", "Happy International Women's Day! 🌷"], "stpat": ["St. Patrick's Day", "Happy St. Patrick's Day! ☘️"], "easter": ["Easter", "Happy Easter! 🐣"], "earth": ["Earth Day", "Happy Earth Day! 🌍"], "mothers": ["Mother's Day", "Happy Mother's Day! 💐"], "children": ["Children's Day", "Happy Children's Day! 🎈"], "halloween": ["Halloween", "Happy Halloween! 🎃"], "allsaints": ["All Saints' Day", "A day of remembrance 🕯️"], "indep": ["Polish Independence Day", "Happy Polish Independence Day! 🇵🇱"], "santa": ["St. Nicholas Day", "Happy St. Nicholas Day! 🎅"]},
         acsmFile: "This isn't a book, it's an Adobe DRM licence file (.acsm). Such a book can only be opened in an app or e-reader that supports Adobe DRM (e.g. Adobe Digital Editions, an e-book reader). PaKu opens DRM-free or watermarked files.",
         formatsHint: "Supported formats: EPUB, MOBI, PDF, FB2, DOC, DOCX, ODT, RTF, HTML, TXT and ZIP with a book inside. Books you bought legally open here if they are DRM-free or watermarked (buyer details embedded in the file). The app does not open DRM-protected books – read those in the seller's app.",
         epubDrm: "This book has DRM protection, so it can't be opened in the app. Such books are read in the seller's own app (e.g. Kindle, Legimi). Many stores also offer DRM-free or watermarked files – those open here.", fileError: "File read error: ",
@@ -809,7 +1037,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       },
       de: {
         docTitle: "PaKu — Drip Book Reader",
-        installTitle: "App installieren", installText: "Füge das Symbol zum Startbildschirm deines Handys hinzu.", installBtn: "Installieren",
+        installTitle: "App installieren", installText: "Füge das Symbol zum Startbildschirm deines Handys oder Tablets hinzu.", installBtn: "Installieren",
         themeLight: "☀️ Hell", themeSepia: "📜 Sepia", themeDark: "🌙 Nacht",
         calTitle: "📅 Freischaltplan", calDesc: "Synchronisiere deinen Leseplan mit dem Google-, Apple- oder Outlook-Kalender.", calExport: "⬇️ Kalenderdatei herunterladen (.ics)",
         freqTitle: "⏱️ Veröffentlichungsrhythmus", freqLabel: "Nach wie vielen Tagen soll das nächste Kapitel freigeschaltet werden?",
@@ -829,6 +1057,67 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         epubBad: "Diese Datei ist beschädigt oder keine gültige EPUB-Datei. Lade das Buch erneut herunter.",
         pagePrev: "Vorherige Seite",
         pageNext: "Nächste Seite",
+        fullPage: "Vollbild",
+        tomorrow: "morgen",
+        schedShifted: "⚡ Du liest schneller als geplant – der Zeitplan wurde neu berechnet.",
+        bdayTitle: "🎂 Mein Geburtstag",
+        bdayText: "Du kannst Tag und Monat deines Geburtstags eintragen (freiwillig). An diesem Tag feiert die App mit dir. Das Datum bleibt nur auf diesem Gerät.",
+        bdayClear: "Datum löschen",
+        bdayModalTitle: "Alles Gute zum Geburtstag! 🎂",
+        bdayModalText: "Es ist dein besonderer Tag und du nimmst dir trotzdem Zeit zum Lesen. Danke, dass du da bist – das ist das schönste Geschenk. Feier schön! 💜",
+        bdayThanks: "Danke! 🎉",
+        bdayPraise: "🎂 Auch am Geburtstag liest du – danke!",
+        remTitle: "🔔 Erinnerungen",
+        remText: "Die App kann dich täglich zur gewählten Uhrzeit daran erinnern, dass dein nächster Leseabschnitt wartet. An Tagen, an denen du die App schon geöffnet hast, erscheint keine Meldung.",
+        remToggleOn: "🔔 Erinnerungen: an",
+        remToggleOff: "🔕 Erinnerungen: aus",
+        remTimeLabel: "Uhrzeit der Erinnerung",
+        remTestBtn: "🔔 Test senden",
+        remIcsBtn: "📅 Zum Kalender hinzufügen",
+        remNote: "Hinweis: Ohne Server erlauben Browser keine minutengenauen Benachrichtigungen. Unter Android (aus Chrome installierte App) erscheint die Erinnerung meist ungefähr zur eingestellten Zeit, evtl. verspätet; auf dem iPhone ist sie manchmal unzuverlässig. Am zuverlässigsten ist eine Kalendererinnerung – füge sie mit „Zum Kalender hinzufügen“ hinzu.",
+        remPrompt: "🔔 Soll ich dich täglich zu einer festen Uhrzeit daran erinnern, dass dein Buch wartet?",
+        remEnable: "Erinnerungen aktivieren",
+        remLater: "Nicht jetzt",
+        remUnsupported: "Dieser Browser unterstützt keine Benachrichtigungen. Nutze die Kalendererinnerung.",
+        remDenied: "Benachrichtigungen sind in den Browser-Einstellungen blockiert. Erlaube sie für diese App oder nutze den Kalender.",
+        remOn: "✅ Erinnerungen aktiviert.",
+        remOff: "Erinnerungen ausgeschaltet.",
+        remTest: "So sieht die Erinnerung aus: Dein Buch wartet auf dich! 📖",
+        remTestSent: "✅ Testbenachrichtigung gesendet.",
+        remBodies: ["📖 Dein Buch wartet auf das nächste Kapitel!", "🍁 PaKu vermisst dich – komm auf einen Moment zum Lesen vorbei.", "✨ Heute ist ein guter Tag für ein weiteres Kapitel.", "💜 Kleine Lesepause? Dein Buch wartet schon.", "🌙 Ein Moment mit deinem Buch vor Tagesende? PaKu wartet."],
+        icsTitle: "📖 PaKu wartet auf dich",
+        icsDesc: "Zeit für das nächste Kapitel in der PaKu-App.",
+        icsDone: "✅ Datei geladen – öffne sie, um die tägliche Erinnerung zum Kalender hinzuzufügen.",
+        wbToggleOn: "💜 Willkommen zurück nach Pause: an",
+        wbToggleOff: "💜 Willkommen zurück nach Pause: aus",
+        wbBtn: "Weiterlesen 📖",
+        wbWaiting: "Freigeschaltete Kapitel zum Lesen: {k}",
+        snarkTitle: "😈 Fieser Modus",
+        snarkText: "Alle Meldungen, Lob, Zitate und Glückwünsche werden witzig, aber gemein. Für Menschen mit Humor – nichts ist ernst gemeint. Funktioniert in allen Sprachen der App.",
+        snarkOn: "😈 Fieser Modus: an",
+        snarkOff: "😇 Fieser Modus: aus",
+        snarkWelcome: "Achtung! Ab jetzt gibt es keine Schonung. 😈",
+        snarkBye: "Na gut, zurück zum süßen Ton. Langweilig. 😇",
+        snarkLangNote: "Der fiese Modus gibt es nur auf Polnisch und Englisch – in dieser Sprache bleiben die normalen Texte.",
+        wb1: [["Schön, dich zu sehen! 💜", "Es sind {d} Tage vergangen und ich habe dich vermisst. Danke, dass du zum Lesen zurückkommst – das bedeutet mir viel."], ["Willkommen zurück! 🍁", "Ich freue mich, dass wir wieder gemeinsam im Buch sind. Danke, dass du an uns denkst!"]],
+        wb2: [["Endlich bist du da! 🎉", "Du warst {d} Tage weg und ich habe dein Buch die ganze Zeit bereitgehalten. Ich freue mich über deine Rückkehr und bin dankbar, dass du wieder liest. Nichts ist verloren – wir lesen weiter!"], ["Wie schön, dich zu sehen! 🌟", "{d} Tage sind vergangen, aber wichtig ist, dass du wieder da bist. Danke fürs Zurückkommen – wir machen genau dort weiter, wo wir aufgehört haben."]],
+        wb3: [["Was für eine Überraschung! 🥹", "{d} Tage sind vergangen – und du bist zurück! Danke, dass du an uns denkst. Nicht die Pause zählt, sondern dass du wiederkommst. Wir lesen in deinem Tempo 🍁"], ["Wunderbar, dass du zurück bist! 💜", "Nach {d} Tagen bist du wieder da und ich bin so froh. Das Buch hat geduldig gewartet. Fangen wir ohne Eile an!"]],
+        qrTitle: "📲 App teilen",
+        qrText: "Freunde scannen den Code mit der Handykamera, öffnen die Seite und tippen auf „Installieren“ (Android) bzw. Teilen → „Zum Home-Bildschirm“ (iPhone/iPad).",
+        qrShare: "📤 Senden",
+        qrCopy: "🔗 Link kopieren",
+        qrCopied: "✔ Kopiert",
+        qrSave: "💾 Code speichern",
+        qrSaved: "✔ Gespeichert",
+        qrShareText: "Ich lese Bücher in PaKu – ein Kapitel nach dem anderen. Installiere die App:",
+        holTitle: "🎉 Feiertags-Themen",
+        holText: "An Feiertagen ändert die App ihre Farben, gratuliert dir und streut dezente Dekoration.",
+        holAuto: "Feiertags-Themen aktivieren",
+        holPreviewHint: "Thema ansehen (erneut tippen zum Beenden):",
+        holPreviewing: "Vorschau:",
+        holNone: "Heute ist kein Feiertag – das Thema schaltet sich am richtigen Tag von selbst ein.",
+        holToday: "Heute:",
+        holTxt: {"birthday": ["Geburtstag", "Alles Gute zum Geburtstag! 🎂"], "xmas": ["Weihnachten", "Frohe Weihnachten! 🎄"], "newyear": ["Neujahr", "Frohes neues Jahr! 🎆"], "valentine": ["Valentinstag", "Alles Liebe zum Valentinstag! ❤️"], "womens": ["Weltfrauentag", "Schönen Weltfrauentag! 🌷"], "stpat": ["St. Patrick's Day", "Fröhlichen St. Patrick's Day! ☘️"], "easter": ["Ostern", "Frohe Ostern! 🐣"], "earth": ["Tag der Erde", "Schönen Tag der Erde! 🌍"], "mothers": ["Muttertag", "Alles Gute zum Muttertag! 💐"], "children": ["Kindertag", "Schönen Kindertag! 🎈"], "halloween": ["Halloween", "Gruseliges Halloween! 🎃"], "allsaints": ["Allerheiligen", "Ein Tag des Gedenkens 🕯️"], "indep": ["Polnischer Unabhängigkeitstag", "Zum polnischen Unabhängigkeitstag! 🇵🇱"], "santa": ["Nikolaustag", "Fröhlichen Nikolaustag! 🎅"]},
         acsmFile: "Das ist kein Buch, sondern eine Adobe-DRM-Lizenzdatei (.acsm). Ein solches Buch lässt sich nur in einer App oder einem E-Reader mit Adobe-DRM-Unterstützung öffnen (z. B. Adobe Digital Editions, E-Book-Reader). PaKu öffnet DRM-freie Dateien oder Dateien mit Wasserzeichen.",
         formatsHint: "Unterstützte Formate: EPUB, MOBI, PDF, FB2, DOC, DOCX, ODT, RTF, HTML, TXT und ZIP mit einem Buch darin. Legal gekaufte Bücher lassen sich hier öffnen, wenn sie DRM-frei oder mit Wasserzeichen versehen sind (Käuferdaten in der Datei). Bücher mit DRM-Schutz öffnet die App nicht – lies sie in der App des Verkäufers.",
         epubDrm: "Dieses Buch hat DRM-Schutz und kann in der App nicht geöffnet werden. Solche Bücher liest man in der App des Verkäufers (z. B. Kindle, Legimi). Viele Shops bieten auch DRM-freie Dateien oder Dateien mit Wasserzeichen an – diese lassen sich hier öffnen.", fileError: "Fehler beim Lesen der Datei: ",
@@ -927,7 +1216,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       },
       es: {
         docTitle: "PaKu — Drip Book Reader",
-        installTitle: "Instala la aplicación", installText: "Añade el icono a la pantalla de inicio de tu teléfono.", installBtn: "Instalar",
+        installTitle: "Instala la aplicación", installText: "Añade el icono a la pantalla de inicio de tu teléfono o tableta.", installBtn: "Instalar",
         themeLight: "☀️ Claro", themeSepia: "📜 Sepia", themeDark: "🌙 Noche",
         calTitle: "📅 Calendario de desbloqueos", calDesc: "Sincroniza tu plan de lectura con Google Calendar, Apple Calendar u Outlook.", calExport: "⬇️ Descargar archivo de calendario (.ics)",
         freqTitle: "⏱️ Frecuencia de publicación", freqLabel: "¿Cada cuántos días se desbloquea el siguiente capítulo?",
@@ -947,6 +1236,67 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         epubBad: "Este archivo está dañado o no es un EPUB válido. Prueba a descargar el libro de nuevo.",
         pagePrev: "Página anterior",
         pageNext: "Página siguiente",
+        fullPage: "Pantalla completa",
+        tomorrow: "mañana",
+        schedShifted: "⚡ Lees más rápido que el plan: el calendario se ha recalculado.",
+        bdayTitle: "🎂 Mi cumpleaños",
+        bdayText: "Puedes indicar el día y el mes de tu cumpleaños (opcional). Ese día la app celebra contigo. La fecha se queda solo en este dispositivo.",
+        bdayClear: "Quitar fecha",
+        bdayModalTitle: "¡Feliz cumpleaños! 🎂",
+        bdayModalText: "Es tu día especial y aun así encuentras tiempo para leer. Gracias por estar aquí: es el mejor regalo. ¡Que lo celebres a lo grande! 💜",
+        bdayThanks: "¡Gracias! 🎉",
+        bdayPraise: "🎂 Lees incluso en tu cumpleaños: ¡gracias!",
+        remTitle: "🔔 Recordatorios",
+        remText: "Cada día a la hora que elijas, la app puede recordarte que tu próxima lectura te espera. No aparece ningún aviso el día que ya abriste la app.",
+        remToggleOn: "🔔 Recordatorios: activados",
+        remToggleOff: "🔕 Recordatorios: desactivados",
+        remTimeLabel: "Hora del recordatorio",
+        remTestBtn: "🔔 Enviar prueba",
+        remIcsBtn: "📅 Añadir al calendario",
+        remNote: "Nota: sin servidor, los navegadores no permiten avisos exactos al minuto. En Android (app instalada desde Chrome) el recordatorio suele aparecer cerca de la hora fijada, a veces con retraso, y en iPhone puede fallar. Lo más fiable es un recordatorio en el calendario: añádelo con «Añadir al calendario».",
+        remPrompt: "🔔 ¿Quieres que te recuerde cada día a una hora fija que tu libro te espera?",
+        remEnable: "Activar recordatorios",
+        remLater: "Ahora no",
+        remUnsupported: "Este navegador no admite notificaciones. Usa el recordatorio del calendario.",
+        remDenied: "Las notificaciones están bloqueadas en el navegador. Permítelas para esta app o usa el calendario.",
+        remOn: "✅ Recordatorios activados.",
+        remOff: "Recordatorios desactivados.",
+        remTest: "Así se verá el recordatorio: ¡tu libro te espera! 📖",
+        remTestSent: "✅ Notificación de prueba enviada.",
+        remBodies: ["📖 ¡Tu libro espera el siguiente capítulo!", "🍁 PaKu te echa de menos: pásate un ratito a leer.", "✨ Hoy es un buen día para otro capítulo.", "💜 ¿Una pausa para leer? Tu libro ya te espera.", "🌙 ¿Un momento con tu libro antes de acabar el día? PaKu te espera."],
+        icsTitle: "📖 PaKu te espera",
+        icsDesc: "Es hora del siguiente capítulo en la app PaKu.",
+        icsDone: "✅ Archivo descargado: ábrelo para añadir el recordatorio diario al calendario.",
+        wbToggleOn: "💜 Bienvenida tras una pausa: activada",
+        wbToggleOff: "💜 Bienvenida tras una pausa: desactivada",
+        wbBtn: "Seguir leyendo 📖",
+        wbWaiting: "Capítulos desbloqueados por leer: {k}",
+        snarkTitle: "😈 Modo malicioso",
+        snarkText: "Todos los mensajes, elogios, citas y felicitaciones se vuelven ingeniosos pero malvados. Para gente con sentido del humor: nada va en serio. Funciona en todos los idiomas de la app.",
+        snarkOn: "😈 Modo malicioso: activado",
+        snarkOff: "😇 Modo malicioso: desactivado",
+        snarkWelcome: "¡Atención! A partir de ahora no seré amable. 😈",
+        snarkBye: "Vale, vuelvo al tono dulce. Aburrido. 😇",
+        snarkLangNote: "El modo malicioso solo existe en polaco e inglés: en este idioma los textos siguen siendo normales.",
+        wb1: [["¡Qué bien verte! 💜", "Han pasado {d} días y te echaba de menos. Gracias por volver a leer: significa mucho para mí."], ["¡Bienvenido de nuevo! 🍁", "Me alegra que volvamos a estar juntos en el libro. ¡Gracias por acordarte de nosotros!"]],
+        wb2: [["¡Por fin estás aquí! 🎉", "Has estado {d} días fuera y yo tuve tu libro listo todo el tiempo. Me alegra tu regreso y te agradezco que vuelvas a leer. Nada se ha perdido: ¡seguimos!"], ["¡Qué alegría verte! 🌟", "Han pasado {d} días, pero lo que importa es que estás otra vez aquí. Gracias por volver: retomamos justo donde lo dejamos."]],
+        wb3: [["¡Qué sorpresa! 🥹", "Han pasado {d} días… ¡y estás de vuelta! Gracias por acordarte de nosotros. No cuenta la pausa, sino que regreses. Leemos a tu ritmo 🍁"], ["¡Qué bien que vuelvas! 💜", "Después de {d} días vuelves y soy muy feliz. El libro esperó con paciencia. ¡Empecemos sin prisa!"]],
+        qrTitle: "📲 Compartir la app",
+        qrText: "Un amigo escanea el código con la cámara, abre la página y pulsa «Instalar» (Android) o Compartir → «Añadir a pantalla de inicio» (iPhone/iPad).",
+        qrShare: "📤 Enviar",
+        qrCopy: "🔗 Copiar enlace",
+        qrCopied: "✔ Copiado",
+        qrSave: "💾 Guardar código",
+        qrSaved: "✔ Guardado",
+        qrShareText: "Leo libros en PaKu, un capítulo cada vez. Instálala:",
+        holTitle: "🎉 Temas festivos",
+        holText: "En días festivos la app cambia de colores, te felicita y esparce decoraciones suaves.",
+        holAuto: "Activar temas festivos",
+        holPreviewHint: "Ver un tema (toca otra vez para salir):",
+        holPreviewing: "Vista previa:",
+        holNone: "Hoy no hay fiesta: el tema se activa solo el día adecuado.",
+        holToday: "Hoy:",
+        holTxt: {"birthday": ["Cumpleaños", "¡Feliz cumpleaños! 🎂"], "xmas": ["Navidad", "¡Feliz Navidad! 🎄"], "newyear": ["Año Nuevo", "¡Feliz Año Nuevo! 🎆"], "valentine": ["San Valentín", "¡Feliz San Valentín! ❤️"], "womens": ["Día de la Mujer", "¡Feliz Día de la Mujer! 🌷"], "stpat": ["San Patricio", "¡Feliz día de San Patricio! ☘️"], "easter": ["Pascua", "¡Felices Pascuas! 🐣"], "earth": ["Día de la Tierra", "¡Feliz Día de la Tierra! 🌍"], "mothers": ["Día de la Madre", "¡Feliz Día de la Madre! 💐"], "children": ["Día del Niño", "¡Feliz Día del Niño! 🎈"], "halloween": ["Halloween", "¡Feliz Halloween! 🎃"], "allsaints": ["Todos los Santos", "Un día para recordar 🕯️"], "indep": ["Independencia de Polonia", "¡Feliz Día de la Independencia de Polonia! 🇵🇱"], "santa": ["San Nicolás", "¡Feliz día de San Nicolás! 🎅"]},
         acsmFile: "Esto no es un libro, sino un archivo de licencia de Adobe DRM (.acsm). Un libro así solo se abre en una app o lector compatible con Adobe DRM (p. ej. Adobe Digital Editions, un lector de e-books). PaKu abre archivos sin DRM o con marca de agua.",
         formatsHint: "Formatos admitidos: EPUB, MOBI, PDF, FB2, DOC, DOCX, ODT, RTF, HTML, TXT y ZIP con un libro dentro. Los libros comprados legalmente se abren aquí si no tienen DRM o llevan marca de agua (datos del comprador en el archivo). La app no abre libros con protección DRM: léelos en la app del vendedor.",
         epubDrm: "Este libro tiene protección DRM, por lo que no se puede abrir en la app. Estos libros se leen en la app del vendedor (p. ej. Kindle, Legimi). Muchas tiendas también ofrecen archivos sin DRM o con marca de agua: esos se abren aquí.", fileError: "Error al leer el archivo: ",
@@ -1045,7 +1395,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       },
       uk: {
         docTitle: "PaKu — Drip Book Reader",
-        installTitle: "Встановіть застосунок", installText: "Додайте значок на головний екран телефону.", installBtn: "Встановити",
+        installTitle: "Встановіть застосунок", installText: "Додайте значок на головний екран телефону або планшета.", installBtn: "Встановити",
         themeLight: "☀️ Світла", themeSepia: "📜 Сепія", themeDark: "🌙 Ніч",
         calTitle: "📅 Графік розблокування", calDesc: "Синхронізуйте план читання з Google, Apple або Outlook Календарем.", calExport: "⬇️ Завантажити файл календаря (.ics)",
         freqTitle: "⏱️ Частота відкриття розділів", freqLabel: "Через скільки днів відкривати наступний розділ?",
@@ -1065,6 +1415,67 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         epubBad: "Цей файл пошкоджено, або це не дійсний EPUB. Спробуйте завантажити книжку ще раз.",
         pagePrev: "Попередня сторінка",
         pageNext: "Наступна сторінка",
+        fullPage: "Повний екран",
+        tomorrow: "завтра",
+        schedShifted: "⚡ Ви читаєте швидше за план – розклад перераховано.",
+        bdayTitle: "🎂 Мій день народження",
+        bdayText: "Можете вказати день і місяць народження (необов’язково). Цього дня застосунок святкуватиме разом із вами. Дата зберігається лише на цьому пристрої.",
+        bdayClear: "Видалити дату",
+        bdayModalTitle: "З днем народження! 🎂",
+        bdayModalText: "Це ваш особливий день, а ви все одно знайшли час на читання. Дякую, що ви зі мною – це найкращий подарунок. Гарного свята! 💜",
+        bdayThanks: "Дякую! 🎉",
+        bdayPraise: "🎂 Навіть у день народження ви читаєте – дякую!",
+        remTitle: "🔔 Нагадування",
+        remText: "Щодня о вибраній годині застосунок може нагадати, що на вас чекає наступна порція читання. Сповіщення не з’явиться в день, коли ви вже відкрили застосунок.",
+        remToggleOn: "🔔 Нагадування: увімкнено",
+        remToggleOff: "🔕 Нагадування: вимкнено",
+        remTimeLabel: "Година нагадування",
+        remTestBtn: "🔔 Надіслати пробне",
+        remIcsBtn: "📅 Додати до календаря",
+        remNote: "Увага: без сервера браузери не дозволяють сповіщень із точністю до хвилини. На Android (застосунок, встановлений із Chrome) нагадування зазвичай з’являється близько встановленого часу, іноді із запізненням, а на iPhone може бути ненадійним. Найнадійніше – нагадування в календарі: додайте його кнопкою «Додати до календаря».",
+        remPrompt: "🔔 Хочете, щоб я щодня в один і той самий час нагадувала, що книжка на вас чекає?",
+        remEnable: "Увімкнути нагадування",
+        remLater: "Не зараз",
+        remUnsupported: "Цей браузер не підтримує сповіщень. Скористайтеся нагадуванням у календарі.",
+        remDenied: "Сповіщення заблоковано в налаштуваннях браузера. Дозвольте їх для цього застосунку або скористайтеся календарем.",
+        remOn: "✅ Нагадування увімкнено.",
+        remOff: "Нагадування вимкнено.",
+        remTest: "Так виглядатиме нагадування: ваша книжка на вас чекає! 📖",
+        remTestSent: "✅ Пробне сповіщення надіслано.",
+        remBodies: ["📖 Ваша книжка чекає на наступний розділ!", "🍁 PaKu сумує – заходьте на хвилинку почитати.", "✨ Сьогодні гарний день для ще одного розділу.", "💜 Маленька перерва на читання? Книжка вже чекає.", "🌙 Хвилинка з книжкою перед завершенням дня? PaKu чекає."],
+        icsTitle: "📖 PaKu чекає на вас",
+        icsDesc: "Час для наступного розділу в застосунку PaKu.",
+        icsDone: "✅ Файл завантажено – відкрийте його, щоб додати щоденне нагадування до календаря.",
+        wbToggleOn: "💜 Вітати після перерви: увімкнено",
+        wbToggleOff: "💜 Вітати після перерви: вимкнено",
+        wbBtn: "Читаю далі 📖",
+        wbWaiting: "Розблоковані розділи, що чекають: {k}",
+        snarkTitle: "😈 Єхидний режим",
+        snarkText: "Усі повідомлення, похвала, цитати й вітання стають дотепними, але єхидними. Для людей із почуттям гумору – нічого серйозно. Працює в усіх мовах застосунку.",
+        snarkOn: "😈 Єхидний режим: увімкнено",
+        snarkOff: "😇 Єхидний режим: вимкнено",
+        snarkWelcome: "Увага! Відтепер я не церемонюся. 😈",
+        snarkBye: "Гаразд, повертаюся до солодкого тону. Нудно. 😇",
+        snarkLangNote: "Єхидний режим доступний лише польською та англійською – цією мовою тексти лишаються звичайними.",
+        wb1: [["Як приємно вас бачити! 💜", "Минуло {d} дн., і я сумувала. Дякую, що повертаєтеся до читання – це багато для мене важить."], ["З поверненням! 🍁", "Я рада, що ми знову разом у книжці. Дякую, що пам’ятаєте про нас!"]],
+        wb2: [["Нарешті ви тут! 🎉", "Вас не було {d} дн., а я весь час тримала книжку напоготові. Радію вашому поверненню й вдячна, що ви знову читаєте. Нічого не втрачено – читаємо далі!"], ["Як добре вас бачити! 🌟", "Минуло {d} дн., але головне – що ви знову тут. Дякую, що повертаєтеся – продовжуємо саме там, де зупинилися."]],
+        wb3: [["Яка несподіванка! 🥹", "Минуло {d} дн. – а ви повернулися! Дякую, що пам’ятаєте про нас. Важить не перерва, а те, що ви повертаєтесь. Читаємо у вашому темпі 🍁"], ["Чудово, що ви повернулися! 💜", "Після {d} дн. ви знову тут, і я така щаслива. Книжка терпляче чекала. Починаймо без поспіху!"]],
+        qrTitle: "📲 Поділитися застосунком",
+        qrText: "Друг сканує код камерою телефона, відкриває сторінку й натискає «Встановити» (Android) або «Поділитися» → «На початковий екран» (iPhone/iPad).",
+        qrShare: "📤 Надіслати",
+        qrCopy: "🔗 Копіювати посилання",
+        qrCopied: "✔ Скопійовано",
+        qrSave: "💾 Зберегти код",
+        qrSaved: "✔ Збережено",
+        qrShareText: "Я читаю книжки в PaKu – по одному розділу. Встановіть:",
+        holTitle: "🎉 Святкові теми",
+        holText: "У святкові дні застосунок змінює кольори, вітає вас і розсипає ніжні прикраси.",
+        holAuto: "Увімкнути святкові теми",
+        holPreviewHint: "Переглянути тему (натисніть ще раз, щоб вимкнути):",
+        holPreviewing: "Перегляд:",
+        holNone: "Сьогодні свята немає – тема ввімкнеться сама у потрібний день.",
+        holToday: "Сьогодні:",
+        holTxt: {"birthday": ["День народження", "З днем народження! 🎂"], "xmas": ["Різдво", "З Різдвом! 🎄"], "newyear": ["Новий рік", "З Новим роком! 🎆"], "valentine": ["День закоханих", "З Днем закоханих! ❤️"], "womens": ["Жіночий день", "З Міжнародним жіночим днем! 🌷"], "stpat": ["День св. Патрика", "З Днем святого Патрика! ☘️"], "easter": ["Великдень", "З Великоднем! 🐣"], "earth": ["День Землі", "З Днем Землі! 🌍"], "mothers": ["День матері", "З Днем матері! 💐"], "children": ["День дітей", "З Днем захисту дітей! 🎈"], "halloween": ["Гелловін", "Страшно веселого Гелловіну! 🎃"], "allsaints": ["Всіх Святих", "День спогадів 🕯️"], "indep": ["День незалежності Польщі", "З Днем незалежності Польщі! 🇵🇱"], "santa": ["День св. Миколая", "З Днем святого Миколая! 🎅"]},
         acsmFile: "Це не книжка, а файл ліцензії Adobe DRM (.acsm). Таку книжку можна відкрити лише в програмі чи рідері з підтримкою Adobe DRM (наприклад, Adobe Digital Editions, електронна книга). PaKu відкриває файли без DRM або з водяним знаком.",
         formatsHint: "Підтримувані формати: EPUB, MOBI, PDF, FB2, DOC, DOCX, ODT, RTF, HTML, TXT та ZIP із книжкою всередині. Законно придбані книжки відкриються тут, якщо вони без DRM або з водяним знаком (дані покупця у файлі). Книжки із захистом DRM застосунок не відкриває – читайте їх у застосунку продавця.",
         epubDrm: "Ця книжка має захист DRM, тому відкрити її в застосунку не можна. Такі книжки читають у застосунку продавця (наприклад, Kindle, Legimi). Багато магазинів пропонують і файли без DRM або з водяним знаком – їх можна відкрити тут.", fileError: "Помилка читання файлу: ",
@@ -1233,7 +1644,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
     function t(key, vars) {
       const dict = I18N[state.lang] || I18N.en;
-      let s = dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+      const sk = (typeof snarkDict === 'function') ? snarkDict() : null;
+      let s = (sk && typeof sk[key] === 'string') ? sk[key] : (dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key));
       if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
       return s;
     }
@@ -1247,6 +1659,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
       const sel = document.getElementById('langSelect');
       if (sel) sel.value = state.lang;
+      if (typeof applyHoliday === 'function') applyHoliday();
+      if (typeof renderBirthdayCard === 'function') renderBirthdayCard();
+      if (typeof renderRemindCard === 'function') renderRemindCard();
+      if (typeof renderSnarkCard === 'function') renderSnarkCard();
     }
 
     function setLanguage(lang) {
@@ -1448,11 +1864,29 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     // Termin odblokowania rozdziału i danej książki (każda ma własny harmonogram)
     function unlockDateOf(rec, index) {
       if (index === 0) return new Date(rec.startDateISO);
-      const base = new Date(rec.startDateISO);
       const [hh, mm] = (rec.unlockTime || '08:00').split(':').map(Number);
-      base.setDate(base.getDate() + index * rec.freqDays);
+      let base;
+      if (rec.sched && index >= rec.sched.from) {
+        // harmonogram przeliczony po czytaniu "na zapas": liczymy od zapisanego dnia, a nie od daty startu
+        const [y, m, d] = rec.sched.ymd;
+        base = new Date(y, m - 1, d + (index - rec.sched.from) * rec.freqDays);
+      } else {
+        base = new Date(rec.startDateISO);
+        base.setDate(base.getDate() + index * rec.freqDays);
+      }
       base.setHours(Number.isFinite(hh) ? hh : 8, Number.isFinite(mm) ? mm : 0, 0, 0);
       return base;
+    }
+
+    // Jeśli ktoś przeczytał więcej niż zakładał harmonogram, następny rozdział wraca na "dzisiaj + odstęp" (np. jutro)
+    function rescheduleAfterRead(rec, idx, total) {
+      const nxt = idx + 1;
+      if (nxt >= total || isOpenRec(rec, nxt)) return;
+      const [hh, mm] = (rec.unlockTime || '08:00').split(':').map(Number);
+      const cand = new Date(nowMs());
+      cand.setDate(cand.getDate() + (rec.freqDays || 1));
+      cand.setHours(Number.isFinite(hh) ? hh : 8, Number.isFinite(mm) ? mm : 0, 0, 0);
+      if (cand.getTime() < unlockDateOf(rec, nxt).getTime()) rec.sched = { from: nxt, ymd: [cand.getFullYear(), cand.getMonth() + 1, cand.getDate()] };
     }
 
     function isOpenRec(rec, i) {
@@ -1468,6 +1902,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       state.theme = t;
       document.documentElement.setAttribute('data-theme', t === 'light' ? '' : t);
       saveState();
+      if (typeof applyHoliday === 'function') applyHoliday();
     }
 
     function changeFont(delta) {
@@ -1484,7 +1919,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       });
       if (tab === 'calendar') renderCalendar();
       if (tab === 'reader') renderReader();
-      if (tab === 'settings') renderLibrary();
+      if (tab === 'settings') { renderLibrary(); renderQr(); renderHolidayCard(); renderBirthdayCard(); renderRemindCard(); renderSnarkCard(); }
     }
 
     let lockedUntilMs = null;
@@ -1534,6 +1969,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const book = bookOf(rec);
       if (!book) return;
       renderBookChips();
+      if (typeof updateRemindBanner === 'function') updateRemindBanner();
       const box = document.getElementById('readerContent');
       const total = book.chapters.length;
       const idx = Math.min(rec.currentIndex, total - 1);
@@ -1563,8 +1999,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             <h2 style="margin:8px 0 4px;">${t('lockTitle')}</h2>
             <p style="color:var(--muted);font-size:14px;">
               <strong>${escapeHtml(chap.title)}</strong><br/>
-              ${t('unlockAt')} ${unlockDate.toLocaleString(loc(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              ${t('unlockAt')} ${unlockDate.toLocaleString(loc(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${(() => { const tm = new Date(nowMs()); tm.setDate(tm.getDate() + 1); return localDateStr(unlockDate) === localDateStr(tm) ? ' (' + t('tomorrow') + ')' : ''; })()}
             </p>
+            ${rec.sched && rec.sched.from === idx ? `<p style="color:var(--accent);font-size:13px;font-weight:600;margin:0 0 8px;">${t('schedShifted')}</p>` : ''}
             <div class="countdown" id="countdown">${formatCountdown(diff)}</div>
             ${canUnlock ? `<button class="btn" onclick="unlockNextChapter(${idx})">${t('unlockNext')}</button>
             <p style="color:var(--muted);font-size:12px;margin:6px 0 14px;">${t('unlockHint')}</p>` : ''}
@@ -1588,14 +2025,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           <div class="pg-bar">
             <button class="pg-btn" id="pgPrev" aria-label="${t('pagePrev')}" onclick="pagerPrev()">◀</button>
             <div class="pg-info" id="pgInfo">1 / 1</div>
+            <button class="pg-btn" id="pgFocus" aria-label="${t('fullPage')}" onclick="toggleFocus()">${focusOn ? '✕' : '⛶'}</button>
             <button class="btn pg-next" id="pgNext" aria-label="${t('pageNext')}" onclick="pagerNext()">▶</button>
           </div>
           ${rec.finishedAt && idx === total - 1 ? `<div style="text-align:center;font-weight:700;color:var(--accent);margin-top:8px;">${t('congrats')}</div>` : ''}
         `;
       }
       if (!rec.finishedAt && !(idx === total - 1 && !isLocked)) {
-        html += `<button class="btn btn-secondary" style="margin-top:14px;" onclick="finishBook(true)">${t('finishEarly')}</button>
-          <p style="color:var(--muted);font-size:12px;margin:6px 0 0;">${t('finishEarlyHint')}</p>`;
+        html += `<div class="pg-extra"><button class="btn btn-secondary" style="margin-top:14px;" onclick="finishBook(true)">${t('finishEarly')}</button>
+          <p style="color:var(--muted);font-size:12px;margin:6px 0 0;">${t('finishEarlyHint')}</p></div>`;
       }
       box.innerHTML = html;
       if (!isLocked) initPager(rec, idx);
@@ -1603,6 +2041,25 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
     // ===== Czytanie "po stronach": tekst rozdziału układa się w kolumny i przewija się w poziomie =====
     const PAGER_GAP = 28;
+    let focusOn = false;
+    function toggleFocus(force) {
+      focusOn = force === undefined ? !focusOn : !!force;
+      document.body.classList.toggle('focus', focusOn);
+      const b = document.getElementById('pgFocus');
+      if (b) b.textContent = focusOn ? '✕' : '⛶';
+      try {
+        const el = document.documentElement;
+        if (focusOn && el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+        else if (!focusOn && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      } catch (e) {}
+      window.scrollTo(0, 0);
+      setTimeout(() => pagerLayout(), 60);
+    }
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && focusOn) toggleFocus(false);
+      else setTimeout(() => pagerLayout(), 120);
+    });
+    function pagerCols(w) { return w >= 700 ? 2 : 1; }
     let pagerAction = null, pagerKey = '';
     let pager = { page: 0, pages: 1, w: 0, rec: null, idx: 0 };
     let pagerSwiped = false;
@@ -1619,15 +2076,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       // źródłem prawdy jest zapisana pozycja (ułamek rozdziału), zmieniana tylko przez użytkownika
       const frac = pager.rec && pager.rec.pos && pager.rec.pos.i === pager.idx ? pager.rec.pos.f : 0;
       const absTop = pg.getBoundingClientRect().top + window.scrollY;
-      const nav = 74 + 12;
-      const h = Math.max(240, Math.floor(window.innerHeight - absTop - nav - 66));
+      const below = focusOn ? 12 + 18 + 12 + 46 + 12 : 74 + 12 + 66;
+      const h = Math.max(240, Math.floor(window.innerHeight - absTop - below));
+      const n = pagerCols(w), cw = Math.floor((w - PAGER_GAP * (n - 1)) / n);
       pg.style.height = h + 'px';
       inner.style.width = w + 'px';
       inner.style.height = h + 'px';
-      inner.style.columnWidth = w + 'px';
+      inner.style.columnWidth = cw + 'px';
       inner.style.columnGap = PAGER_GAP + 'px';
       pager.w = w;
-      pager.pages = Math.max(1, Math.round((inner.scrollWidth + PAGER_GAP) / (w + PAGER_GAP)));
+      pager.pages = Math.max(1, Math.ceil((inner.scrollWidth + PAGER_GAP) / (w + PAGER_GAP) - 0.02));
       pagerGo(Math.min(pager.pages - 1, Math.max(0, Math.floor(frac * pager.pages + 0.001))), true, true);
     }
 
@@ -1743,6 +2201,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         reached = logRead(words, 0);
       }
       if (idx + 1 < total) { rec.currentIndex = idx + 1; rec.pos = null; }
+      rescheduleAfterRead(rec, idx, total);
       saveState();
       renderReader();
       renderLibrary();
@@ -1765,7 +2224,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const FINISH_ICONS = ['🎉', '🏁', '🥳'];
 
     function defPraise() { return { on: true, first: false, half: {}, bags: {}, last: {} }; }
-    function L(key) { return (I18N[state.lang] && I18N[state.lang][key]) || I18N.pl[key]; }
+    function L(key) { const sk = snarkDict(); if (sk && sk[key] !== undefined) return sk[key]; return (I18N[state.lang] && I18N[state.lang][key]) || I18N.pl[key]; }
 
     // Losowanie z "koszyka": każdy element wypada raz, zanim któryś wróci
     function drawIdx(name, n) {
@@ -1801,7 +2260,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       document.getElementById('prIco').textContent = p.icon;
       document.getElementById('prHead').textContent = p.text;
       const pct = Math.round(o.done / o.n * 100);
-      document.getElementById('prFacts').textContent = o.kind === 'finish' && !o.w ? '' : t('praiseFacts', { w: fmtNum(o.w), d: o.done, n: o.n, p: pct });
+      document.getElementById('prFacts').textContent = (o.kind === 'finish' && !o.w ? '' : t('praiseFacts', { w: fmtNum(o.w), d: o.done, n: o.n, p: pct })) + (isBirthdayToday() ? ' ' + t('bdayPraise') : '');
       document.getElementById('prText').textContent = '„' + p.quote + '”';
       document.getElementById('prAuthor').textContent = '— ' + p.author;
       document.getElementById('prBtn').textContent = t('praiseNext');
@@ -2013,6 +2472,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       clearTimeout(rewardsTimer);
       const box = document.getElementById('rewards');
       if (box) box.classList.add('hidden');
+      maybeShowBirthday();
+      const bd = document.getElementById('bday');
+      if (!bd || bd.classList.contains('hidden')) maybeShowWelcome();
     }
 
     // ===== Kalendarz: rozdziały wszystkich książek (albo jednej) w kolejności terminów =====
@@ -2118,6 +2580,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       rec.freqDays = parseInt(document.getElementById('freqDays').value, 10) || 1;
       rec.unlockTime = document.getElementById('unlockTime').value || '08:00';
       const dv = document.getElementById('startDate').value;
+      if (dv && dv !== localDateStr(new Date(rec.startDateISO))) rec.sched = null;
       if (dv) {
         const today = localDateStr(new Date(nowMs()));
         if (dv === today) {
@@ -3361,6 +3824,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       rec.finishedAt = null;
       rec.finishedEarly = false;
       rec.pos = null;
+      rec.sched = null;
       rec.startDateISO = new Date(nowMs()).toISOString();
       saveState();
       renderReader();
@@ -3380,8 +3844,476 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       setTimeout(go, 2600); // zabezpieczenie, gdyby animacja się nie wykonała
     })();
 
+    // ===== Generator kodów QR (bajtowy tryb, korekcja M, wersje 1–10) – działa offline =====
+    function qrEncode(text) {
+      const bytes = Array.from(new TextEncoder().encode(text));
+      const ECW = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26], NB = [0, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5];
+      const AL = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+      const raw = v => { let r = (16 * v + 128) * v + 64; if (v >= 2) { const a = Math.floor(v / 7) + 2; r -= (25 * a - 10) * a - 55; if (v >= 7) r -= 36; } return r; };
+      let ver = 1, dataCw;
+      for (;; ver++) {
+        if (ver > 10) throw new Error('qr too long');
+        dataCw = Math.floor(raw(ver) / 8) - ECW[ver] * NB[ver];
+        if (4 + (ver < 10 ? 8 : 16) + bytes.length * 8 <= dataCw * 8) break;
+      }
+      const bits = [];
+      const put = (v, n) => { for (let i = n - 1; i >= 0; i--) bits.push((v >>> i) & 1); };
+      put(4, 4); put(bytes.length, ver < 10 ? 8 : 16); bytes.forEach(b => put(b, 8));
+      put(0, Math.min(4, dataCw * 8 - bits.length));
+      while (bits.length % 8) bits.push(0);
+      for (let pad = 0xEC; bits.length < dataCw * 8; pad ^= 0xEC ^ 0x11) put(pad, 8);
+      const data = [];
+      for (let i = 0; i < bits.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j]; data.push(b); }
+      const EXP = new Array(512), LOG = new Array(256);
+      let x = 1;
+      for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 256) x ^= 0x11D; }
+      for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+      const mul = (a, b) => (a && b ? EXP[LOG[a] + LOG[b]] : 0);
+      const ecw = ECW[ver], nb = NB[ver], total = Math.floor(raw(ver) / 8);
+      let gen = [1];
+      for (let i = 0; i < ecw; i++) {
+        const ng = new Array(gen.length + 1).fill(0);
+        for (let j = 0; j < gen.length; j++) { ng[j] ^= gen[j]; ng[j + 1] ^= mul(gen[j], EXP[i]); }
+        gen = ng;
+      }
+      const rem = d => {
+        const res = new Array(ecw).fill(0);
+        for (const b of d) { const f = b ^ res[0]; res.shift(); res.push(0); for (let i = 0; i < ecw; i++) res[i] ^= mul(gen[i + 1], f); }
+        return res;
+      };
+      const shortN = nb - (total % nb), shortLen = Math.floor(total / nb) - ecw;
+      const blocks = []; let k = 0;
+      for (let i = 0; i < nb; i++) { const len = shortLen + (i < shortN ? 0 : 1); const d = data.slice(k, k + len); k += len; blocks.push({ d, e: rem(d) }); }
+      const all = [];
+      for (let i = 0; i <= shortLen; i++) blocks.forEach(b => { if (i < b.d.length) all.push(b.d[i]); });
+      for (let i = 0; i < ecw; i++) blocks.forEach(b => all.push(b.e[i]));
+      const size = ver * 4 + 17;
+      const M = [], F = [];
+      for (let y = 0; y < size; y++) { M.push(new Array(size).fill(false)); F.push(new Array(size).fill(false)); }
+      const setF = (px, py, dark) => { if (px < 0 || py < 0 || px >= size || py >= size) return; M[py][px] = dark; F[py][px] = true; };
+      for (let i = 0; i < size; i++) { setF(6, i, i % 2 === 0); setF(i, 6, i % 2 === 0); }
+      const finder = (cx, cy) => { for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) { const d = Math.max(Math.abs(dx), Math.abs(dy)); setF(cx + dx, cy + dy, d !== 2 && d !== 4); } };
+      finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+      const al = AL[ver];
+      for (let i = 0; i < al.length; i++) for (let j = 0; j < al.length; j++) {
+        if ((i === 0 && j === 0) || (i === 0 && j === al.length - 1) || (i === al.length - 1 && j === 0)) continue;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) setF(al[i] + dx, al[j] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+      }
+      const drawFormat = mask => {
+        const d0 = mask; let r = d0;
+        for (let i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537);
+        const fb = ((d0 << 10) | r) ^ 0x5412, bit = i => ((fb >>> i) & 1) === 1;
+        for (let i = 0; i <= 5; i++) setF(8, i, bit(i));
+        setF(8, 7, bit(6)); setF(8, 8, bit(7)); setF(7, 8, bit(8));
+        for (let i = 9; i < 15; i++) setF(14 - i, 8, bit(i));
+        for (let i = 0; i < 8; i++) setF(size - 1 - i, 8, bit(i));
+        for (let i = 8; i < 15; i++) setF(8, size - 15 + i, bit(i));
+        setF(8, size - 8, true);
+      };
+      drawFormat(0);
+      if (ver >= 7) {
+        let r = ver;
+        for (let i = 0; i < 12; i++) r = (r << 1) ^ ((r >>> 11) * 0x1F25);
+        const vb = (ver << 12) | r;
+        for (let i = 0; i < 18; i++) { const b = ((vb >>> i) & 1) === 1, a = size - 11 + (i % 3), c = Math.floor(i / 3); setF(a, c, b); setF(c, a, b); }
+      }
+      let bi = 0;
+      for (let right = size - 1; right >= 1; right -= 2) {
+        if (right === 6) right = 5;
+        for (let vert = 0; vert < size; vert++) for (let j = 0; j < 2; j++) {
+          const px = right - j, up = ((right + 1) & 2) === 0, py = up ? size - 1 - vert : vert;
+          if (!F[py][px] && bi < all.length * 8) { M[py][px] = ((all[bi >>> 3] >>> (7 - (bi & 7))) & 1) === 1; bi++; }
+        }
+      }
+      const MF = [(a, b) => (a + b) % 2 === 0, (a, b) => b % 2 === 0, (a, b) => a % 3 === 0, (a, b) => (a + b) % 3 === 0,
+        (a, b) => (Math.floor(a / 3) + Math.floor(b / 2)) % 2 === 0, (a, b) => ((a * b) % 2) + ((a * b) % 3) === 0,
+        (a, b) => (((a * b) % 2) + ((a * b) % 3)) % 2 === 0, (a, b) => (((a + b) % 2) + ((a * b) % 3)) % 2 === 0];
+      const applyMask = m => { for (let py = 0; py < size; py++) for (let px = 0; px < size; px++) if (!F[py][px] && MF[m](px, py)) M[py][px] = !M[py][px]; };
+      const penalty = () => {
+        let p = 0, dark = 0;
+        const lines = [];
+        for (let a = 0; a < size; a++) {
+          let row = '', col = '';
+          for (let b = 0; b < size; b++) { row += M[a][b] ? '1' : '0'; col += M[b][a] ? '1' : '0'; if (M[a][b]) dark++; }
+          lines.push(row, col);
+        }
+        for (const ln of lines) {
+          for (const m of ln.matchAll(/(1{5,}|0{5,})/g)) p += 3 + (m[0].length - 5);
+          p += 40 * ((ln.match(/(?=00001011101|10111010000)/g) || []).length);
+        }
+        for (let py = 0; py < size - 1; py++) for (let px = 0; px < size - 1; px++) { const c = M[py][px]; if (c === M[py][px + 1] && c === M[py + 1][px] && c === M[py + 1][px + 1]) p += 3; }
+        const tot = size * size;
+        p += (Math.ceil(Math.abs(dark * 20 - tot * 10) / tot) - 1) * 10;
+        return p;
+      };
+      let best = 0, bestP = Infinity;
+      for (let m = 0; m < 8; m++) {
+        applyMask(m); drawFormat(m);
+        const p = penalty();
+        applyMask(m);
+        if (p < bestP) { bestP = p; best = m; }
+      }
+      applyMask(best); drawFormat(best);
+      return M;
+    }
+
+    const QR_FALLBACK_URL = 'https://zondelekpp-wq.github.io/PaKu/';
+    function appShareUrl() {
+      try {
+        const loc = window.location;
+        if (!/^https?:$/.test(loc.protocol) || /^(localhost|127\.|10\.|192\.168\.|0\.0\.0\.0)/.test(loc.hostname)) return QR_FALLBACK_URL;
+        return (loc.origin + loc.pathname).replace(/index\.html$/, '');
+      } catch (e) { return QR_FALLBACK_URL; }
+    }
+    function renderQr() {
+      const cv = document.getElementById('qrCanvas');
+      if (!cv) return;
+      const url = appShareUrl();
+      document.getElementById('qrUrl').textContent = url;
+      try {
+        const M = qrEncode(url), n = M.length, q = 4, sc = Math.max(4, Math.floor(560 / (n + 2 * q)));
+        cv.width = cv.height = (n + 2 * q) * sc;
+        const c = cv.getContext('2d');
+        c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height);
+        c.fillStyle = '#1B1530';
+        for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (M[y][x]) c.fillRect((x + q) * sc, (y + q) * sc, sc, sc);
+      } catch (e) { cv.width = cv.height = 0; }
+    }
+    function flashBtn(id, key) {
+      const b = document.getElementById(id); if (!b) return;
+      b.textContent = t(key); setTimeout(() => { b.textContent = t(id === 'qrCopyBtn' ? 'qrCopy' : id === 'qrShareBtn' ? 'qrShare' : 'qrSave'); }, 1600);
+    }
+    async function shareApp() {
+      const url = appShareUrl();
+      if (navigator.share) { try { await navigator.share({ title: 'PaKu', text: t('qrShareText'), url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      copyAppLink();
+    }
+    async function copyAppLink() {
+      const url = appShareUrl();
+      try { await navigator.clipboard.writeText(url); }
+      catch (e) { const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) {} ta.remove(); }
+      flashBtn('qrCopyBtn', 'qrCopied');
+    }
+    function saveQr() {
+      const cv = document.getElementById('qrCanvas'); if (!cv || !cv.width) return;
+      cv.toBlob(b => {
+        if (!b) return;
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'PaKu-QR.png';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        flashBtn('qrSaveBtn', 'qrSaved');
+      }, 'image/png');
+    }
+
+    // ===== Motywy świąteczne =====
+    const HOL = {
+      xmas:      { e: '🎄', p: ['❄️', '🎄', '⭐', '❄️'], l: ['#F7E4E4', '#FFF6F3', '#C62828', '#F6D0CF', '#EBC3C0'], d: ['#FF8A80', '#4A2530'] },
+      newyear:   { e: '🎆', p: ['✨', '🎆', '🥂', '🎉'], l: ['#E4E6F7', '#F3F4FF', '#9A6B00', '#F6E7B4', '#CFD2EE'], d: ['#F5C84C', '#3F3A24'] },
+      valentine: { e: '❤️', p: ['❤️', '💕', '🌹'], l: ['#FBE0EA', '#FFF2F6', '#D6336C', '#F9C9DA', '#EDB4C9'], d: ['#FF8FB1', '#4A2236'] },
+      womens:    { e: '🌷', p: ['🌷', '🌸', '💐'], l: ['#F1E1F7', '#FBF1FF', '#A21CAF', '#F0C9F5', '#E3BDEB'], d: ['#E879F9', '#47235A'] },
+      stpat:     { e: '☘️', p: ['☘️', '🍀'], l: ['#DDF1DD', '#F1FBF1', '#2E7D32', '#C5E8C7', '#B5DDB7'], d: ['#81C784', '#24422A'] },
+      easter:    { e: '🐣', p: ['🐣', '🐰', '🥚', '🌼'], l: ['#F3F0C8', '#FDFBE6', '#4F7D12', '#E4EFB8', '#DCE3A5'], d: ['#B5DE6A', '#3A4524'] },
+      earth:     { e: '🌍', p: ['🌍', '🌱', '🍃'], l: ['#D9EFEA', '#EEFAF7', '#00796B', '#BDE5DE', '#A9D7CF'], d: ['#4DD0BE', '#1E4540'] },
+      mothers:   { e: '💐', p: ['💐', '🌸', '❤️'], l: ['#FCE4EC', '#FFF4F7', '#C2185B', '#F8C8D8', '#EEB6C8'], d: ['#F48FB1', '#4A2236'] },
+      children:  { e: '🎈', p: ['🎈', '🎉', '🧸'], l: ['#DDEBFF', '#EEF5FF', '#1E6FD9', '#C5DCFB', '#B0CDF3'], d: ['#7DB3FF', '#243A5C'] },
+      halloween: { e: '🎃', p: ['🎃', '🦇', '👻', '🕸️'], l: ['#FBE3CC', '#FFF4E8', '#D9480F', '#FFD8B5', '#F0BE95'], d: ['#FF9B52', '#4A2D1B'] },
+      allsaints: { e: '🕯️', p: [], l: ['#E6E2DA', '#F4F1EB', '#8A5A00', '#EBDDB8', '#D5CDBE'], d: ['#E6B85C', '#3F3624'] },
+      indep:     { e: '🇵🇱', p: ['🤍', '❤️', '🇵🇱'], l: ['#F6E3E3', '#FFFFFF', '#C8102E', '#F8CDD3', '#EBC2C6'], d: ['#FF7A8C', '#4A2330'] },
+      birthday:  { e: '🎂', p: ['🎂', '🎈', '🎉', '🎁', '🥳'], l: ['#FDE7F1', '#FFF6FA', '#B0147A', '#FBC8E3', '#F2B2D4'], d: ['#FF8AD8', '#4A2046'] },
+      santa:     { e: '🎅', p: ['🎅', '❄️', '🎁'], l: ['#F7E4E4', '#FFF6F3', '#C62828', '#F6D0CF', '#EBC3C0'], d: ['#FF8A80', '#4A2530'] }
+    };
+    const HOL_ORDER = ['birthday', 'newyear', 'valentine', 'womens', 'stpat', 'easter', 'earth', 'mothers', 'children', 'halloween', 'allsaints', 'indep', 'santa', 'xmas'];
+    function easterDate(y) {
+      const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+      return new Date(y, mo - 1, da);
+    }
+    function holidayFor(d) {
+      const y = d.getFullYear(), md = (d.getMonth() + 1) * 100 + d.getDate();
+      if (md === 1231 || md === 101) return 'newyear';
+      if (md === 214) return 'valentine';
+      if (md === 308) return 'womens';
+      if (md === 317) return 'stpat';
+      if (md === 422) return 'earth';
+      if (md === 526) return 'mothers';
+      if (md === 601) return 'children';
+      if (md === 1030 || md === 1031) return 'halloween';
+      if (md === 1101 || md === 1102) return 'allsaints';
+      if (md === 1111) return 'indep';
+      if (md === 1206) return 'santa';
+      if (md >= 1222 && md <= 1226) return 'xmas';
+      const day0 = new Date(y, d.getMonth(), d.getDate()).getTime();
+      const ea = easterDate(y).getTime();
+      if (Math.abs(day0 - ea) <= 86400000) return 'easter';
+      if (d.getMonth() === 4 && d.getDay() === 0 && d.getDate() >= 8 && d.getDate() <= 14) return 'mothers';
+      return null;
+    }
+    // ===== Urodziny (opcjonalne; zapisywany jest tylko dzień i miesiąc, wyłącznie na tym urządzeniu) =====
+    function isBirthdayToday() {
+      const b = state.birthday; if (!b || !/^\d{2}-\d{2}$/.test(b)) return false;
+      const d = new Date(nowMs()), y = d.getFullYear();
+      const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+      const md = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      return b === md || (b === '02-29' && !leap && md === '02-28');
+    }
+    function setBirthday() {
+      const dd = document.getElementById('bdDay').value, mm = document.getElementById('bdMonth').value;
+      if (dd && mm) {
+        const mi = +mm, di = +dd;
+        if (di > [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mi - 1]) { document.getElementById('bdDay').value = ''; return; }
+        state.birthday = String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+      } else if (!dd && !mm) state.birthday = null;
+      else return; // wybrano tylko część daty
+      state.bdayShown = '';
+      saveState(); applyHoliday(); maybeShowBirthday();
+    }
+    function clearBirthday() { state.birthday = null; state.bdayShown = ''; saveState(); renderBirthdayCard(); applyHoliday(); }
+    function renderBirthdayCard() {
+      const dsel = document.getElementById('bdDay'), msel = document.getElementById('bdMonth'); if (!dsel) return;
+      const [mm, dd] = state.birthday ? state.birthday.split('-') : ['', ''];
+      dsel.innerHTML = '<option value="">—</option>' + Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${+dd === i + 1 ? ' selected' : ''}>${i + 1}</option>`).join('');
+      msel.innerHTML = '<option value="">—</option>' + Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}"${+mm === i + 1 ? ' selected' : ''}>${new Date(2024, i, 1).toLocaleString(loc(), { month: 'long' })}</option>`).join('');
+      document.getElementById('bdClear').classList.toggle('hidden', !state.birthday);
+    }
+    function maybeShowBirthday() {
+      if (!isBirthdayToday()) return;
+      const stamp = String(new Date(nowMs()).getFullYear());
+      if (state.bdayShown === stamp) return;
+      const box = document.getElementById('bday'); if (!box) return;
+      state.bdayShown = stamp; saveState();
+      document.getElementById('bdTitle').textContent = t('bdayModalTitle');
+      document.getElementById('bdText').textContent = t('bdayModalText');
+      document.getElementById('bdBtn').textContent = t('bdayThanks');
+      box.classList.remove('hidden');
+      const layer = document.getElementById('bdConfetti'); layer.innerHTML = '';
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const em = ['🎉', '🎈', '🎊', '✨', '🎁', '🥳'];
+        for (let i = 0; i < 26; i++) {
+          const sp = document.createElement('span'); sp.className = 'hol-p'; sp.textContent = em[i % em.length];
+          sp.style.left = (2 + (i * 3.9) % 96) + '%'; sp.style.fontSize = (16 + (i * 7) % 18) + 'px';
+          sp.style.animationDuration = (5 + (i * 2) % 6) + 's'; sp.style.animationDelay = (-((i * 1.3) % 6)) + 's';
+          layer.appendChild(sp);
+        }
+      }
+    }
+    function closeBirthday() { document.getElementById('bday').classList.add('hidden'); }
+
+    function holState() { if (!state.hol) state.hol = { on: true, preview: null, dismissed: '' }; return state.hol; }
+    function activeHoliday() {
+      const h = holState();
+      if (h.preview && HOL[h.preview]) return h.preview;
+      if (isBirthdayToday()) return 'birthday';
+      return h.on ? holidayFor(new Date(nowMs())) : null;
+    }
+    function holTxt(key) {
+      const sk = snarkDict(), tx = (sk && sk.holTxt) || (I18N[state.lang] && I18N[state.lang].holTxt) || I18N.pl.holTxt;
+      return tx[key] || I18N.pl.holTxt[key];
+    }
+    function applyHoliday() {
+      const root = document.documentElement, key = activeHoliday(), h = holState();
+      ['--bg', '--surface', '--accent', '--accent-soft', '--border'].forEach(v => root.style.removeProperty(v));
+      const old = document.getElementById('holLayer'); if (old) old.remove();
+      const banner = document.getElementById('holBanner'), deco = document.getElementById('brandDeco');
+      if (!key) { root.removeAttribute('data-holiday'); if (banner) banner.classList.add('hidden'); if (deco) deco.textContent = ''; renderHolidayCard(); return; }
+      const P = HOL[key], th = state.theme || 'light';
+      root.setAttribute('data-holiday', key);
+      if (th === 'light') ['--bg', '--surface', '--accent', '--accent-soft', '--border'].forEach((v, i) => root.style.setProperty(v, P.l[i]));
+      else if (th === 'dark') { root.style.setProperty('--accent', P.d[0]); root.style.setProperty('--accent-soft', P.d[1]); }
+      if (deco) deco.textContent = P.e;
+      const tx = holTxt(key), stamp = key + new Date(nowMs()).getFullYear();
+      if (banner) {
+        const hide = !h.preview && h.dismissed === stamp;
+        banner.classList.toggle('hidden', hide);
+        document.getElementById('holBannerText').textContent = tx[1];
+        banner.dataset.stamp = stamp;
+      }
+      const parts = snarkDict() && SNARK_PARTICLES[key] ? SNARK_PARTICLES[key] : P.p;
+      if (parts.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const layer = document.createElement('div'); layer.id = 'holLayer'; layer.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 14; i++) {
+          const s = document.createElement('span'); s.className = 'hol-p'; s.textContent = parts[i % parts.length];
+          s.style.left = (3 + ((i * 7.3) % 94)) + '%';
+          s.style.fontSize = (14 + (i * 5) % 14) + 'px';
+          s.style.animationDuration = (11 + (i * 3) % 9) + 's';
+          s.style.animationDelay = (-((i * 2.7) % 14)) + 's';
+          layer.appendChild(s);
+        }
+        document.body.appendChild(layer);
+      }
+      renderHolidayCard();
+    }
+    function dismissHoliday() {
+      const b = document.getElementById('holBanner');
+      if (holState().preview) setHolidayPreview(null); else { holState().dismissed = b.dataset.stamp || ''; saveState(); }
+      b.classList.add('hidden');
+    }
+    function toggleHolidays() { const h = holState(); h.on = !h.on; if (!h.on) h.preview = null; saveState(); applyHoliday(); }
+    function setHolidayPreview(k) { const h = holState(); h.preview = h.preview === k ? null : k; if (h.preview) h.on = true; saveState(); applyHoliday(); }
+    function renderHolidayCard() {
+      const box = document.getElementById('holChips'); if (!box) return;
+      const h = holState(), cur = activeHoliday();
+      document.getElementById('holToggle').textContent = (h.on ? '✅ ' : '⬜ ') + t('holAuto');
+      document.getElementById('holToggle').classList.toggle('active', h.on);
+      box.innerHTML = HOL_ORDER.map(k => `<button class="chip${h.preview === k ? ' active' : ''}" onclick="setHolidayPreview('${k}')">${HOL[k].e} ${escapeHtml(holTxt(k)[0])}</button>`).join('');
+      const st = document.getElementById('holStatus');
+      st.textContent = cur ? (h.preview ? t('holPreviewing') : t('holToday')) + ' ' + HOL[cur].e + ' ' + holTxt(cur)[0] : t('holNone');
+    }
+
+    // ===== Przypomnienia o czytaniu i powitanie po przerwie =====
+    function remState() { if (!state.remind) state.remind = { on: false, time: null, asked: false }; return state.remind; }
+    function remTime() { return remState().time || (activeRec() && activeRec().unlockTime) || '08:00'; }
+    async function writeReminderCfg(extra) {
+      try {
+        const r = remState(), old = (await idbGet('reminder')) || {};
+        const cfg = Object.assign({}, old, { on: !!r.on, time: remTime(), title: 'PaKu', bodies: L('remBodies'), openedDate: localDateStr(new Date(nowMs())) }, extra || {});
+        await idbSet('reminder', cfg);
+      } catch (e) {}
+    }
+    async function swReg() { try { return ('serviceWorker' in navigator) ? await Promise.race([navigator.serviceWorker.ready, new Promise(r => setTimeout(() => r(null), 3000))]) : null; } catch (e) { return null; } }
+    async function registerReminderSync() {
+      try {
+        const reg = await swReg(); if (!reg) return;
+        if (reg.periodicSync) { if (remState().on) await reg.periodicSync.register('paku-daily', { minInterval: 6 * 3600 * 1000 }); else await reg.periodicSync.unregister('paku-daily'); }
+        const old = await reg.getNotifications({ includeTriggered: true }).catch(() => []);
+        old.filter(n => n.tag && n.tag.indexOf('paku-t-') === 0).forEach(n => n.close());
+        if (remState().on && 'showTrigger' in Notification.prototype && typeof TimestampTrigger !== 'undefined') {
+          const [h, m] = remTime().split(':').map(Number), bodies = L('remBodies');
+          for (let i = 1; i <= 7; i++) {
+            const d = new Date(); d.setDate(d.getDate() + i); d.setHours(h || 0, m || 0, 0, 0);
+            await reg.showNotification('PaKu', { tag: 'paku-t-' + localDateStr(d), body: bodies[i % bodies.length], icon: './icon-192.png', badge: './icon-192.png', showTrigger: new TimestampTrigger(d.getTime()), data: { url: './' } });
+          }
+        }
+      } catch (e) {}
+    }
+    function setRemMsg(txt) { const el = document.getElementById('remMsg'); if (el) el.textContent = txt || ''; }
+    async function sendTestNotification() {
+      if (!('Notification' in window)) { setRemMsg(t('remUnsupported')); return; }
+      let perm = Notification.permission;
+      if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) {} }
+      if (perm !== 'granted') { setRemMsg(t('remDenied')); return; }
+      const opts = { body: t('remTest'), icon: './icon-192.png', badge: './icon-192.png', tag: 'paku-test', data: { url: './' } };
+      const reg = await swReg();
+      try { if (reg) await reg.showNotification('PaKu', opts); else new Notification('PaKu', opts); setRemMsg(t('remTestSent')); } catch (e) { setRemMsg(t('remUnsupported')); }
+    }
+    async function enableReminders() {
+      if (!('Notification' in window)) { setRemMsg(t('remUnsupported')); dismissRemindPrompt(); return false; }
+      let perm = Notification.permission;
+      if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) {} }
+      const r = remState(); r.asked = true;
+      if (perm !== 'granted') { r.on = false; saveState(); setRemMsg(t('remDenied')); renderRemindCard(); updateRemindBanner(); return false; }
+      r.on = true; if (!r.time) r.time = remTime();
+      saveState(); await writeReminderCfg(); registerReminderSync(); renderRemindCard(); updateRemindBanner();
+      setRemMsg(t('remOn')); sendTestNotification();
+      return true;
+    }
+    function disableReminders() { const r = remState(); r.on = false; saveState(); writeReminderCfg(); registerReminderSync(); renderRemindCard(); setRemMsg(t('remOff')); }
+    function toggleReminders() { return remState().on ? disableReminders() : enableReminders(); }
+    function setRemTime(v) { const r = remState(); r.time = v || null; saveState(); writeReminderCfg(); registerReminderSync(); }
+    function dismissRemindPrompt() { remState().asked = true; saveState(); updateRemindBanner(); }
+    function updateRemindBanner() {
+      const b = document.getElementById('remindBanner'); if (!b) return;
+      const r = remState(), started = (state.log && state.log.length) || state.books.some(x => x.completed && x.completed.length);
+      const show = !r.on && !r.asked && started && 'Notification' in window && Notification.permission !== 'denied';
+      b.classList.toggle('hidden', !show);
+    }
+    function renderRemindCard() {
+      const tg = document.getElementById('remToggle'); if (!tg) return;
+      const r = remState();
+      tg.textContent = t(r.on ? 'remToggleOn' : 'remToggleOff'); tg.classList.toggle('active', !!r.on);
+      document.getElementById('remTime').value = remTime();
+      const w = welcomeState(), wb = document.getElementById('wbToggle');
+      wb.textContent = t(w.on ? 'wbToggleOn' : 'wbToggleOff'); wb.classList.toggle('active', !!w.on);
+    }
+    function downloadIcs() {
+      const [h, m] = remTime().split(':').map(Number), p2 = n => String(n).padStart(2, '0');
+      const st = new Date(); st.setHours(h || 0, m || 0, 0, 0); if (st.getTime() <= Date.now()) st.setDate(st.getDate() + 1);
+      const fmt = d => d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + 'T' + p2(d.getHours()) + p2(d.getMinutes()) + '00';
+      const esc = x => String(x).replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+      const url = appShareUrl(), title = t('icsTitle'), desc = t('icsDesc') + ' ' + url;
+      const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PaKu//Reminder//EN', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+        'UID:paku-daily-reminder@' + (location.hostname || 'paku'), 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''),
+        'DTSTART:' + fmt(st), 'DURATION:PT15M', 'RRULE:FREQ=DAILY', 'SUMMARY:' + esc(title), 'DESCRIPTION:' + esc(desc), 'URL:' + url,
+        'BEGIN:VALARM', 'TRIGGER:PT0S', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc(title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); a.download = 'PaKu-przypomnienie.ics';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      setRemMsg(t('icsDone'));
+    }
+
+    // Powitanie po kilkudniowej nieobecności
+    function welcomeState() { if (!state.welcome) state.welcome = { on: true }; return state.welcome; }
+    let pendingWelcome = null;
+    function checkWelcomeBack() {
+      const now = nowMs(), last = state.lastOpen || 0;
+      state.lastOpen = now; saveState();
+      if (!welcomeState().on || !last) return null;
+      const days = Math.floor((now - last) / 86400000);
+      return days >= 3 ? days : null;
+    }
+    function maybeShowWelcome() {
+      if (pendingWelcome == null) return;
+      const days = pendingWelcome; pendingWelcome = null;
+      const box = document.getElementById('wback'); if (!box) return;
+      const tier = days >= 30 ? 3 : days >= 7 ? 2 : 1, list = L('wb' + tier);
+      const pick = list[Math.floor(Math.random() * list.length)];
+      document.getElementById('wbIco').textContent = ['', '💜', '🎉', '🥹'][tier];
+      document.getElementById('wbTitle').textContent = pick[0];
+      document.getElementById('wbText').textContent = pick[1].replace('{d}', days);
+      const rec = activeRec(), book = rec && bookOf(rec);
+      let k = 0;
+      if (book && !rec.finishedAt) for (let i = 0; i < book.chapters.length; i++) if (isOpenRec(rec, i) && !rec.completed.includes(i)) k++;
+      const wt = document.getElementById('wbWait'); wt.textContent = k > 0 ? t('wbWaiting', { k }) : ''; wt.style.display = k > 0 ? '' : 'none';
+      document.getElementById('wbBtn').textContent = t('wbBtn');
+      box.classList.remove('hidden');
+    }
+    function closeWelcome() { document.getElementById('wback').classList.add('hidden'); switchTab('reader'); }
+    function toggleWelcome() { const w = welcomeState(); w.on = !w.on; saveState(); renderRemindCard(); }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') { state.lastOpen = nowMs(); saveState(); }
+      else {
+        pendingWelcome = checkWelcomeBack();
+        const busy = ['rewards', 'praise', 'bday', 'splash'].some(id => { const e = document.getElementById(id); return e && !e.classList.contains('hidden'); });
+        if (!busy) maybeShowWelcome();
+        writeReminderCfg();
+      }
+    });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', () => {});
+
+    // ===== Tryb złośliwy: nakładka na teksty (tylko pl i en); pozostałe języki zostają zwykłe =====
+    const SNARK = {"pl": {"praiseList": ["Rozdział zaliczony! Aż się wzruszyłam. Prawie. 🙄", "Brawo! Nikt nie spodziewał się, że dasz radę. Ja też nie.", "Czytasz! Cud, drodzy państwo. Zapiszcie sobie datę.", "Kolejny rozdział za Tobą. Mózg właśnie miał pierwszy trening w tym tygodniu.", "No proszę, ani razu nie ziewnięto. A może ziewnięto – nie patrzyłam.", "Imponujące. Przy Twojej koncentracji to praktycznie maraton.", "Rozdział skończony. Książka w euforii, kanapa zazdrosna.", "I znowu Ci wyszło! Statystycznie to już nawyk. Uważaj.", "Tak dalej, a przypadkiem staniesz się osobą oczytaną.", "Zwrot akcji: rozdział faktycznie skończony. Notuję.", "Patrzcie, oczy użyte do czegoś innego niż scrollowanie.", "Świetna robota! Przybiłabym piątkę, ale mam tylko piksele.", "Jeszcze jeden rozdział poległ. Książka, nie Ty. Na razie.", "Należy Ci się przekąska. Drzemka – nie. Nie przeginaj.", "Czytanie i kończenie? Kto Cię tak wychował? Gratulacje dla wychowawców.", "Rozdział gotowy. Przyszłe Ty niechętnie, ale kiwa głową.", "Powiedziałabym, że jestem dumna, ale mam markę do utrzymania. Więc: nieźle.", "No dobra, było dobrze. Nie zadzieraj nosa – książka ma jeszcze rozdziały.", "Przeczytane. Bez obrazków, bez filmików. Odważnie.", "Doskonale. Powtórz jutro, o ile motywacja nie wyszła na obiad."], "praiseFirst": ["Pierwszy rozdział! Najtrudniej zacząć, a jeszcze trudniej – nie rzucić po dwóch stronach. Obserwuję. 👀", "Start! Jak na debiut – wcale nie najgorzej. Zobaczymy, czy starczy Ci zapału na drugi.", "Pierwszy rozdział zaliczony. Witaj w klubie ludzi, którzy zaczęli. Wstęp wolny, kończenie – to już osobna rozmowa."], "praiseHalf": ["Półmetek! Połowa za Tobą, połowa… też, tylko jeszcze nieprzeczytana.", "Równo połowa. Mogło być gorzej – i zwykle jest.", "Już połowa?! Ktoś tu się rozpędził. Spokojnie, bo jeszcze skończysz.", "Półmetek. Odwrotu nie ma, chyba że lubisz porzucone książki. A ja wiem, że lubisz."], "praiseFinish": ["KONIEC! Cała książka za Tobą. Zdumiewające. Wpisuję do kroniki cudów. 🏆", "Ostatnia strona! Szczerze? Obstawiałam, że rzucisz w połowie. Przepraszam. Trochę.", "Skończone. Możesz teraz mówić znajomym, że „dużo czytasz”. Mam na to dowody.", "Cała książka! Czy to już uzależnienie? Polecam więcej takich. 📚", "Koniec lektury! Gratulacje – a teraz wybierz następną, zanim wrócisz do scrollowania. 🏁"], "quoteList": [["Książki nie gryzą. Co najwyżej nadepną na Twoje poczucie własnej wartości.", "PaKu"], ["Kto czyta, ten nie błądzi. Kto scrolluje, ten błądzi po feedach.", "Przysłowie ludowe (zmyślone przed chwilą)"], ["Czytanie to jedyny sport, w którym leżenie liczy się jako trening.", "PaKu"], ["Zakładka w książce to nie plan. To pobożne życzenie.", "PaKu"], ["Nie oceniaj książki po okładce. Oceniaj po tym, ile razy ją odkładasz.", "PaKu"], ["„Jeszcze jeden rozdział” – najbardziej kłamliwe zdanie w historii.", "Każdy czytelnik, kiedykolwiek"], ["Mądry człowiek czyta. Mądrzejszy czyta i nie udaje, że czytał.", "PaKu"], ["Telewizor nigdy nie poprosi Cię o skupienie. Dlatego go lubisz.", "PaKu"], ["Czytanie rozwija wyobraźnię. Twoje wymówki dowodzą, że działa.", "PaKu"], ["Książka na półce jest warta pół ceny. Resztę dopisuje odkurzanie.", "Moja babcia (prawdopodobnie)"], ["Dobra książka zmienia życie. Zła przynajmniej usypia – też coś.", "PaKu"], ["Czasu na czytanie się nie znajduje. Czas na czytanie się kradnie telefonowi.", "PaKu"]], "praiseNext": "No dobra, dalej ➡️", "praiseFacts": "+{w} słów (tak, policzyłam) · {d} z {n} rozdziałów ({p}%) – robisz postępy, aż dziw", "congrats": "🎉 Gratulacje! Cała książka skończona. Kto by pomyślał…", "markRead": "✅ Przeczytane. Słowo.", "goNext": "Dalej, nie ociągaj się ➡️", "finishBook": "🏁 Skończ wreszcie tę książkę", "finishEarly": "🏁 Poddaję się (zaliczam jako przeczytaną)", "finishEarlyHint": "Książka zaliczy się jako przeczytana, ale pominięte rozdziały nie dodadzą Ci słów. Oszukiwanie ma swoją cenę.", "finishEarlyConfirm": "Naprawdę rzucasz „{t}” w kąt? Zaliczę ją jako przeczytaną, ale pominięte rozdziały będą Cię prześladować.", "lockTitle": "Cierpliwości! Następny rozdział jeszcze się nie wyspał", "unlockAt": "Odblokuje się:", "unlockNext": "🔓 Odblokuj teraz (bo przecież nie wytrzymasz)", "unlockHint": "Otwórz go już, skoro cierpliwość to nie Twoja mocna strona.", "seeSchedule": "Zobacz, na co jeszcze musisz czekać", "schedShifted": "⚡ Czytasz szybciej niż plan. Przeliczyłam harmonogram, ale nie rozpędzaj się.", "pctRead": "Przeczytane: {p}% (nieźle)", "pctLeft": "Zostało: {l}% (nie uciekniesz)", "chaptersLeft": "jeszcze {k} rozdz. do męki", "splashTag": "Rozdział po rozdziale. Powolutku, jak lubisz.", "busy": "⏳ Wczytuję… nie popędzaj mnie.", "rwTitle": "Twoje (skromne) osiągnięcia", "rw_week": "W tym tygodniu raczyło Ci się przeczytać:", "rw_month": "W tym miesiącu udało Ci się przeczytać:", "rw_year": "W tym roku udało Ci się (o dziwo) przeczytać:", "rwEmpty": "Pusto tu. Zupełnie jak w Twoim planie czytania.", "rwSkip": "Pomiń (jak zwykle)", "rwClose": "Zamknij i wracaj do scrollowania", "rwFinished": "🎉 Ukończono „{t}”! Sama jestem w szoku.", "rwReached": "🎉 Nowy cel: {n}! Jeszcze trochę i uciekniesz od swoich zaległości.", "jNext": "Następny cel: {n} (jeszcze chwila męki)", "jDone": "Skraj Wszechświata zaliczony! Czas poszukać nowych książek. 🎉", "netOffline": "Internet Ci uciekł. Wróć, jak go złapiesz.", "netBlocked": "Nie udało się pobrać. Serwer obraził się na aplikacje. Pobierz plik w przeglądarce i wrzuć go ręcznie – tak, wiem, że to praca.", "netTimeout": "Pobieranie trwało wieki. Ja też mam swoje granice cierpliwości.", "netHttp": "Serwer powiedział „nie”. Nie wnikałam, czemu.", "netTooBig": "Za gruby ten plik (maks. 60 MB). Książka, nie wymówka.", "netNotBook": "To strona internetowa, a nie książka. Subtelna różnica, wiem.", "webNoResults": "Nic nie znalazłam. Może jednak sprawdź pisownię?", "noText": "W tym pliku nie ma tekstu. Pusta książka – odważny wybór.", "unsupportedFile": "Nie znam takiego formatu. Nie jestem czarodziejem.", "pasteFirst": "Najpierw wklej tekst. Magia jeszcze nie działa.", "confirmReset": "Zresetować postęp? Czyżby ta książka Cię przerosła?", "confirmDelete": "Usunąć „{t}”? Postęp przepadnie. Książka też będzie płakać.", "limitReached": "Maks. 5 książek. Przeczytaj którąś, zanim kupisz kolejną.", "loaded": "Wczytano „{t}” ({n} rozdz.). Teraz tylko ją przeczytaj.", "bdayModalTitle": "Kolejny rok na liczniku! 🎂", "bdayModalText": "W dniu własnych urodzin otwierasz książkę zamiast się bawić? Albo naprawdę kochasz czytać, albo nikt Cię nie zaprosił. Tak czy siak – wszystkiego najlepszego, a ja jestem wzruszona. 🥲", "bdayThanks": "Dzięki, dzięki, wystarczy 🎉", "bdayPraise": "🎂 Urodziny, a Ty czytasz. Podejrzanie grzecznie!", "remPrompt": "🔔 Mam Ci codziennie truć, że książka czeka? Uwielbiam to robić.", "remEnable": "Tak, truj", "remLater": "Nie, wolę ciszę", "remTest": "Tak będę Ci truć głowę. Książka czeka, a Ty? 📖", "remOn": "✅ Włączone. Od teraz nie masz spokoju.", "remOff": "Wyłączone. Będę tu stać i się smucić.", "remBodies": ["📖 Książka pyta, czy w ogóle jeszcze żyjesz.", "🍁 PaKu przypomina: telefon masz w ręku, książkę też możesz.", "✨ Scrollowanie nie powiększy Ci słownika. Rozdział tak.", "💜 Twoja książka czeka. Cierpliwie. Ale z wyrzutem.", "🌙 Jeszcze rozdział, zanim zaśniesz z telefonem na twarzy?"], "icsTitle": "📖 PaKu: czytaj, co masz czytać", "icsDesc": "Książka nie przeczyta się sama. Rozdział czeka w PaKu.", "wbBtn": "No dobra, czytam 📖", "wbWaiting": "Rozdziały, które już się na Ciebie obraziły: {k}", "wb1": [["O, wracasz? 😏", "Minęło {d} dni. Książka przeżyła w tym czasie kurz, samotność i zwątpienie. Ale skoro już jesteś – czytaj."], ["Proszę, kto się znalazł!", "{d} dni ciszy. Już myślałam, że literatura Cię czymś uraziła. Dobrze, że nie."]], "wb2": [["Nareszcie! 🙄", "{d} dni! Zdążyłabym przeczytać całą książkę za Ciebie, ale niestety nie liczy się do Twoich statystyk. Dawaj rozdział."], ["Zaginięcie odwołane 🕵️", "Minęło {d} dni. Już szykowałam list gończy. Cieszę się, że się odnalazło."]], "wb3": [["Żyjesz?! 😱", "{d} dni to prawie epoka lodowcowa. Książka zdążyła się zestarzeć, a Ty… dobra, nie będę. Witaj z powrotem!"], ["Duch wrócił 👻", "Po {d} dniach przerwy myślałam, że ktoś usunął mnie z Twojego telefonu. A tu niespodzianka. Miło, naprawdę. Tylko nie przyzwyczajaj się do takich przerw."]], "holTxt": {"birthday": ["Urodziny", "Sto lat! Kolejny rok bliżej końca książki. 🎂"], "xmas": ["Boże Narodzenie", "Wesołych Świąt! Czytasz zamiast pomagać przy pierwszej gwiazdce? Szanuję. 🎄"], "newyear": ["Nowy Rok", "Szczęśliwego Nowego Roku! Postanowienie „czytać więcej” już zdążyło Cię przestraszyć? 🍾"], "valentine": ["Walentynki", "Walentynki: Twoja jedyna stała miłość to ta książka. Nie zdradzaj jej. 💔"], "womens": ["Dzień Kobiet", "Wszystkiego dobrego! Dziś masz święte prawo ignorować wszystkich i czytać. 🌷"], "stpat": ["Dzień św. Patryka", "Zielone piwo to nie książka. Wracaj do rozdziału. ☘️"], "easter": ["Wielkanoc", "Wesołych Świąt! Jajko się samo nie zje, ale rozdział też się sam nie przeczyta. 🐣"], "earth": ["Dzień Ziemi", "Dzień Ziemi: oszczędzasz papier, czytając na ekranie. Gratuluję wymówki. 🌍"], "mothers": ["Dzień Matki", "Zadzwoń do mamy. Potem wróć do książki. Kolejność ma znaczenie. 💐"], "children": ["Dzień Dziecka", "Dziś wolno Ci nie dorastać. Książka i tak będzie lepsza niż dorosłe obowiązki. 🎈"], "halloween": ["Halloween", "Halloween: najstraszniejsze jest Twoje zaległe czytanie. Buuu! 🎃"], "allsaints": ["Wszystkich Świętych", "Dziś bez żartów. Zapal znicz, pomyśl o bliskich – książka poczeka. 🕯️"], "indep": ["Święto Niepodległości", "Dziś nikt nie każe Ci czytać. A jednak jesteś tu. Szacunek. 🇵🇱"], "santa": ["Mikołajki", "Grzeczne czytanie w tym roku? Sądząc po postępach – różnie. 🎅"]}}, "en": {"praiseList": ["Chapter done! I'm moved. Almost. 🙄", "Bravo! Nobody expected you to manage. Me neither.", "You're reading! A miracle, ladies and gentlemen. Mark the date.", "Another chapter down. Your brain just had its first workout this week.", "Well, look at that – not a single yawn. Or I wasn't looking.", "Impressive. With your attention span that's basically a marathon.", "Chapter finished. The book is thrilled. The couch is jealous.", "You did it again! Statistically, that's a habit. Careful.", "Keep this up and you might accidentally become well-read.", "Plot twist: the chapter actually got finished. I'm taking notes.", "Look at that, eyes used for something other than doomscrolling.", "Great job! I'd high-five you, but I'm made of pixels.", "Another chapter bites the dust. The book, not you. Yet.", "You've earned a snack. Not a nap. Don't push it.", "Reading AND finishing? Who raised you? Congratulations to them.", "Chapter complete. Your future self gives a begrudging nod.", "I'd say I'm proud, but I have a reputation to protect. So: not bad.", "Fine, that was good. Don't get cocky – the book still has chapters.", "Done. No pictures, no videos. Brave.", "Excellent. Repeat tomorrow, if your motivation hasn't gone out for lunch."], "praiseFirst": ["First chapter! Starting is hard, and not quitting after two pages is harder. I'm watching. 👀", "Off you go! As debuts go, not the worst. Let's see if you have the stamina for a second one.", "First chapter done. Welcome to the club of people who started. Entry is free; finishing is a separate conversation."], "praiseHalf": ["Halfway! Half is behind you, half is… also there, just unread.", "Exactly half. It could've been worse – and usually is.", "Already halfway?! Someone's getting ahead of themselves. Careful, you might finish.", "Halfway there. No turning back, unless you enjoy abandoned books. And I know you do."], "praiseFinish": ["THE END! The whole book is behind you. Astonishing. Adding it to the chronicle of miracles. 🏆", "Last page! Honestly? I bet you'd quit halfway. Sorry. A little.", "Finished. You can now tell friends you “read a lot”. I have the receipts.", "The whole book! Is this an addiction already? I recommend more of these. 📚", "Reading complete! Congrats – now pick the next one before you drift back to scrolling. 🏁"], "quoteList": [["Books don't bite. At worst they step on your self-esteem.", "PaKu"], ["He who reads doesn't wander. He who scrolls wanders through feeds.", "Folk proverb (made up just now)"], ["Reading is the only sport where lying down counts as training.", "PaKu"], ["A bookmark isn't a plan. It's wishful thinking.", "PaKu"], ["Don't judge a book by its cover. Judge it by how often you put it down.", "PaKu"], ["“Just one more chapter” – the most dishonest sentence in history.", "Every reader, ever"], ["A wise person reads. A wiser one reads and doesn't pretend they did.", "PaKu"], ["The TV never asks you to concentrate. That's why you like it.", "PaKu"], ["Reading builds imagination. Your excuses prove it works.", "PaKu"], ["A book on the shelf is worth half. Dusting makes up the rest.", "My grandmother (probably)"], ["A good book changes your life. A bad one at least puts you to sleep – also something.", "PaKu"], ["You don't find time to read. You steal it from your phone.", "PaKu"]], "praiseNext": "Fine, next ➡️", "praiseFacts": "+{w} words (yes, I counted) · {d} of {n} chapters ({p}%) – progress, how shocking", "congrats": "🎉 Congratulations! Whole book finished. Who'd have thought…", "markRead": "✅ Read. Promise.", "goNext": "Next, don't dawdle ➡️", "finishBook": "🏁 Finally finish this book", "finishEarly": "🏁 I give up (count it as read)", "finishEarlyHint": "The book will count as read, but skipped chapters add no words. Cheating has a price.", "finishEarlyConfirm": "Really tossing “{t}” aside? I'll count it as read, but the skipped chapters will haunt you.", "lockTitle": "Patience! The next chapter hasn't woken up yet", "unlockAt": "Unlocks:", "unlockNext": "🔓 Unlock now (as if you could wait)", "unlockHint": "Open it already, since patience isn't your strong suit.", "seeSchedule": "See what else you have to wait for", "schedShifted": "⚡ You're reading ahead. I recalculated the schedule, but don't get carried away.", "pctRead": "Read: {p}% (not bad)", "pctLeft": "Left: {l}% (no escape)", "chaptersLeft": "{k} chapters of torment left", "splashTag": "Chapter by chapter. Slowly, just how you like it.", "busy": "⏳ Loading… don't rush me.", "rwTitle": "Your (modest) achievements", "rw_week": "This week you deigned to read:", "rw_month": "This month you managed to read:", "rw_year": "This year you've managed to read:", "rwEmpty": "Empty in here. Just like your reading plan.", "rwSkip": "Skip (as usual)", "rwClose": "Close and go back to scrolling", "rwFinished": "🎉 Finished “{t}”! I'm as shocked as you are.", "rwReached": "🎉 New milestone: {n}! Soon you'll outrun your backlog.", "jNext": "Next target: {n} (a little more suffering)", "jDone": "You've reached the edge of the Universe! Time to find new books. 🎉", "netOffline": "Your internet ran away. Come back when you catch it.", "netBlocked": "Couldn't download. The server took offence at apps. Download the file in your browser and add it by hand – yes, that's effort.", "netTimeout": "The download took ages. Even I have limits.", "netHttp": "The server said “no”. I didn't ask why.", "netTooBig": "That file is too chunky (max 60 MB). A book, not an excuse.", "netNotBook": "That's a web page, not a book. Subtle difference, I know.", "webNoResults": "Found nothing. Maybe check the spelling?", "noText": "There's no text in this file. An empty book – bold choice.", "unsupportedFile": "I don't know that format. I'm not a wizard.", "pasteFirst": "Paste the text first. Magic isn't implemented yet.", "confirmReset": "Reset progress? Did the book get the better of you?", "confirmDelete": "Delete “{t}”? Progress will be lost. The book will cry too.", "limitReached": "Max 5 books. Read one before collecting another.", "loaded": "Loaded “{t}” ({n} ch.). Now just read it.", "bdayModalTitle": "Another year on the counter! 🎂", "bdayModalText": "Opening a book on your own birthday instead of partying? Either you truly love reading or nobody invited you. Either way – happy birthday, and I'm touched. 🥲", "bdayThanks": "Thanks, thanks, that's enough 🎉", "bdayPraise": "🎂 Your birthday and you're reading. Suspiciously well-behaved!", "remPrompt": "🔔 Want me to nag you daily that your book is waiting? I love doing that.", "remEnable": "Yes, nag me", "remLater": "No, I prefer silence", "remTest": "This is how I'll nag you. Your book is waiting, and you? 📖", "remOn": "✅ Enabled. From now on you get no peace.", "remOff": "Disabled. I'll just stand here and be sad.", "remBodies": ["📖 Your book asks if you're still alive.", "🍁 PaKu reminds you: you can hold a phone, so you can hold a book.", "✨ Scrolling won't expand your vocabulary. A chapter will.", "💜 Your book is waiting. Patiently. But with resentment.", "🌙 One more chapter before you fall asleep with the phone on your face?"], "icsTitle": "📖 PaKu: read what you're supposed to read", "icsDesc": "The book won't read itself. A chapter is waiting in PaKu.", "wbBtn": "Fine, reading 📖", "wbWaiting": "Chapters that have already taken offence: {k}", "wb1": [["Oh, you're back? 😏", "{d} days have passed. The book survived dust, loneliness and self-doubt. But since you're here – read."], ["Look who turned up!", "{d} days of silence. I thought literature had offended you somehow. Glad it didn't."]], "wb2": [["Finally! 🙄", "{d} days! I could have read the whole book for you, but sadly it doesn't count toward your stats. Chapter, please."], ["Missing person case closed 🕵️", "{d} days. I was already drafting a wanted poster. Glad you turned up."]], "wb3": [["You're alive?! 😱", "{d} days is practically an ice age. The book has aged and you… okay, I won't. Welcome back!"], ["The ghost returns 👻", "After {d} days away I thought someone had deleted me from your phone. And yet – surprise. Nice, really. Just don't make a habit of these breaks."]], "holTxt": {"birthday": ["Birthday", "Many happy returns! One more year closer to finishing the book. 🎂"], "xmas": ["Christmas", "Merry Christmas! Reading instead of helping with dinner? Respect. 🎄"], "newyear": ["New Year", "Happy New Year! Has “read more” already scared you off? 🍾"], "valentine": ["Valentine's Day", "Your only steady love is this book. Don't cheat on it. 💔"], "womens": ["Women's Day", "Best wishes! Today you have the sacred right to ignore everyone and read. 🌷"], "stpat": ["St. Patrick's Day", "Green beer is not a book. Back to the chapter. ☘️"], "easter": ["Easter", "Happy Easter! The egg won't eat itself, but the chapter won't read itself either. 🐣"], "earth": ["Earth Day", "You save paper by reading on a screen. Congrats on the excuse. 🌍"], "mothers": ["Mother's Day", "Call your mum. Then go back to the book. Order matters. 💐"], "children": ["Children's Day", "Today you're allowed not to grow up. The book is still better than adult chores. 🎈"], "halloween": ["Halloween", "The scariest thing tonight is your unfinished reading. Boo! 🎃"], "allsaints": ["All Saints' Day", "No jokes today. Light a candle, think of loved ones – the book can wait. 🕯️"], "indep": ["Polish Independence Day", "Nobody is making you read today. Yet here you are. Respect. 🇵🇱"], "santa": ["St. Nicholas Day", "Good at reading this year? Judging by progress – debatable. 🎅"]}}, "de": {"praiseList": ["Kapitel geschafft! Ich bin gerührt. Fast. 🙄", "Bravo! Niemand hat erwartet, dass du das schaffst. Ich auch nicht.", "Du liest! Ein Wunder, meine Damen und Herren. Datum notieren.", "Nächstes Kapitel erledigt. Dein Gehirn hatte gerade sein erstes Training diese Woche.", "Sieh mal an, nicht ein einziges Gähnen. Oder ich habe nicht hingesehen.", "Beeindruckend. Bei deiner Aufmerksamkeitsspanne ist das praktisch ein Marathon.", "Kapitel beendet. Das Buch jubelt, das Sofa ist eifersüchtig.", "Schon wieder geschafft! Statistisch ist das jetzt eine Gewohnheit. Vorsicht.", "So weiter, und du wirst aus Versehen belesen.", "Plot-Twist: Das Kapitel wurde tatsächlich zu Ende gelesen. Ich notiere mit.", "Schau an, die Augen werden mal für etwas anderes als Doomscrolling benutzt.", "Super gemacht! Ich würde dir ein High Five geben, aber ich bestehe nur aus Pixeln.", "Wieder ein Kapitel erledigt. Das Buch, nicht du. Noch nicht.", "Du hast dir einen Snack verdient. Kein Nickerchen. Übertreib nicht.", "Lesen UND beenden? Wer hat dich erzogen? Glückwunsch an die Erzieher.", "Kapitel fertig. Dein zukünftiges Ich nickt widerwillig.", "Ich würde sagen, ich bin stolz, aber ich habe einen Ruf zu verlieren. Also: nicht schlecht.", "Na gut, das war gut. Werd nicht übermütig – das Buch hat noch Kapitel.", "Gelesen. Ohne Bilder, ohne Videos. Mutig.", "Ausgezeichnet. Wiederhole das morgen, falls deine Motivation nicht zum Mittagessen gegangen ist."], "praiseFirst": ["Erstes Kapitel! Anfangen ist schwer, nach zwei Seiten nicht aufgeben noch schwerer. Ich beobachte dich. 👀", "Los geht's! Für ein Debüt gar nicht übel. Mal sehen, ob die Puste für ein zweites reicht.", "Erstes Kapitel geschafft. Willkommen im Club der Menschen, die angefangen haben. Eintritt frei, Zu-Ende-Lesen ist ein anderes Thema."], "praiseHalf": ["Halbzeit! Die Hälfte liegt hinter dir, die andere… auch, nur noch ungelesen.", "Genau die Hälfte. Hätte schlimmer kommen können – und kommt es meistens.", "Schon die Hälfte?! Da prescht jemand vor. Vorsicht, du könntest noch fertig werden.", "Halbzeit. Kein Zurück, außer du liebst abgebrochene Bücher. Und ich weiß, dass du das tust."], "praiseFinish": ["ENDE! Das ganze Buch liegt hinter dir. Erstaunlich. Ich trage es in die Chronik der Wunder ein. 🏆", "Letzte Seite! Ehrlich? Ich hatte gewettet, dass du in der Mitte aufgibst. Tut mir leid. Ein bisschen.", "Fertig. Du kannst Freunden jetzt sagen, du „liest viel“. Ich habe die Belege.", "Das ganze Buch! Ist das schon eine Sucht? Ich empfehle mehr davon. 📚", "Lektüre beendet! Glückwunsch – such jetzt das nächste aus, bevor du zurück zum Scrollen rutschst. 🏁"], "quoteList": [["Bücher beißen nicht. Höchstens treten sie auf dein Selbstwertgefühl.", "PaKu"], ["Wer liest, irrt nicht. Wer scrollt, irrt durch Feeds.", "Volksweisheit (gerade erfunden)"], ["Lesen ist der einzige Sport, bei dem Liegen als Training zählt.", "PaKu"], ["Ein Lesezeichen ist kein Plan. Es ist Wunschdenken.", "PaKu"], ["Beurteile ein Buch nicht nach dem Umschlag. Beurteile es danach, wie oft du es weglegst.", "PaKu"], ["„Nur noch ein Kapitel“ – der verlogenste Satz der Geschichte.", "Jeder Leser, immer"], ["Ein kluger Mensch liest. Ein klügerer liest und tut nicht nur so.", "PaKu"], ["Der Fernseher verlangt nie Konzentration von dir. Deshalb magst du ihn.", "PaKu"], ["Lesen fördert die Fantasie. Deine Ausreden beweisen, dass es wirkt.", "PaKu"], ["Ein Buch im Regal ist nur halb so viel wert. Den Rest macht das Abstauben.", "Meine Oma (vermutlich)"], ["Ein gutes Buch verändert dein Leben. Ein schlechtes lässt dich wenigstens schlafen – auch etwas.", "PaKu"], ["Zeit zum Lesen findet man nicht. Man klaut sie seinem Handy.", "PaKu"]], "praiseNext": "Na gut, weiter ➡️", "praiseFacts": "+{w} Wörter (ja, ich habe gezählt) · {d} von {n} Kapiteln ({p}%) – Fortschritt, wie schockierend", "congrats": "🎉 Glückwunsch! Das ganze Buch ist durch. Wer hätte das gedacht…", "markRead": "✅ Gelesen. Ehrlich.", "goNext": "Weiter, trödel nicht ➡️", "finishBook": "🏁 Beende endlich dieses Buch", "finishEarly": "🏁 Ich gebe auf (als gelesen zählen)", "finishEarlyHint": "Das Buch zählt als gelesen, aber übersprungene Kapitel bringen keine Wörter. Schummeln hat seinen Preis.", "finishEarlyConfirm": "Willst du „{t}“ wirklich in die Ecke werfen? Ich zähle es als gelesen, aber die übersprungenen Kapitel werden dich verfolgen.", "lockTitle": "Geduld! Das nächste Kapitel ist noch nicht aufgewacht", "unlockAt": "Wird freigeschaltet:", "unlockNext": "🔓 Jetzt freischalten (als ob du warten könntest)", "unlockHint": "Mach es schon auf, Geduld ist ja nicht deine Stärke.", "seeSchedule": "Sieh nach, worauf du noch warten musst", "schedShifted": "⚡ Du liest voraus. Ich habe den Zeitplan neu berechnet, aber heb nicht ab.", "pctRead": "Gelesen: {p}% (nicht schlecht)", "pctLeft": "Übrig: {l}% (kein Entkommen)", "chaptersLeft": "noch {k} Kapitel Qual", "splashTag": "Kapitel für Kapitel. Schön langsam, wie du es magst.", "busy": "⏳ Lade… dräng mich nicht.", "rwTitle": "Deine (bescheidenen) Erfolge", "rw_week": "Diese Woche hast du dich herabgelassen zu lesen:", "rw_month": "Diesen Monat hast du geschafft zu lesen:", "rw_year": "Dieses Jahr hast du (erstaunlicherweise) gelesen:", "rwEmpty": "Leer hier. Genau wie dein Leseplan.", "rwSkip": "Überspringen (wie immer)", "rwClose": "Schließen und zurück zum Scrollen", "rwFinished": "🎉 „{t}“ beendet! Ich bin genauso schockiert wie du.", "rwReached": "🎉 Neues Ziel: {n}! Bald überholst du deinen Rückstand.", "jNext": "Nächstes Ziel: {n} (noch ein bisschen Leiden)", "jDone": "Rand des Universums erreicht! Zeit, neue Bücher zu suchen. 🎉", "netOffline": "Dein Internet ist weggelaufen. Komm wieder, wenn du es eingefangen hast.", "netBlocked": "Download fehlgeschlagen. Der Server ist von Apps beleidigt. Lade die Datei im Browser herunter und füge sie von Hand hinzu – ja, das ist Arbeit.", "netTimeout": "Der Download dauerte ewig. Auch ich habe Grenzen.", "netHttp": "Der Server sagte „nein“. Ich habe nicht nach dem Grund gefragt.", "netTooBig": "Die Datei ist zu dick (max. 60 MB). Ein Buch, keine Ausrede.", "netNotBook": "Das ist eine Webseite, kein Buch. Subtiler Unterschied, ich weiß.", "webNoResults": "Nichts gefunden. Vielleicht die Schreibweise prüfen?", "noText": "In dieser Datei steht kein Text. Ein leeres Buch – mutige Wahl.", "unsupportedFile": "Dieses Format kenne ich nicht. Ich bin kein Zauberer.", "pasteFirst": "Füge zuerst den Text ein. Zauberei ist noch nicht implementiert.", "confirmReset": "Fortschritt zurücksetzen? Hat dich das Buch besiegt?", "confirmDelete": "„{t}“ löschen? Der Fortschritt ist weg. Das Buch weint auch.", "limitReached": "Max. 5 Bücher. Lies eins, bevor du das nächste sammelst.", "loaded": "„{t}“ geladen ({n} Kap.). Jetzt musst du es nur noch lesen.", "bdayModalTitle": "Ein Jahr mehr auf dem Zähler! 🎂", "bdayModalText": "An deinem eigenen Geburtstag ein Buch aufschlagen statt zu feiern? Entweder liebst du Lesen wirklich oder niemand hat dich eingeladen. So oder so – alles Gute, und ich bin gerührt. 🥲", "bdayThanks": "Danke, danke, das reicht 🎉", "bdayPraise": "🎂 Geburtstag und du liest. Verdächtig brav!", "remPrompt": "🔔 Soll ich dich täglich damit nerven, dass dein Buch wartet? Ich liebe das.", "remEnable": "Ja, nerv mich", "remLater": "Nein, mir ist Ruhe lieber", "remTest": "So werde ich dich nerven. Dein Buch wartet, und du? 📖", "remOn": "✅ Aktiviert. Ab jetzt hast du keine Ruhe mehr.", "remOff": "Ausgeschaltet. Ich stehe hier und bin traurig.", "remBodies": ["📖 Dein Buch fragt, ob du überhaupt noch lebst.", "🍁 PaKu erinnert: Ein Handy kannst du halten, also auch ein Buch.", "✨ Scrollen erweitert deinen Wortschatz nicht. Ein Kapitel schon.", "💜 Dein Buch wartet. Geduldig. Aber vorwurfsvoll.", "🌙 Noch ein Kapitel, bevor du mit dem Handy im Gesicht einschläfst?"], "icsTitle": "📖 PaKu: lies, was du lesen sollst", "icsDesc": "Das Buch liest sich nicht von allein. Ein Kapitel wartet in PaKu.", "wbBtn": "Na gut, ich lese 📖", "wbWaiting": "Kapitel, die schon beleidigt sind: {k}", "wb1": [["Oh, du bist zurück? 😏", "{d} Tage sind vergangen. Das Buch hat Staub, Einsamkeit und Selbstzweifel überstanden. Aber wenn du schon da bist – lies."], ["Sieh mal, wer sich blicken lässt!", "{d} Tage Funkstille. Ich dachte schon, die Literatur hätte dich irgendwie beleidigt. Gut, dass nicht."]], "wb2": [["Endlich! 🙄", "{d} Tage! Ich hätte das ganze Buch für dich lesen können, aber es zählt leider nicht für deine Statistik. Her mit dem Kapitel."], ["Vermisstenfall abgeschlossen 🕵️", "{d} Tage. Ich hatte schon einen Steckbrief entworfen. Schön, dass du aufgetaucht bist."]], "wb3": [["Du lebst?! 😱", "{d} Tage sind praktisch eine Eiszeit. Das Buch ist gealtert und du… okay, ich sage nichts. Willkommen zurück!"], ["Der Geist kehrt zurück 👻", "Nach {d} Tagen dachte ich, jemand hätte mich von deinem Handy gelöscht. Und doch – Überraschung. Nett, wirklich. Mach dir solche Pausen nur nicht zur Gewohnheit."]], "holTxt": {"birthday": ["Geburtstag", "Hoch soll er leben! Wieder ein Jahr näher am Ende des Buchs. 🎂"], "xmas": ["Weihnachten", "Frohe Weihnachten! Lesen statt beim Abwasch helfen? Respekt. 🎄"], "newyear": ["Neujahr", "Frohes neues Jahr! Hat dich „mehr lesen“ schon verschreckt? 🍾"], "valentine": ["Valentinstag", "Deine einzige feste Liebe ist dieses Buch. Betrüg es nicht. 💔"], "womens": ["Weltfrauentag", "Alles Gute! Heute hast du das heilige Recht, alle zu ignorieren und zu lesen. 🌷"], "stpat": ["St. Patrick's Day", "Grünes Bier ist kein Buch. Zurück zum Kapitel. ☘️"], "easter": ["Ostern", "Frohe Ostern! Das Ei isst sich nicht von allein, aber das Kapitel liest sich auch nicht von selbst. 🐣"], "earth": ["Tag der Erde", "Du sparst Papier, indem du am Bildschirm liest. Glückwunsch zur Ausrede. 🌍"], "mothers": ["Muttertag", "Ruf Mama an. Dann zurück zum Buch. Die Reihenfolge zählt. 💐"], "children": ["Kindertag", "Heute darfst du unerwachsen bleiben. Das Buch ist trotzdem besser als Erwachsenenpflichten. 🎈"], "halloween": ["Halloween", "Das Gruseligste heute Nacht ist dein unfertiges Lesen. Buh! 🎃"], "allsaints": ["Allerheiligen", "Heute keine Scherze. Zünde eine Kerze an, denk an deine Lieben – das Buch kann warten. 🕯️"], "indep": ["Polnischer Unabhängigkeitstag", "Heute zwingt dich niemand zu lesen. Und doch bist du hier. Respekt. 🇵🇱"], "santa": ["Nikolaustag", "Brav gelesen dieses Jahr? Nach dem Fortschritt zu urteilen – Ansichtssache. 🎅"]}}, "es": {"praiseList": ["¡Capítulo hecho! Me emociono. Casi. 🙄", "¡Bravo! Nadie esperaba que lo lograras. Yo tampoco.", "¡Estás leyendo! Un milagro, señoras y señores. Anoten la fecha.", "Otro capítulo menos. Tu cerebro acaba de tener su primer entrenamiento de la semana.", "Vaya, ni un solo bostezo. O no estaba mirando.", "Impresionante. Con tu capacidad de atención, esto es prácticamente un maratón.", "Capítulo terminado. El libro, eufórico; el sofá, celoso.", "¡Otra vez! Estadísticamente, ya es un hábito. Cuidado.", "Sigue así y acabarás siendo una persona leída sin querer.", "Giro de guion: el capítulo se terminó de verdad. Tomo nota.", "Mira, los ojos usados para algo que no es hacer doomscrolling.", "¡Buen trabajo! Te chocaría esos cinco, pero solo soy píxeles.", "Otro capítulo muerde el polvo. El libro, no tú. Todavía.", "Te has ganado un tentempié. Una siesta, no. No te pases.", "¿Leer Y terminar? ¿Quién te educó? Felicidades a ellos.", "Capítulo completo. Tu yo del futuro asiente a regañadientes.", "Diría que estoy orgullosa, pero tengo una reputación. Así que: nada mal.", "Vale, ha estado bien. No te lo creas: al libro aún le quedan capítulos.", "Leído. Sin dibujos, sin vídeos. Valiente.", "Excelente. Repítelo mañana, si tu motivación no se ha ido a comer."], "praiseFirst": ["¡Primer capítulo! Empezar es difícil, y no abandonar tras dos páginas lo es más. Te vigilo. 👀", "¡Arrancamos! Como debut, no está mal. Veremos si te alcanza el aliento para un segundo.", "Primer capítulo hecho. Te damos la bienvenida al club de los que empezaron. La entrada es gratis; terminar es otra conversación."], "praiseHalf": ["¡Mitad! La mitad ya está detrás de ti, la otra… también, solo que sin leer.", "Justo la mitad. Podría haber sido peor, y normalmente lo es.", "¿Ya la mitad? Alguien se está adelantando. Cuidado, que igual terminas.", "Mitad del camino. No hay vuelta atrás, salvo que te gusten los libros abandonados. Y sé que te gustan."], "praiseFinish": ["¡FIN! Todo el libro a tus espaldas. Asombroso. Lo anoto en la crónica de milagros. 🏆", "¡Última página! ¿Sinceramente? Apostaba a que lo dejabas a la mitad. Perdón. Un poco.", "Terminado. Ya puedes decirles a tus amigos que “lees mucho”. Tengo las pruebas.", "¡El libro entero! ¿Es ya una adicción? Recomiendo más como este. 📚", "¡Lectura completada! Felicidades. Ahora elige el siguiente antes de volver a hacer scroll. 🏁"], "quoteList": [["Los libros no muerden. A lo sumo pisan tu autoestima.", "PaKu"], ["Quien lee no se pierde. Quien hace scroll se pierde entre feeds.", "Refrán popular (inventado ahora mismo)"], ["Leer es el único deporte donde estar tumbado cuenta como entrenar.", "PaKu"], ["Un marcapáginas no es un plan. Es un deseo piadoso.", "PaKu"], ["No juzgues un libro por su portada. Júzgalo por las veces que lo dejas.", "PaKu"], ["«Un capítulo más»: la frase más mentirosa de la historia.", "Todo lector, siempre"], ["Una persona sabia lee. Una más sabia lee y no finge que lo hizo.", "PaKu"], ["La tele nunca te pide concentración. Por eso te gusta.", "PaKu"], ["Leer desarrolla la imaginación. Tus excusas demuestran que funciona.", "PaKu"], ["Un libro en la estantería vale la mitad. El resto lo pone el quitar el polvo.", "Mi abuela (probablemente)"], ["Un buen libro cambia tu vida. Uno malo al menos te duerme: algo es algo.", "PaKu"], ["El tiempo para leer no se encuentra. Se le roba al móvil.", "PaKu"]], "praiseNext": "Vale, siguiente ➡️", "praiseFacts": "+{w} palabras (sí, las conté) · {d} de {n} capítulos ({p}%): progreso, qué escándalo", "congrats": "🎉 ¡Felicidades! Libro entero terminado. Quién lo diría…", "markRead": "✅ Leído. Lo prometo.", "goNext": "Siguiente, no te demores ➡️", "finishBook": "🏁 Termina de una vez este libro", "finishEarly": "🏁 Me rindo (contar como leído)", "finishEarlyHint": "El libro contará como leído, pero los capítulos omitidos no suman palabras. Hacer trampa tiene su precio.", "finishEarlyConfirm": "¿De verdad vas a tirar «{t}» a un rincón? Lo contaré como leído, pero los capítulos omitidos te perseguirán.", "lockTitle": "¡Paciencia! El siguiente capítulo aún no se ha despertado", "unlockAt": "Se desbloquea:", "unlockNext": "🔓 Desbloquear ya (como si pudieras esperar)", "unlockHint": "Ábrelo ya, que la paciencia no es lo tuyo.", "seeSchedule": "Mira qué más tienes que esperar", "schedShifted": "⚡ Vas adelantado. Recalculé el calendario, pero no te emociones.", "pctRead": "Leído: {p}% (nada mal)", "pctLeft": "Falta: {l}% (no hay escapatoria)", "chaptersLeft": "faltan {k} capítulos de tortura", "splashTag": "Capítulo a capítulo. Despacito, como te gusta.", "busy": "⏳ Cargando… no me metas prisa.", "rwTitle": "Tus (modestos) logros", "rw_week": "Esta semana te dignaste a leer:", "rw_month": "Este mes lograste leer:", "rw_year": "Este año has conseguido (sorprendentemente) leer:", "rwEmpty": "Aquí no hay nada. Igual que en tu plan de lectura.", "rwSkip": "Saltar (como siempre)", "rwClose": "Cerrar y volver a hacer scroll", "rwFinished": "🎉 ¡Terminado «{t}»! Estoy tan en shock como tú.", "rwReached": "🎉 Nueva meta: {n}. Pronto adelantarás tus pendientes.", "jNext": "Próxima meta: {n} (un poco más de sufrimiento)", "jDone": "¡Has llegado al borde del Universo! Hora de buscar libros nuevos. 🎉", "netOffline": "Tu internet se escapó. Vuelve cuando lo atrapes.", "netBlocked": "No se pudo descargar. El servidor se ofendió con las apps. Descarga el archivo en el navegador y añádelo a mano; sí, es trabajo.", "netTimeout": "La descarga tardó siglos. Yo también tengo mis límites.", "netHttp": "El servidor dijo «no». No pregunté por qué.", "netTooBig": "Ese archivo es demasiado grueso (máx. 60 MB). Un libro, no una excusa.", "netNotBook": "Eso es una página web, no un libro. Diferencia sutil, lo sé.", "webNoResults": "No encontré nada. ¿Quizá revisar la ortografía?", "noText": "No hay texto en este archivo. Un libro vacío: elección valiente.", "unsupportedFile": "No conozco ese formato. No soy mago.", "pasteFirst": "Pega primero el texto. La magia aún no está implementada.", "confirmReset": "¿Reiniciar el progreso? ¿Te ha podido el libro?", "confirmDelete": "¿Borrar «{t}»? El progreso se perderá. El libro también llorará.", "limitReached": "Máx. 5 libros. Lee uno antes de coleccionar otro.", "loaded": "«{t}» cargado ({n} cap.). Ahora solo falta leerlo.", "bdayModalTitle": "¡Un añito más en el contador! 🎂", "bdayModalText": "¿Abrir un libro el día de tu cumpleaños en vez de celebrar? O de verdad amas leer, o nadie te invitó. Sea como sea: ¡felicidades, y me has emocionado! 🥲", "bdayThanks": "Gracias, gracias, ya basta 🎉", "bdayPraise": "🎂 Tu cumpleaños y tú leyendo. ¡Qué sospechosa tranquilidad!", "remPrompt": "🔔 ¿Quieres que te fastidie cada día recordándote que tu libro espera? Me encanta hacerlo.", "remEnable": "Sí, fastídiame", "remLater": "No, prefiero el silencio", "remTest": "Así te voy a fastidiar. Tu libro espera, ¿y tú? 📖", "remOn": "✅ Activado. Desde ahora no tendrás paz.", "remOff": "Desactivado. Me quedaré aquí, triste.", "remBodies": ["📖 Tu libro pregunta si sigues con vida.", "🍁 PaKu te recuerda: si puedes sujetar un móvil, puedes sujetar un libro.", "✨ Hacer scroll no ampliará tu vocabulario. Un capítulo sí.", "💜 Tu libro espera. Con paciencia. Pero con reproche.", "🌙 ¿Un capítulo más antes de dormirte con el móvil en la cara?"], "icsTitle": "📖 PaKu: lee lo que tienes que leer", "icsDesc": "El libro no se lee solo. Un capítulo espera en PaKu.", "wbBtn": "Vale, leo 📖", "wbWaiting": "Capítulos que ya se han ofendido: {k}", "wb1": [["¿Oh, vuelves? 😏", "Han pasado {d} días. El libro sobrevivió al polvo, la soledad y la duda. Pero ya que estás aquí: lee."], ["¡Mira quién apareció!", "{d} días de silencio. Pensé que la literatura te había ofendido. Menos mal que no."]], "wb2": [["¡Por fin! 🙄", "¡{d} días! Podría haberme leído el libro entero por ti, pero lamentablemente no cuenta para tus estadísticas. Dame un capítulo."], ["Desaparición resuelta 🕵️", "Han pasado {d} días. Ya estaba preparando el cartel de se busca. Me alegra que aparecieras."]], "wb3": [["¿Sigues con vida?! 😱", "{d} días son prácticamente una era glacial. El libro ha envejecido y tú… vale, no diré nada. ¡Qué alegría tenerte de vuelta!"], ["Vuelve el fantasma 👻", "Tras {d} días pensé que alguien me había borrado de tu móvil. Y sorpresa. Qué bien, de verdad. Solo no te acostumbres a estas pausas."]], "holTxt": {"birthday": ["Cumpleaños", "¡Cumpleaños feliz! Un año más cerca del final del libro. 🎂"], "xmas": ["Navidad", "¡Feliz Navidad! ¿Leer en vez de ayudar con la cena? Respeto. 🎄"], "newyear": ["Año Nuevo", "¡Feliz Año Nuevo! ¿“Leer más” ya te asustó? 🍾"], "valentine": ["San Valentín", "Tu único amor constante es este libro. No le seas infiel. 💔"], "womens": ["Día de la Mujer", "¡Felicidades! Hoy tienes el derecho sagrado de ignorar a todo el mundo y leer. 🌷"], "stpat": ["San Patricio", "La cerveza verde no es un libro. Vuelve al capítulo. ☘️"], "easter": ["Pascua", "¡Felices Pascuas! El huevo no se come solo, pero el capítulo tampoco se lee solo. 🐣"], "earth": ["Día de la Tierra", "Ahorras papel leyendo en pantalla. Felicidades por la excusa. 🌍"], "mothers": ["Día de la Madre", "Llama a mamá. Luego vuelve al libro. El orden importa. 💐"], "children": ["Día del Niño", "Hoy se permite no madurar. El libro sigue siendo mejor que las obligaciones de adultos. 🎈"], "halloween": ["Halloween", "Lo más aterrador de esta noche es tu lectura atrasada. ¡Buuu! 🎃"], "allsaints": ["Todos los Santos", "Hoy, sin bromas. Enciende una vela, piensa en los tuyos: el libro puede esperar. 🕯️"], "indep": ["Independencia de Polonia", "Hoy nadie te obliga a leer. Y aun así estás aquí. Respeto. 🇵🇱"], "santa": ["San Nicolás", "¿Buena lectura este año? A juzgar por el progreso: discutible. 🎅"]}}, "uk": {"praiseList": ["Розділ зараховано! Аж розчулилась. Майже. 🙄", "Браво! Ніхто не думав, що ти впораєшся. Я теж.", "Ти читаєш! Диво, шановне панство. Запишіть дату.", "Ще один розділ позаду. Твій мозок щойно мав перше тренування за тиждень.", "Дивись-но, жодного позіхання. Або я не дивилась.", "Вражає. З твоєю концентрацією це практично марафон.", "Розділ завершено. Книжка в ейфорії, диван заздрить.", "І знову вийшло! Статистично це вже звичка. Обережно.", "Так і далі, і випадково станеш начитаною людиною.", "Поворот сюжету: розділ справді дочитано. Записую.", "Гляньте, очі використали не лише для скролінгу.", "Чудова робота! Дала б «п’ять», але я лише з пікселів.", "Ще один розділ упав. Книжка, не ти. Поки що.", "Перекус тобі належить. Дрімота – ні. Не перегинай.", "Читати і ще й закінчувати? Хто тебе виховав? Вітання вихователям.", "Розділ готовий. Майбутнє «ти» неохоче киває.", "Сказала б, що пишаюся, але маю репутацію. Тож: непогано.", "Гаразд, було добре. Не зазнавайся – у книжки ще є розділи.", "Прочитано. Без картинок, без відео. Відважно.", "Чудово. Повтори завтра, якщо мотивація не пішла на обід."], "praiseFirst": ["Перший розділ! Почати важко, а не кинути після двох сторінок – ще важче. Стежу. 👀", "Старт! Як для дебюту – зовсім непогано. Побачимо, чи вистачить запалу на другий.", "Перший розділ зараховано. Ласкаво просимо до клубу тих, хто почав. Вхід вільний, а от закінчувати – вже інша розмова."], "praiseHalf": ["Півдороги! Половина позаду, половина… теж, просто ще непрочитана.", "Рівно половина. Могло бути гірше – і зазвичай буває.", "Уже половина?! Хтось розігнався. Спокійно, бо ще дочитаєш.", "Півшляху. Назад шляху нема, хіба що любиш закинуті книжки. А я знаю, що любиш."], "praiseFinish": ["КІНЕЦЬ! Вся книжка позаду. Дивовижно. Вношу до літопису див. 🏆", "Остання сторінка! Чесно? Я ставила на те, що кинеш посередині. Вибач. Трохи.", "Готово. Тепер можеш казати друзям, що «багато читаєш». Докази в мене є.", "Вся книжка! Це вже залежність? Раджу більше таких. 📚", "Читання завершено! Вітаю – а тепер обери наступну, поки скролінг не засмоктав знову. 🏁"], "quoteList": [["Книжки не кусаються. Щонайбільше – наступають на самооцінку.", "PaKu"], ["Хто читає, той не блукає. Хто скролить, той блукає стрічками.", "Народне прислів’я (щойно вигадане)"], ["Читання – єдиний спорт, де лежання зараховується як тренування.", "PaKu"], ["Закладка в книжці – не план. Це благе побажання.", "PaKu"], ["Не суди книжку за обкладинкою. Суди за тим, скільки разів ти її відкладаєш.", "PaKu"], ["«Ще один розділ» – найбрехливіша фраза в історії.", "Кожен читач, будь-коли"], ["Мудра людина читає. Мудріша читає й не вдає, що читала.", "PaKu"], ["Телевізор ніколи не просить зосередитись. Тому він тобі й подобається.", "PaKu"], ["Читання розвиває уяву. Твої відмовки доводять, що працює.", "PaKu"], ["Книжка на полиці коштує вдвічі менше. Решту дописує витирання пилу.", "Моя бабуся (ймовірно)"], ["Гарна книжка змінює життя. Погана хоча б присипляє – теж щось.", "PaKu"], ["Час на читання не знаходять. Його крадуть у телефона.", "PaKu"]], "praiseNext": "Ну гаразд, далі ➡️", "praiseFacts": "+{w} слів (так, я рахувала) · {d} з {n} розділів ({p}%) – прогрес, який шок", "congrats": "🎉 Вітаю! Всю книжку закінчено. Хто б подумав…", "markRead": "✅ Прочитано. Чесно.", "goNext": "Далі, не барися ➡️", "finishBook": "🏁 Нарешті закінчи цю книжку", "finishEarly": "🏁 Здаюся (зарахувати як прочитану)", "finishEarlyHint": "Книжка зарахується як прочитана, але пропущені розділи не додадуть слів. Шахрайство має ціну.", "finishEarlyConfirm": "Справді кидаєш «{t}» у куток? Зарахую як прочитану, але пропущені розділи тебе переслідуватимуть.", "lockTitle": "Терпіння! Наступний розділ ще не прокинувся", "unlockAt": "Розблокується:", "unlockNext": "🔓 Розблокувати зараз (наче ти витримаєш)", "unlockHint": "Відкривай уже, терпіння – не твоя сильна сторона.", "seeSchedule": "Подивись, чого ще доведеться чекати", "schedShifted": "⚡ Ти читаєш наперед. Я перерахувала розклад, але не розганяйся.", "pctRead": "Прочитано: {p}% (непогано)", "pctLeft": "Залишилось: {l}% (не втечеш)", "chaptersLeft": "ще {k} розд. мук", "splashTag": "Розділ за розділом. Потихеньку, як ти любиш.", "busy": "⏳ Завантажую… не підганяй мене.", "rwTitle": "Твої (скромні) досягнення", "rw_week": "Цього тижня тобі вдалося прочитати:", "rw_month": "Цього місяця вдалося прочитати:", "rw_year": "Цього року (о диво) вдалося прочитати:", "rwEmpty": "Тут порожньо. Як і в твоєму плані читання.", "rwSkip": "Пропустити (як завжди)", "rwClose": "Закрити й повернутися до скролінгу", "rwFinished": "🎉 «{t}» завершено! Я в шоці не менше за тебе.", "rwReached": "🎉 Нова мета: {n}! Скоро обженеш свої борги.", "jNext": "Наступна мета: {n} (ще трохи мук)", "jDone": "Край Всесвіту досягнуто! Час шукати нові книжки. 🎉", "netOffline": "Твій інтернет утік. Повертайся, коли впіймаєш.", "netBlocked": "Не вдалося завантажити. Сервер образився на застосунки. Завантаж файл у браузері й додай вручну – так, це робота.", "netTimeout": "Завантаження тривало вічність. У мене теж є межі.", "netHttp": "Сервер сказав «ні». Я не питала чому.", "netTooBig": "Цей файл надто товстий (макс. 60 МБ). Це книжка, а не відмовка.", "netNotBook": "Це вебсторінка, а не книжка. Тонка різниця, знаю.", "webNoResults": "Нічого не знайшла. Може, перевір написання?", "noText": "У цьому файлі немає тексту. Порожня книжка – сміливий вибір.", "unsupportedFile": "Не знаю такого формату. Я не чарівниця.", "pasteFirst": "Спершу встав текст. Магію ще не реалізовано.", "confirmReset": "Скинути прогрес? Книжка тебе здолала?", "confirmDelete": "Видалити «{t}»? Прогрес зникне. Книжка теж плакатиме.", "limitReached": "Макс. 5 книжок. Прочитай одну, перш ніж збирати наступну.", "loaded": "«{t}» завантажено ({n} розд.). Тепер лишилося її прочитати.", "bdayModalTitle": "Ще один рік на лічильнику! 🎂", "bdayModalText": "Відкривати книжку у власний день народження замість святкування? Або ти справді любиш читати, або тебе ніхто не запросив. Так чи інакше – з днем народження, я зворушена. 🥲", "bdayThanks": "Дякую, дякую, досить 🎉", "bdayPraise": "🎂 День народження, а ти читаєш. Підозріло слухняно!", "remPrompt": "🔔 Хочеш, щоб я щодня діставала нагадуванням, що книжка чекає? Обожнюю це робити.", "remEnable": "Так, діставай", "remLater": "Ні, вважаю за краще тишу", "remTest": "Ось так я тебе діставатиму. Книжка чекає, а ти? 📖", "remOn": "✅ Увімкнено. Відтепер спокою не матимеш.", "remOff": "Вимкнено. Стоятиму тут і сумуватиму.", "remBodies": ["📖 Книжка питає, чи ти ще в строю.", "🍁 PaKu нагадує: телефон тримати можеш, то й книжку теж.", "✨ Скролінг не збільшить словниковий запас. Розділ – так.", "💜 Твоя книжка чекає. Терпляче. Але з докором.", "🌙 Ще розділ, перш ніж заснеш із телефоном на обличчі?"], "icsTitle": "📖 PaKu: читай, що маєш читати", "icsDesc": "Книжка сама себе не прочитає. Розділ чекає в PaKu.", "wbBtn": "Гаразд, читаю 📖", "wbWaiting": "Розділи, що вже образилися: {k}", "wb1": [["О, повертаєшся? 😏", "Минуло {d} дн. Книжка пережила пил, самотність і сумніви. Але раз уже ти тут – читай."], ["Дивіться, хто знайшовся!", "{d} дн. тиші. Я вже думала, що література тебе чимось образила. Добре, що ні."]], "wb2": [["Нарешті! 🙄", "{d} дн.! Я могла б прочитати всю книжку за тебе, але це, на жаль, не рахується у твоїй статистиці. Давай розділ."], ["Зникнення скасовано 🕵️", "Минуло {d} дн. Я вже готувала оголошення про розшук. Радію, що знайшлося."]], "wb3": [["Ти ще тут?! 😱", "{d} дн. – це майже льодовиковий період. Книжка постаріла, а ти… гаразд, мовчу. З поверненням!"], ["Привид повернувся 👻", "Через {d} дн. я думала, що мене видалили з твого телефона. А тут сюрприз. Приємно, справді. Тільки не звикай до таких перерв."]], "holTxt": {"birthday": ["День народження", "Многая літа! Ще один рік ближче до кінця книжки. 🎂"], "xmas": ["Різдво", "З Різдвом! Читати замість допомагати з вечерею? Поважаю. 🎄"], "newyear": ["Новий рік", "З Новим роком! Рішення «читати більше» вже налякало? 🍾"], "valentine": ["День закоханих", "Твоє єдине стале кохання – ця книжка. Не зраджуй її. 💔"], "womens": ["Жіночий день", "Усього найкращого! Сьогодні маєш священне право ігнорувати всіх і читати. 🌷"], "stpat": ["День св. Патрика", "Зелене пиво – не книжка. Повертайся до розділу. ☘️"], "easter": ["Великдень", "З Великоднем! Яйце саме себе не з’їсть, але й розділ сам себе не прочитає. 🐣"], "earth": ["День Землі", "Ти економиш папір, читаючи з екрана. Вітаю з відмовкою. 🌍"], "mothers": ["День матері", "Зателефонуй мамі. Потім повертайся до книжки. Порядок важливий. 💐"], "children": ["День дітей", "Сьогодні можна не дорослішати. Книжка все одно краща за дорослі обов’язки. 🎈"], "halloween": ["Гелловін", "Найстрашніше цієї ночі – твоє недочитане. Бу! 🎃"], "allsaints": ["Всіх Святих", "Сьогодні без жартів. Запали свічку, згадай рідних – книжка зачекає. 🕯️"], "indep": ["День незалежності Польщі", "Сьогодні ніхто не змушує тебе читати. А ти все одно тут. Повага. 🇵🇱"], "santa": ["День св. Миколая", "Гарно читалося цього року? Судячи з прогресу – сумнівно. 🎅"]}}};
+    const SNARK_PARTICLES = {
+      xmas: ['🎅', '🥶', '💸', '🧦'], newyear: ['🍾', '🥴', '💤'], valentine: ['💔', '🙄', '🍫'], womens: ['🌷', '😎', '👑'], stpat: ['🍺', '🤢', '☘️'],
+      easter: ['🐣', '🐇', '🥚'], earth: ['♻️', '🌍', '🙄'], mothers: ['📞', '💐', '🙄'], children: ['🍭', '🧸', '🤪'], halloween: ['💀', '🦇', '🧛', '👻'],
+      indep: ['🤍', '❤️', '😏'], santa: ['🎅', '🎁', '🥶'], birthday: ['🎂', '🥳', '🙄', '🎁']
+    };
+    function snarkDict() { return state.snark && state.snark.on && SNARK[state.lang] ? SNARK[state.lang] : null; }
+    function toggleSnark() {
+      if (!state.snark) state.snark = { on: false };
+      const turningOn = !state.snark.on;
+      if (turningOn && !SNARK[state.lang]) { const m = document.getElementById('snarkMsg'); if (m) m.textContent = t('snarkLangNote'); return; }
+      state.snark.on = turningOn; saveState();
+      refreshAllTexts();
+      const m = document.getElementById('snarkMsg'); if (m) m.textContent = t(turningOn ? 'snarkWelcome' : 'snarkBye');
+    }
+    function refreshAllTexts() {
+      applyI18n(); renderReader(); renderLibrary(); renderCalendar(); applyHoliday(); renderRemindCard(); renderBirthdayCard(); renderSnarkCard();
+      if (typeof updateRewardIcon === 'function') updateRewardIcon();
+      writeReminderCfg();
+    }
+    function renderSnarkCard() {
+      const b = document.getElementById('snarkToggle'); if (!b) return;
+      const on = !!(state.snark && state.snark.on);
+      b.textContent = t(on ? 'snarkOn' : 'snarkOff'); b.classList.toggle('active', on);
+      document.documentElement.toggleAttribute('data-snark', !!snarkDict());
+    }
+
     // Init
     applyI18n();
+    renderQr();
+    renderBirthdayCard();
+    renderRemindCard();
+    renderSnarkCard();
+    pendingWelcome = checkWelcomeBack();
+    if (remState().on) { writeReminderCfg(); registerReminderSync(); } else { writeReminderCfg(); }
     updateRewardIcon();
     setTheme(state.theme || 'light');
     document.documentElement.style.setProperty('--reader-size', (state.fontSize || 18) + 'px');
