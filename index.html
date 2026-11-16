@@ -11,7 +11,11 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/svg+xml" href="./icon.svg" />
   <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    // Motyw ustawiany od razu, żeby ekran startowy nie migał jasnym tłem w trybie nocnym
+    try { var _s = JSON.parse(localStorage.getItem('dripReaderStateV2')); if (_s && _s.theme && _s.theme !== 'light') document.documentElement.setAttribute('data-theme', _s.theme); } catch (e) {}
+  </script>
+  <script src="./lib/jszip.min.js"></script>
   <style>
     :root {
       --bg: #EADFFB;
@@ -179,7 +183,7 @@
       border-color: var(--accent);
     }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
-    input[type="text"], input[type="number"], input[type="time"], select, textarea {
+    input[type="text"], input[type="number"], input[type="time"], input[type="date"], select, textarea {
       width: 100%;
       padding: 11px 12px;
       border-radius: 10px;
@@ -234,6 +238,109 @@
       cursor: pointer;
     }
     nav button.active { color: var(--accent); }
+    select.lang-select {
+      width: auto;
+      margin: 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--bg);
+      animation: splashOut 0.4s ease 2s forwards;
+    }
+    #splash img {
+      width: 128px;
+      height: 128px;
+      border-radius: 29px;
+      box-shadow: 0 10px 30px rgba(80, 40, 160, 0.25);
+      margin-bottom: 14px;
+      animation: splashPop 0.7s cubic-bezier(.2,.9,.3,1.2) both;
+    }
+    .splash-name { font-size: 38px; font-weight: 800; letter-spacing: 1px; color: var(--text); animation: splashFade 0.6s ease 0.25s both; }
+    .splash-tag { font-size: 15px; color: var(--muted); animation: splashFade 0.6s ease 0.45s both; }
+    @keyframes splashPop { from { opacity: 0; transform: scale(0.6) rotate(-8deg); } to { opacity: 1; transform: none; } }
+    @keyframes splashFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes splashOut { to { opacity: 0; visibility: hidden; } }
+    @media (prefers-reduced-motion: reduce) {
+      #splash img, .splash-name, .splash-tag { animation: none; }
+    }
+    .hdr-right { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { border: 1px solid var(--border); background: var(--accent-soft); border-radius: 999px; width: 36px; height: 36px; font-size: 18px; cursor: pointer; line-height: 1; }
+    .pct-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin: 0 0 14px; }
+    .pct-read { color: var(--accent); }
+    .pct-left { color: var(--muted); }
+    #rewards { position: fixed; inset: 0; z-index: 900; background: var(--bg); overflow-y: auto; display: flex; justify-content: center; }
+    .rw-box { width: 100%; max-width: 480px; padding: 22px 16px calc(24px + env(safe-area-inset-bottom)); margin: auto 0; }
+    .rw-title { text-align: center; font-size: 22px; margin: 0 0 14px; }
+    .rw-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; }
+    .rw-period { font-weight: 800; font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+    .rw-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; }
+    .rw-row + .rw-row { border-top: 1px solid var(--border); }
+    .rw-lab { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .rw-num { font-size: 24px; font-weight: 800; line-height: 1.1; }
+    .rw-dist { text-align: right; display: flex; flex-direction: column; font-size: 14px; }
+    .rw-dist span { font-size: 11px; color: var(--muted); }
+    .rw-note { text-align: center; font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+    .rw-bar { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+    #rwFill { height: 100%; width: 100%; background: var(--accent); transform-origin: left; }
+    .rw-foot { position: sticky; bottom: 0; background: var(--bg); padding: 8px 0 2px; }
+    .rw-journey { border-color: var(--accent); }
+    .rw-jline { font-size: 14px; margin: 3px 0; }
+    .rw-jbar { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; margin: 8px 0 4px; }
+    .rw-jbar > div { height: 100%; background: var(--accent); min-width: 3px; }
+    .rw-jmeta { font-size: 11px; color: var(--muted); }
+    .rw-ms { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 5px 0; color: var(--muted); }
+    .rw-ms + .rw-ms { border-top: 1px solid var(--border); }
+    .rw-ms.done { color: var(--text); font-weight: 600; }
+    @keyframes rwCountdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    #busy {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 20, 60, 0.35);
+    }
+    .busy-box {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      font-weight: 600;
+    }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .chip .dot { margin-right: 6px; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85); }
+    .lib-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .lib-item.active { border-color: var(--accent); background: var(--accent-soft); }
+    .lib-main { flex: 1; min-width: 0; }
+    .lib-title { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lib-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .lib-del { border: none; background: none; font-size: 18px; cursor: pointer; padding: 6px; }
+    .cal-book { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
     .hidden { display: none !important; }
     #installBanner {
       background: var(--accent-soft);
@@ -250,23 +357,50 @@
   </style>
 </head>
 <body>
+  <div id="splash" aria-hidden="true">
+    <img src="./icon.svg" alt="" />
+    <div class="splash-name">PaKu</div>
+    <div class="splash-tag" data-i18n="splashTag">Rozdział po rozdziale</div>
+  </div>
+  <div id="rewards" class="hidden" role="dialog" aria-modal="true">
+    <div class="rw-box">
+      <h2 id="rwTitle" class="rw-title"></h2>
+      <div id="rwCards"></div>
+      <p id="rwNote" class="rw-note"></p>
+      <div class="rw-foot">
+        <div id="rwBar" class="rw-bar hidden"><div id="rwFill"></div></div>
+        <button class="btn" id="rwSkip" onclick="closeRewards()"></button>
+      </div>
+    </div>
+  </div>
+  <div id="busy" class="hidden"><div class="busy-box" data-i18n="busy">⏳ Wczytywanie książki…</div></div>
   <header>
     <div class="brand">📖 PaKu</div>
-    <span class="badge" id="offlineBadge">PWA Offline</span>
+    <div class="hdr-right">
+    <button class="icon-btn" id="rwBtn" aria-label="Rewards" onclick="showRewards()">🌙</button>
+    <select id="langSelect" class="lang-select" aria-label="Language" onchange="setLanguage(this.value)">
+      <option value="pl">Polski</option>
+      <option value="en">English</option>
+      <option value="de">Deutsch</option>
+      <option value="es">Español</option>
+      <option value="uk">Українська</option>
+    </select>
+    </div>
   </header>
 
   <main>
     <div id="installBanner" class="hidden">
-      <div style="font-size:13px;"><strong>Zainstaluj aplikację</strong><br/>Dodaj ikonę na ekran główny telefonu.</div>
-      <button class="btn btn-small" id="btnInstallPwa">Zainstaluj</button>
+      <div style="font-size:13px;"><strong data-i18n="installTitle">Zainstaluj aplikację</strong><br/><span data-i18n="installText">Dodaj ikonę na ekran główny telefonu.</span></div>
+      <button class="btn btn-small" id="btnInstallPwa" data-i18n="installBtn">Zainstaluj</button>
     </div>
 
     <!-- TAB 1: CZYTNIK -->
     <section id="tab-reader">
+      <div id="bookChips" class="controls-row hidden"></div>
       <div class="controls-row">
-        <button class="chip" onclick="setTheme('light')">☀️ Jasny</button>
-        <button class="chip" onclick="setTheme('sepia')">📜 Sepia</button>
-        <button class="chip" onclick="setTheme('dark')">🌙 Noc</button>
+        <button class="chip" data-i18n="themeLight" onclick="setTheme('light')">☀️ Jasny</button>
+        <button class="chip" data-i18n="themeSepia" onclick="setTheme('sepia')">📜 Sepia</button>
+        <button class="chip" data-i18n="themeDark" onclick="setTheme('dark')">🌙 Noc</button>
         <button class="chip" onclick="changeFont(-1)">A-</button>
         <button class="chip" onclick="changeFont(1)">A+</button>
       </div>
@@ -277,11 +411,11 @@
     <!-- TAB 2: HARMONOGRAM / KALENDARZ -->
     <section id="tab-calendar" class="hidden">
       <div class="card">
-        <h3>📅 Harmonogram odblokowań</h3>
-        <p style="font-size:13px;color:var(--muted);margin-top:-6px;">
-          Zsynchronizuj plan czytania z Kalendarzem Google, Apple lub Outlook.
-        </p>
-        <button class="btn" onclick="exportICS()">⬇️ Pobierz plik do kalendarza (.ics)</button>
+        <h3 data-i18n="calTitle">📅 Harmonogram odblokowań</h3>
+        <p style="font-size:13px;color:var(--muted);margin-top:-6px;" data-i18n="calDesc">Zsynchronizuj plan czytania z Kalendarzem Google, Apple lub Outlook.</p>
+        <div id="calFilters" class="controls-row hidden"></div>
+        <button class="btn" data-i18n="calExport" onclick="exportICS()">⬇️ Pobierz plik do kalendarza (.ics)</button>
+        <p id="calScope" style="font-size:12px;color:var(--muted);margin:8px 0 0;"></p>
       </div>
       <div class="card" id="scheduleList"></div>
     </section>
@@ -289,44 +423,54 @@
     <!-- TAB 3: KSIĄŻKA I USTAWIENIA -->
     <section id="tab-settings" class="hidden">
       <div class="card">
-        <h3>⏱️ Częstotliwość udostępniania</h3>
-        <label>Co ile dni odblokować kolejny rozdział?</label>
+        <h3 id="libraryTitle">📚</h3>
+        <div id="libraryList"></div>
+      </div>
+
+      <div class="card">
+        <h3 id="scheduleForTitle">⏱️</h3>
+        <label data-i18n="freqLabel">Co ile dni odblokować kolejny rozdział?</label>
         <select id="freqDays" onchange="updateScheduleSettings()">
-          <option value="1">Codziennie (co 1 dzień)</option>
-          <option value="2">Co 2 dni</option>
-          <option value="3">Co 3 dni</option>
-          <option value="7">Raz w tygodniu (co 7 dni)</option>
-          <option value="14">Co 2 tygodnie (co 14 dni)</option>
+          <option value="1" data-i18n="freq1">Codziennie (co 1 dzień)</option>
+          <option value="2" data-i18n="freq2">Co 2 dni</option>
+          <option value="3" data-i18n="freq3">Co 3 dni</option>
+          <option value="7" data-i18n="freq7">Raz w tygodniu (co 7 dni)</option>
+          <option value="14" data-i18n="freq14">Co 2 tygodnie (co 14 dni)</option>
         </select>
 
-        <label>Godzina odblokowania nowego rozdziału</label>
+        <label data-i18n="timeLabel">Godzina odblokowania nowego rozdziału</label>
         <input type="time" id="unlockTime" value="08:00" onchange="updateScheduleSettings()" />
+
+        <label data-i18n="startDateLabel">Data odblokowania pierwszego rozdziału</label>
+        <input type="date" id="startDate" onchange="updateScheduleSettings()" />
       </div>
 
       <div class="card">
-        <h3>📚 Wgraj własny e-book (.epub lub .txt)</h3>
-        <input type="file" id="bookFile" accept=".txt,.epub" onchange="handleFileUpload(event)" />
+        <h3 data-i18n="bookTitle">📚 Wgraj własny e-book (.epub lub .txt)</h3>
+        <p id="limitNote" class="hidden" style="color:var(--accent);font-size:13px;font-weight:600;" data-i18n="limitReached"></p>
+        <input type="file" id="bookFile" accept=".epub,.mobi,.azw,.pdf,.doc,.docx,.txt" onchange="handleFileUpload(event)" />
 
-        <label>Lub wklej tekst książki ręcznie</label>
-        <input type="text" id="customTitle" placeholder="Tytuł książki..." />
-        <textarea id="customText" rows="5" placeholder="Wklej treść książki. Aplikacja automatycznie podzieli ją według nagłówków 'Rozdział' lub co ~1200 słów..."></textarea>
-        <button class="btn" onclick="importPastedText()">Utwórz książkę i podziel na rozdziały</button>
+        <label data-i18n="pasteLabel">Lub wklej tekst książki ręcznie</label>
+        <input type="text" id="customTitle" data-i18n-ph="titlePh" placeholder="Tytuł książki..." />
+        <textarea id="customText" rows="5" data-i18n-ph="textPh" placeholder="Wklej treść książki. Aplikacja automatycznie podzieli ją według nagłówków 'Rozdział' lub co ~1200 słów..."></textarea>
+        <button class="btn" data-i18n="createBtn" onclick="importPastedText()">Utwórz książkę i podziel na rozdziały</button>
       </div>
 
       <div class="card">
-        <h3>🧪 Testowanie i zarządzanie</h3>
+        <h3 data-i18n="testTitle">🧪 Testowanie i zarządzanie</h3>
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-secondary" onclick="simulateNextDay()">⏩ Symuluj +1 dzień</button>
-          <button class="btn btn-secondary" onclick="resetProgress()">🔄 Resetuj postęp</button>
+          <button class="btn btn-secondary" data-i18n="simDay" onclick="simulateNextDay()">⏩ Symuluj +1 dzień</button>
+          <button class="btn btn-secondary" data-i18n="resetBtn" onclick="resetProgress()">🔄 Resetuj postęp</button>
         </div>
+        <button class="btn btn-secondary" style="margin-top:8px;" data-i18n="resetSim" onclick="resetSimulation()">⏪ Cofnij symulację</button>
       </div>
     </section>
   </main>
 
   <nav>
-    <button id="nav-reader" class="active" onclick="switchTab('reader')">📖<span>Czytaj</span></button>
-    <button id="nav-calendar" onclick="switchTab('calendar')">📅<span>Kalendarz</span></button>
-    <button id="nav-settings" onclick="switchTab('settings')">⚙️<span>Książka</span></button>
+    <button id="nav-reader" class="active" onclick="switchTab('reader')">📖<span data-i18n="navRead">Czytaj</span></button>
+    <button id="nav-calendar" onclick="switchTab('calendar')">📅<span data-i18n="navCal">Kalendarz</span></button>
+    <button id="nav-settings" onclick="switchTab('settings')">⚙️<span data-i18n="navBook">Książka</span></button>
   </nav>
 
   <script>
@@ -353,64 +497,730 @@
       document.getElementById('installBanner').classList.add('hidden');
     });
 
-    const DEFAULT_BOOK = {
-      title: "Sztuka Spokojnego Czytania (Przykładowa książka)",
-      chapters: [
-        {
-          title: "Rozdział 1: Dlaczego jeden rozdział wystarcza",
-          content: "W świecie nieustannego pośpiechu czytanie zamieniło się w wyścig o liczbę zaliczonych pozycji. Tymczasem prawdziwa lektura wymaga przestrzeni na refleksję.\n\nKiedy dawkujesz sobie opowieść po jednym rozdziale dziennie lub tygodniowo, każda scena ma czas osiąść w pamięci. Zaczynasz zauważać detale, styl autora i własne emocje.\n\nPrzeczytaj ten fragment spokojnie, oznacz go jako ukończony i wróć, gdy otworzy się kolejny rozdział."
-        },
-        {
-          title: "Rozdział 2: Rytm zamiast pośpiechu",
-          content: "Stała pora dnia buduje nawyk znacznie skuteczniej niż jednorazowy zryw. Wystarczy piętnaście minut rano przy kawie albo wieczorem przed snem.\n\nSynchronizacja z kalendarzem sprawia, że lektura staje się pełnoprawnym spotkaniem z samym sobą — dokładnie takim jak trening czy spotkanie z przyjacielem."
-        },
-        {
-          title: "Rozdział 3: Siła oczekiwania",
-          content: "Pamiętasz czasy, gdy na kolejny odcinek ulubionej powieści w odcinkach czekało się cały tydzień? Oczekiwanie potęguje zaangażowanie.\n\nGdy aplikacja blokuje kolejny rozdział do wyznaczonego dnia, chroni Cię przed zmęczeniem materiału i przywraca radość odkrywania historii krok po kroku."
-        }
-      ]
+    // ===== Tłumaczenia / Translations =====
+    const LOCALES = { pl: 'pl-PL', en: 'en-GB', de: 'de-DE', es: 'es-ES', uk: 'uk-UA' };
+
+    const I18N = {
+      pl: {
+        docTitle: "PaKu — Drip Book Reader",
+        installTitle: "Zainstaluj aplikację", installText: "Dodaj ikonę na ekran główny telefonu.", installBtn: "Zainstaluj",
+        themeLight: "☀️ Jasny", themeSepia: "📜 Sepia", themeDark: "🌙 Noc",
+        calTitle: "📅 Harmonogram odblokowań", calDesc: "Zsynchronizuj plan czytania z Kalendarzem Google, Apple lub Outlook.", calExport: "⬇️ Pobierz plik do kalendarza (.ics)",
+        freqTitle: "⏱️ Częstotliwość udostępniania", freqLabel: "Co ile dni odblokować kolejny rozdział?",
+        freq1: "Codziennie (co 1 dzień)", freq2: "Co 2 dni", freq3: "Co 3 dni", freq7: "Raz w tygodniu (co 7 dni)", freq14: "Co 2 tygodnie (co 14 dni)",
+        timeLabel: "Godzina odblokowania nowego rozdziału",
+        bookTitle: "📚 Wgraj własny e-book (.epub, .mobi, .pdf, .doc, .docx, .txt)", pasteLabel: "Lub wklej tekst książki ręcznie", titlePh: "Tytuł książki...",
+        textPh: "Wklej treść książki. Aplikacja automatycznie podzieli ją według nagłówków 'Rozdział' lub co ~1200 słów...",
+        createBtn: "Utwórz książkę i podziel na rozdziały",
+        testTitle: "🧪 Testowanie i zarządzanie", simDay: "⏩ Symuluj +1 dzień", resetBtn: "🔄 Resetuj postęp",
+        navRead: "Czytaj", navCal: "Kalendarz", navBook: "Książka",
+        chapterOf: "Rozdział {i} z {n}", donePct: "Ukończono: {p}%", lockTitle: "Kolejny rozdział czeka na swój czas", unlockAt: "Odblokowanie:",
+        seeSchedule: "Zobacz pełny harmonogram", markRead: "✅ Oznacz rozdział jako przeczytany", goNext: "Przejdź do następnego rozdziału ➡️",
+        congrats: "🎉 Gratulacje! Ukończyłeś całą książkę!", statusRead: "✅ Przeczytane", statusAvail: "📖 Dostępny",
+        pasteFirst: "Wklej najpierw treść książki.",
+        epubLib: "Biblioteka do czytania EPUB nie została wczytana (wymagany internet przy pierwszym uruchomieniu).",
+        epubNone: "Nie udało się odczytać rozdziałów z pliku EPUB.", fileError: "Błąd odczytu pliku: ",
+        tooBig: "Książka jest zbyt duża, żeby zapisać ją w pamięci przeglądarki. Po zamknięciu aplikacji wróci poprzednia książka.",
+        loaded: "Wczytano \"{t}\" ({n} rozdz.)!", confirmReset: "Zresetować postęp czytania?",
+        defaultTitle: "Moja Książka", partN: "Część {n}", chapterN: "Rozdział {n}", icsDesc: "Czas na kolejny rozdział w aplikacji PaKu.",
+        unlockNext: "🔓 Odblokuj kolejny fragment",
+        unlockHint: "Otwórz go teraz, nie czekając na termin.",
+        splashTag: "Rozdział po rozdziale",
+        busy: "⏳ Wczytywanie książki…",
+        pdfNoText: "Ten PDF nie zawiera tekstu (prawdopodobnie to skan). Użyj pliku z warstwą tekstową.",
+        pdfPassword: "Ten PDF jest chroniony hasłem — nie można go otworzyć.",
+        libFail: "Nie udało się wczytać modułu do odczytu tego formatu. Spróbuj ponownie z dostępem do internetu.",
+        fileProtected: "Ten plik jest zaszyfrowany (hasło lub DRM) i nie można go otworzyć.",
+        mobiUnsupported: "Ten wariant pliku MOBI (kompresja HUFF/CDIC lub czysty KF8/AZW3) nie jest obsługiwany. Przekonwertuj go na EPUB.",
+        noText: "Nie znaleziono tekstu w tym pliku.",
+        unsupportedFile: "Nieobsługiwany format pliku. Obsługiwane: .epub, .mobi, .pdf, .doc, .docx, .txt.",
+        myBooks: "📚 Moje książki ({n}/{max})",
+        confirmDelete: "Usunąć książkę „{t}” z aplikacji? Postęp czytania tej książki zostanie utracony.",
+        limitReached: "Możesz mieć maksymalnie 5 książek. Usuń jedną, aby dodać kolejną.",
+        scheduleFor: "⏱️ Harmonogram: {t}",
+        startDateLabel: "Data odblokowania pierwszego rozdziału",
+        calAll: "Wszystkie",
+        calScope: "Plik .ics zawiera: {name}",
+        calScopeAll: "wszystkie książki",
+        setScheduleHint: "Ustaw harmonogram czytania tej książki w sekcji poniżej.",
+        resetSim: "⏪ Cofnij symulację",
+        everyN: "co {d} dn.",
+        bookMeta: "{n} rozdz. · przeczytano {p}% · zostało {l}%",
+        pctRead: "Przeczytano: {p}%",
+        pctLeft: "Zostało: {l}%",
+        chaptersLeft: "zostało rozdz.: {k}",
+        finishBook: "🏁 Zakończ książkę",
+        finishEarly: "🏁 Zakończ książkę wcześniej",
+        finishEarlyHint: "Książka zostanie zaliczona jako przeczytana, a pominięte rozdziały nie wliczą się do liczby słów.",
+        finishEarlyConfirm: "Zakończyć książkę „{t}” teraz? Zostanie zaliczona jako przeczytana (pozostałe rozdziały zostaną pominięte).",
+        finishedBadge: "✅ ukończona",
+        finishedEarlyBadge: "✅ ukończona wcześniej",
+        rwTitle: "Twoje nagrody",
+        rw_week: "W tym tygodniu przeczytałeś:",
+        rw_month: "W tym miesiącu przeczytałeś:",
+        rw_year: "W tym roku przeczytałeś:",
+        rwBooks: "Książki",
+        rwWords: "Słowa",
+        stackOf: "stos {d}",
+        lineOf: "rząd {d}",
+        moonPct: "{p} drogi na Księżyc",
+        rwSkip: "Pomiń",
+        rwClose: "Zamknij",
+        rwEmpty: "Zacznij czytać, a tutaj pojawią się Twoje wyniki!",
+        rwScale: "1 słowo = 1 km, 1 książka ≈ {bw} słów = {bk} km. Podróż liczy wszystkie przeczytane słowa.",
+        rwFinished: "🎉 Gratulacje! Ukończyłeś „{t}”!",
+        uCm: "cm",
+        uM: "m",
+        uKm: "km",
+        journeyTitle: "🚀 Twoja podróż",
+        jStart: "Start: Ziemia 🌍",
+        jReached: "Ostatni cel: {n}",
+        jNext: "Następny cel: {n}",
+        jProg: "{p} · {a} z {b}",
+        jDone: "Dotarłeś na skraj Wszechświata! 🎉",
+        pathPct: "{p} drogi",
+        rwReached: "🎉 Nowy cel osiągnięty: {n}!",
+        milestonesTitle: "Wszystkie cele (odległość od Ziemi)",
+        uMln: "mln",
+        uMld: "mld",
+        uLy: "l. św."
+      },
+      en: {
+        docTitle: "PaKu — Drip Book Reader",
+        installTitle: "Install the app", installText: "Add the icon to your phone's home screen.", installBtn: "Install",
+        themeLight: "☀️ Light", themeSepia: "📜 Sepia", themeDark: "🌙 Night",
+        calTitle: "📅 Unlock schedule", calDesc: "Sync your reading plan with Google, Apple or Outlook Calendar.", calExport: "⬇️ Download calendar file (.ics)",
+        freqTitle: "⏱️ Release frequency", freqLabel: "How many days between chapter unlocks?",
+        freq1: "Every day (1 day)", freq2: "Every 2 days", freq3: "Every 3 days", freq7: "Once a week (7 days)", freq14: "Every 2 weeks (14 days)",
+        timeLabel: "Time when a new chapter unlocks",
+        bookTitle: "📚 Upload your own e-book (.epub, .mobi, .pdf, .doc, .docx, .txt)", pasteLabel: "Or paste the book text manually", titlePh: "Book title...",
+        textPh: "Paste the book text. The app will automatically split it by 'Chapter' headings or every ~1200 words...",
+        createBtn: "Create book and split into chapters",
+        testTitle: "🧪 Testing and management", simDay: "⏩ Simulate +1 day", resetBtn: "🔄 Reset progress",
+        navRead: "Read", navCal: "Calendar", navBook: "Book",
+        chapterOf: "Chapter {i} of {n}", donePct: "Completed: {p}%", lockTitle: "The next chapter is waiting for its time", unlockAt: "Unlocks:",
+        seeSchedule: "See full schedule", markRead: "✅ Mark chapter as read", goNext: "Go to the next chapter ➡️",
+        congrats: "🎉 Congratulations! You finished the whole book!", statusRead: "✅ Read", statusAvail: "📖 Available",
+        pasteFirst: "Please paste the book text first.",
+        epubLib: "The EPUB library didn't load (internet is required on first launch).",
+        epubNone: "Couldn't read any chapters from the EPUB file.", fileError: "File read error: ",
+        tooBig: "The book is too large to save in the browser's storage. When you close the app, the previous book will return.",
+        loaded: "Loaded \"{t}\" ({n} chapters)!", confirmReset: "Reset reading progress?",
+        defaultTitle: "My Book", partN: "Part {n}", chapterN: "Chapter {n}", icsDesc: "Time for the next chapter in the PaKu app.",
+        unlockNext: "🔓 Unlock next fragment",
+        unlockHint: "Open it now instead of waiting for the date.",
+        splashTag: "Chapter by chapter",
+        busy: "⏳ Loading book…",
+        pdfNoText: "This PDF contains no text (it is probably a scan). Use a file with a text layer.",
+        pdfPassword: "This PDF is password-protected and can't be opened.",
+        libFail: "Couldn't load the module for this format. Try again with an internet connection.",
+        fileProtected: "This file is encrypted (password or DRM) and can't be opened.",
+        mobiUnsupported: "This MOBI variant (HUFF/CDIC compression or pure KF8/AZW3) isn't supported. Convert it to EPUB.",
+        noText: "No text was found in this file.",
+        unsupportedFile: "Unsupported file format. Supported: .epub, .mobi, .pdf, .doc, .docx, .txt.",
+        myBooks: "📚 My books ({n}/{max})",
+        confirmDelete: "Remove the book “{t}” from the app? Its reading progress will be lost.",
+        limitReached: "You can have up to 5 books. Remove one to add another.",
+        scheduleFor: "⏱️ Schedule: {t}",
+        startDateLabel: "Date the first chapter unlocks",
+        calAll: "All",
+        calScope: "The .ics file contains: {name}",
+        calScopeAll: "all books",
+        setScheduleHint: "Set this book's reading schedule in the section below.",
+        resetSim: "⏪ Undo simulation",
+        everyN: "every {d} d",
+        bookMeta: "{n} ch. · read {p}% · left {l}%",
+        pctRead: "Read: {p}%",
+        pctLeft: "Left: {l}%",
+        chaptersLeft: "chapters left: {k}",
+        finishBook: "🏁 Finish book",
+        finishEarly: "🏁 Finish book early",
+        finishEarlyHint: "The book will count as read; skipped chapters are not added to your word count.",
+        finishEarlyConfirm: "Finish the book “{t}” now? It will count as read (the remaining chapters will be skipped).",
+        finishedBadge: "✅ finished",
+        finishedEarlyBadge: "✅ finished early",
+        rwTitle: "Your rewards",
+        rw_week: "This week you read:",
+        rw_month: "This month you read:",
+        rw_year: "This year you read:",
+        rwBooks: "Books",
+        rwWords: "Words",
+        stackOf: "a stack of {d}",
+        lineOf: "a line of {d}",
+        moonPct: "{p} of the way to the Moon",
+        rwSkip: "Skip",
+        rwClose: "Close",
+        rwEmpty: "Start reading and your results will show up here!",
+        rwScale: "1 word = 1 km, 1 book ≈ {bw} words = {bk} km. The journey counts every word you have read.",
+        rwFinished: "🎉 Congratulations! You finished “{t}”!",
+        uCm: "cm",
+        uM: "m",
+        uKm: "km",
+        journeyTitle: "🚀 Your journey",
+        jStart: "Start: Earth 🌍",
+        jReached: "Last target: {n}",
+        jNext: "Next target: {n}",
+        jProg: "{p} · {a} of {b}",
+        jDone: "You reached the edge of the Universe! 🎉",
+        pathPct: "{p} of the way",
+        rwReached: "🎉 New target reached: {n}!",
+        milestonesTitle: "All targets (distance from Earth)",
+        uMln: "M",
+        uMld: "B",
+        uLy: "ly"
+      },
+      de: {
+        docTitle: "PaKu — Drip Book Reader",
+        installTitle: "App installieren", installText: "Füge das Symbol zum Startbildschirm deines Handys hinzu.", installBtn: "Installieren",
+        themeLight: "☀️ Hell", themeSepia: "📜 Sepia", themeDark: "🌙 Nacht",
+        calTitle: "📅 Freischaltplan", calDesc: "Synchronisiere deinen Leseplan mit dem Google-, Apple- oder Outlook-Kalender.", calExport: "⬇️ Kalenderdatei herunterladen (.ics)",
+        freqTitle: "⏱️ Veröffentlichungsrhythmus", freqLabel: "Nach wie vielen Tagen soll das nächste Kapitel freigeschaltet werden?",
+        freq1: "Täglich (jeden Tag)", freq2: "Alle 2 Tage", freq3: "Alle 3 Tage", freq7: "Einmal pro Woche (alle 7 Tage)", freq14: "Alle 2 Wochen (alle 14 Tage)",
+        timeLabel: "Uhrzeit der Freischaltung eines neuen Kapitels",
+        bookTitle: "📚 Eigenes E-Book hochladen (.epub, .mobi, .pdf, .doc, .docx, .txt)", pasteLabel: "Oder Buchtext manuell einfügen", titlePh: "Buchtitel...",
+        textPh: "Füge den Buchtext ein. Die App teilt ihn automatisch nach „Kapitel“-Überschriften oder alle ~1200 Wörter auf...",
+        createBtn: "Buch erstellen und in Kapitel aufteilen",
+        testTitle: "🧪 Testen und Verwalten", simDay: "⏩ +1 Tag simulieren", resetBtn: "🔄 Fortschritt zurücksetzen",
+        navRead: "Lesen", navCal: "Kalender", navBook: "Buch",
+        chapterOf: "Kapitel {i} von {n}", donePct: "Abgeschlossen: {p}%", lockTitle: "Das nächste Kapitel wartet noch auf seine Zeit", unlockAt: "Freischaltung:",
+        seeSchedule: "Gesamten Plan ansehen", markRead: "✅ Kapitel als gelesen markieren", goNext: "Zum nächsten Kapitel ➡️",
+        congrats: "🎉 Glückwunsch! Du hast das ganze Buch gelesen!", statusRead: "✅ Gelesen", statusAvail: "📖 Verfügbar",
+        pasteFirst: "Bitte füge zuerst den Buchtext ein.",
+        epubLib: "Die EPUB-Bibliothek wurde nicht geladen (beim ersten Start wird Internet benötigt).",
+        epubNone: "Aus der EPUB-Datei konnten keine Kapitel gelesen werden.", fileError: "Fehler beim Lesen der Datei: ",
+        tooBig: "Das Buch ist zu groß, um im Browserspeicher gespeichert zu werden. Nach dem Schließen der App kehrt das vorherige Buch zurück.",
+        loaded: "„{t}“ geladen ({n} Kapitel)!", confirmReset: "Lesefortschritt zurücksetzen?",
+        defaultTitle: "Mein Buch", partN: "Teil {n}", chapterN: "Kapitel {n}", icsDesc: "Zeit für das nächste Kapitel in der PaKu-App.",
+        unlockNext: "🔓 Nächsten Abschnitt freischalten",
+        unlockHint: "Jetzt öffnen, ohne auf den Termin zu warten.",
+        splashTag: "Kapitel für Kapitel",
+        busy: "⏳ Buch wird geladen…",
+        pdfNoText: "Dieses PDF enthält keinen Text (wahrscheinlich ein Scan). Verwende eine Datei mit Textebene.",
+        pdfPassword: "Dieses PDF ist passwortgeschützt und kann nicht geöffnet werden.",
+        libFail: "Das Modul für dieses Format konnte nicht geladen werden. Versuche es mit Internetverbindung erneut.",
+        fileProtected: "Diese Datei ist verschlüsselt (Passwort oder DRM) und kann nicht geöffnet werden.",
+        mobiUnsupported: "Diese MOBI-Variante (HUFF/CDIC-Kompression oder reines KF8/AZW3) wird nicht unterstützt. Konvertiere sie in EPUB.",
+        noText: "In dieser Datei wurde kein Text gefunden.",
+        unsupportedFile: "Nicht unterstütztes Dateiformat. Unterstützt: .epub, .mobi, .pdf, .doc, .docx, .txt.",
+        myBooks: "📚 Meine Bücher ({n}/{max})",
+        confirmDelete: "Das Buch „{t}“ aus der App entfernen? Der Lesefortschritt geht verloren.",
+        limitReached: "Du kannst höchstens 5 Bücher haben. Entferne eines, um ein weiteres hinzuzufügen.",
+        scheduleFor: "⏱️ Zeitplan: {t}",
+        startDateLabel: "Datum der Freischaltung des ersten Kapitels",
+        calAll: "Alle",
+        calScope: "Die .ics-Datei enthält: {name}",
+        calScopeAll: "alle Bücher",
+        setScheduleHint: "Lege den Leseplan dieses Buches im Abschnitt unten fest.",
+        resetSim: "⏪ Simulation zurücksetzen",
+        everyN: "alle {d} T.",
+        bookMeta: "{n} Kap. · gelesen {p}% · übrig {l}%",
+        pctRead: "Gelesen: {p}%",
+        pctLeft: "Übrig: {l}%",
+        chaptersLeft: "Kapitel übrig: {k}",
+        finishBook: "🏁 Buch beenden",
+        finishEarly: "🏁 Buch vorzeitig beenden",
+        finishEarlyHint: "Das Buch zählt als gelesen; übersprungene Kapitel werden nicht zur Wortzahl addiert.",
+        finishEarlyConfirm: "Das Buch „{t}“ jetzt beenden? Es zählt als gelesen (die restlichen Kapitel werden übersprungen).",
+        finishedBadge: "✅ beendet",
+        finishedEarlyBadge: "✅ vorzeitig beendet",
+        rwTitle: "Deine Belohnungen",
+        rw_week: "Diese Woche hast du gelesen:",
+        rw_month: "Diesen Monat hast du gelesen:",
+        rw_year: "Dieses Jahr hast du gelesen:",
+        rwBooks: "Bücher",
+        rwWords: "Wörter",
+        stackOf: "Stapel von {d}",
+        lineOf: "Reihe von {d}",
+        moonPct: "{p} des Weges zum Mond",
+        rwSkip: "Überspringen",
+        rwClose: "Schließen",
+        rwEmpty: "Fang an zu lesen, dann erscheinen hier deine Ergebnisse!",
+        rwScale: "1 Wort = 1 km, 1 Buch ≈ {bw} Wörter = {bk} km. Die Reise zählt alle gelesenen Wörter.",
+        rwFinished: "🎉 Glückwunsch! Du hast „{t}“ beendet!",
+        uCm: "cm",
+        uM: "m",
+        uKm: "km",
+        journeyTitle: "🚀 Deine Reise",
+        jStart: "Start: Erde 🌍",
+        jReached: "Letztes Ziel: {n}",
+        jNext: "Nächstes Ziel: {n}",
+        jProg: "{p} · {a} von {b}",
+        jDone: "Du hast den Rand des Universums erreicht! 🎉",
+        pathPct: "{p} des Weges",
+        rwReached: "🎉 Neues Ziel erreicht: {n}!",
+        milestonesTitle: "Alle Ziele (Entfernung von der Erde)",
+        uMln: "Mio.",
+        uMld: "Mrd.",
+        uLy: "Lj"
+      },
+      es: {
+        docTitle: "PaKu — Drip Book Reader",
+        installTitle: "Instala la aplicación", installText: "Añade el icono a la pantalla de inicio de tu teléfono.", installBtn: "Instalar",
+        themeLight: "☀️ Claro", themeSepia: "📜 Sepia", themeDark: "🌙 Noche",
+        calTitle: "📅 Calendario de desbloqueos", calDesc: "Sincroniza tu plan de lectura con Google Calendar, Apple Calendar u Outlook.", calExport: "⬇️ Descargar archivo de calendario (.ics)",
+        freqTitle: "⏱️ Frecuencia de publicación", freqLabel: "¿Cada cuántos días se desbloquea el siguiente capítulo?",
+        freq1: "Todos los días (cada 1 día)", freq2: "Cada 2 días", freq3: "Cada 3 días", freq7: "Una vez por semana (cada 7 días)", freq14: "Cada 2 semanas (cada 14 días)",
+        timeLabel: "Hora de desbloqueo de un nuevo capítulo",
+        bookTitle: "📚 Sube tu propio libro electrónico (.epub, .mobi, .pdf, .doc, .docx, .txt)", pasteLabel: "O pega el texto del libro manualmente", titlePh: "Título del libro...",
+        textPh: "Pega el texto del libro. La aplicación lo dividirá automáticamente por encabezados «Capítulo» o cada ~1200 palabras...",
+        createBtn: "Crear libro y dividirlo en capítulos",
+        testTitle: "🧪 Pruebas y gestión", simDay: "⏩ Simular +1 día", resetBtn: "🔄 Restablecer progreso",
+        navRead: "Leer", navCal: "Calendario", navBook: "Libro",
+        chapterOf: "Capítulo {i} de {n}", donePct: "Completado: {p}%", lockTitle: "El siguiente capítulo espera su momento", unlockAt: "Se desbloquea:",
+        seeSchedule: "Ver calendario completo", markRead: "✅ Marcar capítulo como leído", goNext: "Ir al siguiente capítulo ➡️",
+        congrats: "🎉 ¡Felicidades! ¡Has terminado todo el libro!", statusRead: "✅ Leído", statusAvail: "📖 Disponible",
+        pasteFirst: "Primero pega el texto del libro.",
+        epubLib: "No se cargó la biblioteca para leer EPUB (se necesita internet la primera vez).",
+        epubNone: "No se pudieron leer capítulos del archivo EPUB.", fileError: "Error al leer el archivo: ",
+        tooBig: "El libro es demasiado grande para guardarlo en la memoria del navegador. Al cerrar la aplicación volverá el libro anterior.",
+        loaded: "«{t}» cargado ({n} capítulos).", confirmReset: "¿Restablecer el progreso de lectura?",
+        defaultTitle: "Mi libro", partN: "Parte {n}", chapterN: "Capítulo {n}", icsDesc: "Es hora del siguiente capítulo en la aplicación PaKu.",
+        unlockNext: "🔓 Desbloquear el siguiente fragmento",
+        unlockHint: "Ábrelo ahora sin esperar a la fecha.",
+        splashTag: "Capítulo a capítulo",
+        busy: "⏳ Cargando libro…",
+        pdfNoText: "Este PDF no contiene texto (probablemente es un escaneo). Usa un archivo con capa de texto.",
+        pdfPassword: "Este PDF está protegido con contraseña y no se puede abrir.",
+        libFail: "No se pudo cargar el módulo para este formato. Inténtalo de nuevo con conexión a internet.",
+        fileProtected: "Este archivo está cifrado (contraseña o DRM) y no se puede abrir.",
+        mobiUnsupported: "Esta variante de MOBI (compresión HUFF/CDIC o KF8/AZW3 puro) no es compatible. Conviértela a EPUB.",
+        noText: "No se encontró texto en este archivo.",
+        unsupportedFile: "Formato de archivo no compatible. Compatibles: .epub, .mobi, .pdf, .doc, .docx, .txt.",
+        myBooks: "📚 Mis libros ({n}/{max})",
+        confirmDelete: "¿Quitar el libro «{t}» de la aplicación? Se perderá su progreso de lectura.",
+        limitReached: "Puedes tener como máximo 5 libros. Elimina uno para añadir otro.",
+        scheduleFor: "⏱️ Calendario: {t}",
+        startDateLabel: "Fecha de desbloqueo del primer capítulo",
+        calAll: "Todos",
+        calScope: "El archivo .ics contiene: {name}",
+        calScopeAll: "todos los libros",
+        setScheduleHint: "Define el plan de lectura de este libro en la sección de abajo.",
+        resetSim: "⏪ Deshacer simulación",
+        everyN: "cada {d} d",
+        bookMeta: "{n} cap. · leído {p}% · queda {l}%",
+        pctRead: "Leído: {p}%",
+        pctLeft: "Queda: {l}%",
+        chaptersLeft: "capítulos restantes: {k}",
+        finishBook: "🏁 Terminar libro",
+        finishEarly: "🏁 Terminar libro antes",
+        finishEarlyHint: "El libro contará como leído; los capítulos omitidos no se suman al recuento de palabras.",
+        finishEarlyConfirm: "¿Terminar ahora el libro «{t}»? Contará como leído (se omitirán los capítulos restantes).",
+        finishedBadge: "✅ terminado",
+        finishedEarlyBadge: "✅ terminado antes",
+        rwTitle: "Tus recompensas",
+        rw_week: "Esta semana has leído:",
+        rw_month: "Este mes has leído:",
+        rw_year: "Este año has leído:",
+        rwBooks: "Libros",
+        rwWords: "Palabras",
+        stackOf: "pila de {d}",
+        lineOf: "fila de {d}",
+        moonPct: "{p} del camino a la Luna",
+        rwSkip: "Omitir",
+        rwClose: "Cerrar",
+        rwEmpty: "¡Empieza a leer y aquí aparecerán tus resultados!",
+        rwScale: "1 palabra = 1 km, 1 libro ≈ {bw} palabras = {bk} km. El viaje cuenta todas las palabras leídas.",
+        rwFinished: "🎉 ¡Felicidades! ¡Has terminado «{t}»!",
+        uCm: "cm",
+        uM: "m",
+        uKm: "km",
+        journeyTitle: "🚀 Tu viaje",
+        jStart: "Inicio: la Tierra 🌍",
+        jReached: "Último destino: {n}",
+        jNext: "Siguiente destino: {n}",
+        jProg: "{p} · {a} de {b}",
+        jDone: "¡Has llegado al borde del Universo! 🎉",
+        pathPct: "{p} del camino",
+        rwReached: "🎉 ¡Nuevo destino alcanzado: {n}!",
+        milestonesTitle: "Todos los destinos (distancia desde la Tierra)",
+        uMln: "M",
+        uMld: "mil M",
+        uLy: "al"
+      },
+      uk: {
+        docTitle: "PaKu — Drip Book Reader",
+        installTitle: "Встановіть застосунок", installText: "Додайте значок на головний екран телефону.", installBtn: "Встановити",
+        themeLight: "☀️ Світла", themeSepia: "📜 Сепія", themeDark: "🌙 Ніч",
+        calTitle: "📅 Графік розблокування", calDesc: "Синхронізуйте план читання з Google, Apple або Outlook Календарем.", calExport: "⬇️ Завантажити файл календаря (.ics)",
+        freqTitle: "⏱️ Частота відкриття розділів", freqLabel: "Через скільки днів відкривати наступний розділ?",
+        freq1: "Щодня (кожен 1 день)", freq2: "Кожні 2 дні", freq3: "Кожні 3 дні", freq7: "Раз на тиждень (кожні 7 днів)", freq14: "Раз на 2 тижні (кожні 14 днів)",
+        timeLabel: "Час розблокування нового розділу",
+        bookTitle: "📚 Завантажте власну електронну книгу (.epub, .mobi, .pdf, .doc, .docx, .txt)", pasteLabel: "Або вставте текст книги вручну", titlePh: "Назва книги...",
+        textPh: "Вставте текст книги. Застосунок автоматично розділить його за заголовками «Розділ» або кожні ~1200 слів...",
+        createBtn: "Створити книгу та розділити на розділи",
+        testTitle: "🧪 Тестування та керування", simDay: "⏩ Симулювати +1 день", resetBtn: "🔄 Скинути прогрес",
+        navRead: "Читати", navCal: "Календар", navBook: "Книга",
+        chapterOf: "Розділ {i} з {n}", donePct: "Завершено: {p}%", lockTitle: "Наступний розділ чекає свого часу", unlockAt: "Розблокування:",
+        seeSchedule: "Переглянути повний графік", markRead: "✅ Позначити розділ як прочитаний", goNext: "Перейти до наступного розділу ➡️",
+        congrats: "🎉 Вітаємо! Ви прочитали всю книгу!", statusRead: "✅ Прочитано", statusAvail: "📖 Доступно",
+        pasteFirst: "Спершу вставте текст книги.",
+        epubLib: "Бібліотеку для читання EPUB не завантажено (під час першого запуску потрібен інтернет).",
+        epubNone: "Не вдалося прочитати розділи з файлу EPUB.", fileError: "Помилка читання файлу: ",
+        tooBig: "Книга завелика, щоб зберегти її в пам’яті браузера. Після закриття застосунку повернеться попередня книга.",
+        loaded: "Завантажено «{t}» ({n} розд.)!", confirmReset: "Скинути прогрес читання?",
+        defaultTitle: "Моя книга", partN: "Частина {n}", chapterN: "Розділ {n}", icsDesc: "Час для наступного розділу в застосунку PaKu.",
+        unlockNext: "🔓 Розблокувати наступний фрагмент",
+        unlockHint: "Відкрити зараз, не чекаючи на дату.",
+        splashTag: "Розділ за розділом",
+        busy: "⏳ Завантаження книги…",
+        pdfNoText: "Цей PDF не містить тексту (ймовірно, це скан). Використайте файл із текстовим шаром.",
+        pdfPassword: "Цей PDF захищено паролем, його не можна відкрити.",
+        libFail: "Не вдалося завантажити модуль для цього формату. Спробуйте ще раз із підключенням до інтернету.",
+        fileProtected: "Цей файл зашифровано (пароль або DRM), його не можна відкрити.",
+        mobiUnsupported: "Цей варіант MOBI (стиснення HUFF/CDIC або чистий KF8/AZW3) не підтримується. Конвертуйте його в EPUB.",
+        noText: "У цьому файлі не знайдено тексту.",
+        unsupportedFile: "Непідтримуваний формат файлу. Підтримуються: .epub, .mobi, .pdf, .doc, .docx, .txt.",
+        myBooks: "📚 Мої книги ({n}/{max})",
+        confirmDelete: "Видалити книгу «{t}» із застосунку? Прогрес читання буде втрачено.",
+        limitReached: "Можна мати щонайбільше 5 книг. Видаліть одну, щоб додати іншу.",
+        scheduleFor: "⏱️ Графік: {t}",
+        startDateLabel: "Дата розблокування першого розділу",
+        calAll: "Усі",
+        calScope: "Файл .ics містить: {name}",
+        calScopeAll: "усі книги",
+        setScheduleHint: "Налаштуйте графік читання цієї книги в розділі нижче.",
+        resetSim: "⏪ Скасувати симуляцію",
+        everyN: "кожні {d} дн.",
+        bookMeta: "{n} розд. · прочитано {p}% · залишилось {l}%",
+        pctRead: "Прочитано: {p}%",
+        pctLeft: "Залишилось: {l}%",
+        chaptersLeft: "залишилось розділів: {k}",
+        finishBook: "🏁 Завершити книгу",
+        finishEarly: "🏁 Завершити книгу раніше",
+        finishEarlyHint: "Книга буде зарахована як прочитана, а пропущені розділи не додаються до кількості слів.",
+        finishEarlyConfirm: "Завершити книгу «{t}» зараз? Її буде зараховано як прочитану (решту розділів буде пропущено).",
+        finishedBadge: "✅ завершено",
+        finishedEarlyBadge: "✅ завершено раніше",
+        rwTitle: "Ваші нагороди",
+        rw_week: "Цього тижня ви прочитали:",
+        rw_month: "Цього місяця ви прочитали:",
+        rw_year: "Цього року ви прочитали:",
+        rwBooks: "Книги",
+        rwWords: "Слова",
+        stackOf: "стос {d}",
+        lineOf: "рядок {d}",
+        moonPct: "{p} шляху до Місяця",
+        rwSkip: "Пропустити",
+        rwClose: "Закрити",
+        rwEmpty: "Почніть читати, і тут з’являться ваші результати!",
+        rwScale: "1 слово = 1 км, 1 книга ≈ {bw} слів = {bk} км. Подорож рахує всі прочитані слова.",
+        rwFinished: "🎉 Вітаємо! Ви завершили «{t}»!",
+        uCm: "см",
+        uM: "м",
+        uKm: "км",
+        journeyTitle: "🚀 Ваша подорож",
+        jStart: "Старт: Земля 🌍",
+        jReached: "Остання ціль: {n}",
+        jNext: "Наступна ціль: {n}",
+        jProg: "{p} · {a} з {b}",
+        jDone: "Ви досягли краю Всесвіту! 🎉",
+        pathPct: "{p} шляху",
+        rwReached: "🎉 Нову ціль досягнуто: {n}!",
+        milestonesTitle: "Усі цілі (відстань від Землі)",
+        uMln: "млн",
+        uMld: "млрд",
+        uLy: "св. р."
+      }
     };
 
-    let state = loadSavedState() || {
-      book: DEFAULT_BOOK,
-      currentIndex: 0,
-      completed: [],
-      freqDays: 1,
-      unlockTime: "08:00",
-      startDateISO: new Date().toISOString(),
-      timeOffsetMs: 0,
-      theme: "light",
-      fontSize: 18
+    // Przykładowa książka w każdym języku / sample book in each language
+    const DEFAULT_BOOKS = {
+      pl: {
+        title: "Sztuka Spokojnego Czytania (Przykładowa książka)",
+        chapters: [
+          { title: "Rozdział 1: Dlaczego jeden rozdział wystarcza",
+            content: "W świecie nieustannego pośpiechu czytanie zamieniło się w wyścig o liczbę zaliczonych pozycji. Tymczasem prawdziwa lektura wymaga przestrzeni na refleksję.\n\nKiedy dawkujesz sobie opowieść po jednym rozdziale dziennie lub tygodniowo, każda scena ma czas osiąść w pamięci. Zaczynasz zauważać detale, styl autora i własne emocje.\n\nPrzeczytaj ten fragment spokojnie, oznacz go jako ukończony i wróć, gdy otworzy się kolejny rozdział." },
+          { title: "Rozdział 2: Rytm zamiast pośpiechu",
+            content: "Stała pora dnia buduje nawyk znacznie skuteczniej niż jednorazowy zryw. Wystarczy piętnaście minut rano przy kawie albo wieczorem przed snem.\n\nSynchronizacja z kalendarzem sprawia, że lektura staje się pełnoprawnym spotkaniem z samym sobą — dokładnie takim jak trening czy spotkanie z przyjacielem." },
+          { title: "Rozdział 3: Siła oczekiwania",
+            content: "Pamiętasz czasy, gdy na kolejny odcinek ulubionej powieści w odcinkach czekało się cały tydzień? Oczekiwanie potęguje zaangażowanie.\n\nGdy aplikacja blokuje kolejny rozdział do wyznaczonego dnia, chroni Cię przed zmęczeniem materiału i przywraca radość odkrywania historii krok po kroku." }
+        ]
+      },
+      en: {
+        title: "The Art of Calm Reading (Sample book)",
+        chapters: [
+          { title: "Chapter 1: Why one chapter is enough",
+            content: "In a world of constant rush, reading has turned into a race to tick off as many books as possible. True reading, however, needs room for reflection.\n\nWhen you ration a story to one chapter a day or a week, every scene has time to settle in your memory. You start to notice details, the author's style and your own emotions.\n\nRead this passage calmly, mark it as finished, and come back when the next chapter opens." },
+          { title: "Chapter 2: Rhythm instead of rush",
+            content: "A fixed time of day builds a habit far more effectively than a one-off burst of effort. Fifteen minutes in the morning with coffee, or in the evening before sleep, is enough.\n\nSyncing with your calendar turns reading into a proper appointment with yourself — just like a workout or meeting a friend." },
+          { title: "Chapter 3: The power of anticipation",
+            content: "Remember the days when you waited a whole week for the next instalment of a favourite serial novel? Anticipation deepens engagement.\n\nWhen the app locks the next chapter until the chosen day, it protects you from reading fatigue and brings back the joy of discovering a story step by step." }
+        ]
+      },
+      de: {
+        title: "Die Kunst des ruhigen Lesens (Beispielbuch)",
+        chapters: [
+          { title: "Kapitel 1: Warum ein Kapitel genügt",
+            content: "In einer Welt ständiger Hektik ist Lesen zu einem Wettlauf um möglichst viele abgehakte Bücher geworden. Echtes Lesen braucht jedoch Raum zum Nachdenken.\n\nWenn du dir eine Geschichte in Portionen von einem Kapitel pro Tag oder pro Woche gönnst, hat jede Szene Zeit, sich im Gedächtnis zu setzen. Du beginnst, Details, den Stil des Autors und deine eigenen Gefühle wahrzunehmen.\n\nLies diesen Abschnitt in Ruhe, markiere ihn als gelesen und komm wieder, wenn sich das nächste Kapitel öffnet." },
+          { title: "Kapitel 2: Rhythmus statt Hektik",
+            content: "Eine feste Tageszeit schafft eine Gewohnheit viel wirksamer als ein einmaliger Kraftakt. Fünfzehn Minuten am Morgen bei einer Tasse Kaffee oder abends vor dem Schlafengehen reichen aus.\n\nDie Synchronisierung mit dem Kalender macht das Lesen zu einem echten Termin mit dir selbst — genau wie Training oder ein Treffen mit einem Freund." },
+          { title: "Kapitel 3: Die Kraft der Vorfreude",
+            content: "Erinnerst du dich an die Zeiten, als man eine ganze Woche auf die nächste Folge seines Lieblingsromans warten musste? Vorfreude steigert die Begeisterung.\n\nWenn die App das nächste Kapitel bis zum gewählten Tag sperrt, schützt sie dich vor Lesemüdigkeit und bringt die Freude zurück, eine Geschichte Schritt für Schritt zu entdecken." }
+        ]
+      },
+      es: {
+        title: "El arte de leer con calma (Libro de ejemplo)",
+        chapters: [
+          { title: "Capítulo 1: Por qué basta un capítulo",
+            content: "En un mundo de prisas constantes, leer se ha convertido en una carrera por tachar la mayor cantidad de libros posible. Sin embargo, la verdadera lectura necesita espacio para la reflexión.\n\nCuando te dosificas una historia a un capítulo por día o por semana, cada escena tiene tiempo de asentarse en la memoria. Empiezas a notar los detalles, el estilo del autor y tus propias emociones.\n\nLee este fragmento con calma, márcalo como terminado y vuelve cuando se abra el siguiente capítulo." },
+          { title: "Capítulo 2: Ritmo en lugar de prisa",
+            content: "Una hora fija del día crea un hábito mucho más eficazmente que un esfuerzo puntual. Bastan quince minutos por la mañana con un café o por la noche antes de dormir.\n\nSincronizar con el calendario convierte la lectura en una cita de verdad contigo mismo, igual que un entrenamiento o un encuentro con un amigo." },
+          { title: "Capítulo 3: El poder de la espera",
+            content: "¿Recuerdas los tiempos en que esperabas una semana entera el siguiente episodio de tu novela por entregas favorita? La espera aumenta el interés.\n\nCuando la aplicación bloquea el siguiente capítulo hasta el día elegido, te protege del cansancio lector y te devuelve la alegría de descubrir una historia paso a paso." }
+        ]
+      },
+      uk: {
+        title: "Мистецтво спокійного читання (Приклад книги)",
+        chapters: [
+          { title: "Розділ 1: Чому достатньо одного розділу",
+            content: "У світі постійної гонитви читання перетворилося на перегони за кількістю прочитаних книжок. Проте справжнє читання потребує простору для роздумів.\n\nКоли ви відмірюєте собі історію по одному розділу на день або на тиждень, кожна сцена має час осісти в пам’яті. Ви починаєте помічати деталі, стиль автора та власні емоції.\n\nПрочитайте цей уривок спокійно, позначте його як завершений і поверніться, коли відкриється наступний розділ." },
+          { title: "Розділ 2: Ритм замість поспіху",
+            content: "Постійна пора дня формує звичку значно ефективніше, ніж одноразовий ривок. Достатньо п’ятнадцяти хвилин уранці з кавою або ввечері перед сном.\n\nСинхронізація з календарем робить читання повноцінною зустріччю із самим собою — так само, як тренування чи зустріч із другом." },
+          { title: "Розділ 3: Сила очікування",
+            content: "Пам’ятаєте часи, коли на наступну серію улюбленого роману з продовженням доводилося чекати цілий тиждень? Очікування посилює захопленість.\n\nКоли застосунок блокує наступний розділ до визначеного дня, він оберігає вас від втоми від читання та повертає радість відкривати історію крок за кроком." }
+        ]
+      }
     };
+
+    function defaultBook(lang) {
+      return JSON.parse(JSON.stringify(DEFAULT_BOOKS[lang] || DEFAULT_BOOKS.en));
+    }
+
+    function detectLang() {
+      const l = ((navigator.language || 'en') + '').slice(0, 2).toLowerCase();
+      return I18N[l] ? l : 'en';
+    }
+
+    function t(key, vars) {
+      const dict = I18N[state.lang] || I18N.en;
+      let s = dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+      if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+      return s;
+    }
+
+    function loc() { return LOCALES[state.lang] || 'en-GB'; }
+
+    function applyI18n() {
+      document.documentElement.lang = state.lang;
+      document.title = t('docTitle');
+      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+      const sel = document.getElementById('langSelect');
+      if (sel) sel.value = state.lang;
+    }
+
+    function setLanguage(lang) {
+      if (!I18N[lang]) return;
+      state.lang = lang;
+      state.books.forEach(r => {
+        if (r.isDefault) { const db = defaultBook(lang); bookCache[r.id] = db; r.title = db.title; }
+      });
+      saveState();
+      applyI18n();
+      renderReader();
+      renderCalendar();
+      renderLibrary();
+    }
+
+    const STATE_KEY = 'dripReaderStateV2';
+    const MAX_BOOKS = 5;
+    const BOOK_COLORS = ['#7C3AED', '#0D9488', '#EA580C', '#DB2777', '#2563EB'];
+    const bookCache = {}; // id książki -> { title, chapters } (treść; poza localStorage)
+    const initialLang = detectLang();
+
+    function newId() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+    function pickColor(books) {
+      const used = books.map(b => b.color);
+      return BOOK_COLORS.find(c => !used.includes(c)) || BOOK_COLORS[0];
+    }
+
+    // Jedna książka w bibliotece: własny postęp i własny harmonogram
+    function makeRec(over) {
+      return Object.assign({
+        id: newId(), title: '', isDefault: false, store: null, idbKey: null, chapterCount: 0,
+        currentIndex: 0, completed: [], unlocked: [],
+        freqDays: 1, unlockTime: '08:00', startDateISO: new Date().toISOString(), color: BOOK_COLORS[0],
+        finishedAt: null, finishedEarly: false
+      }, over || {});
+    }
+
+    function freshState() {
+      const db = defaultBook(initialLang);
+      const rec = makeRec({ id: 'b1', title: db.title, isDefault: true, chapterCount: db.chapters.length });
+      return { lang: initialLang, theme: 'light', fontSize: 18, timeOffsetMs: 0, activeBookId: rec.id, books: [rec], log: [] };
+    }
 
     function loadSavedState() {
       try {
-        const saved = JSON.parse(localStorage.getItem('dripReaderStateV2'));
-        if (saved && saved.book && Array.isArray(saved.book.chapters) && saved.book.chapters.length) return saved;
+        const saved = JSON.parse(localStorage.getItem(STATE_KEY));
+        if (saved && typeof saved === 'object' &&
+            ((Array.isArray(saved.books) && saved.books.length) || saved.isDefaultBook === true || saved.bookStore === 'idb' ||
+             (saved.book && Array.isArray(saved.book.chapters) && saved.book.chapters.length))) return saved;
       } catch (e) {}
       return null;
     }
 
+    // Zapis ze starszych wersji (jedna książka) zamieniamy na bibliotekę z jedną książką
+    function migrateState(saved) {
+      if (!saved) return freshState();
+      let st;
+      if (Array.isArray(saved.books) && saved.books.length) {
+        st = saved;
+      } else {
+        const isDef = saved.isDefaultBook !== undefined ? !!saved.isDefaultBook
+          : !!(saved.book && saved.book.title === DEFAULT_BOOKS.pl.title);
+        const rec = makeRec({
+          id: 'b1',
+          title: saved.book ? saved.book.title : '',
+          isDefault: isDef,
+          store: isDef ? null : (saved.bookStore === 'idb' ? 'idb' : 'ls'),
+          idbKey: (!isDef && saved.bookStore === 'idb') ? 'book' : null,
+          chapterCount: saved.book && saved.book.chapters ? saved.book.chapters.length : 0,
+          currentIndex: saved.currentIndex || 0,
+          completed: saved.completed || [],
+          unlocked: saved.unlocked || [],
+          freqDays: saved.freqDays || 1,
+          unlockTime: saved.unlockTime || '08:00',
+          startDateISO: saved.startDateISO || new Date().toISOString()
+        });
+        if (rec.store === 'ls' && saved.book) rec.book = saved.book;
+        st = { lang: saved.lang, theme: saved.theme, fontSize: saved.fontSize, timeOffsetMs: saved.timeOffsetMs, activeBookId: 'b1', books: [rec] };
+      }
+      if (!st.lang || !I18N[st.lang]) st.lang = initialLang;
+      st.theme = st.theme || 'light';
+      st.fontSize = st.fontSize || 18;
+      st.timeOffsetMs = st.timeOffsetMs || 0;
+      st.log = Array.isArray(st.log) ? st.log.filter(e => e && Number.isFinite(e.ts)) : [];
+      st.books = st.books.slice(0, MAX_BOOKS).map((r, i) => {
+        const rec = Object.assign(makeRec({ color: BOOK_COLORS[i % BOOK_COLORS.length] }), r);
+        if (!Array.isArray(rec.completed)) rec.completed = [];
+        if (!Array.isArray(rec.unlocked)) rec.unlocked = [];
+        return rec;
+      });
+      if (!st.books.some(r => r.id === st.activeBookId)) st.activeBookId = st.books[0].id;
+      return st;
+    }
+
+    let state = migrateState(loadSavedState());
+
+    // Postęp i ustawienia w localStorage; treść książek w IndexedDB
     function saveState() {
       try {
-        localStorage.setItem('dripReaderStateV2', JSON.stringify(state));
+        const copy = Object.assign({}, state);
+        copy.books = state.books.map(r => {
+          const c = Object.assign({}, r);
+          if (r.store !== 'ls') delete c.book;
+          return c;
+        });
+        localStorage.setItem(STATE_KEY, JSON.stringify(copy));
         return true;
       } catch (e) {
-        return false; // np. przekroczony limit localStorage przy dużej książce
+        return false;
       }
+    }
+
+    function idbOpen() {
+      return new Promise((resolve, reject) => {
+        const r = indexedDB.open('paku-db', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('kv');
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      });
+    }
+    async function idbSet(key, val) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put(val, key);
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = tx.onabort = () => reject(tx.error);
+      });
+    }
+    async function idbGet(key) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+        req.onsuccess = () => { db.close(); resolve(req.result); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function idbDelete(key) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').delete(key);
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = tx.onabort = () => reject(tx.error);
+      });
     }
 
     function nowMs() {
       return Date.now() + (state.timeOffsetMs || 0);
     }
 
-    function getChapterUnlockDate(index) {
-      if (index === 0) return new Date(state.startDateISO);
-      const base = new Date(state.startDateISO);
-      const [hh, mm] = (state.unlockTime || "08:00").split(':').map(Number);
-      base.setDate(base.getDate() + index * state.freqDays);
-      base.setHours(hh || 8, mm || 0, 0, 0);
+    function activeRec() {
+      return state.books.find(r => r.id === state.activeBookId) || state.books[0];
+    }
+    function bookOf(rec) { return rec ? bookCache[rec.id] : null; }
+    function recTitle(rec) { const b = bookOf(rec); return b ? b.title : (rec.title || ''); }
+    function canAddBook() {
+      return state.books.length < MAX_BOOKS || (state.books.length === 1 && state.books[0].isDefault);
+    }
+
+    function addSampleBook() {
+      const db = defaultBook(state.lang);
+      const rec = makeRec({
+        id: newId(), title: db.title, isDefault: true, chapterCount: db.chapters.length,
+        startDateISO: new Date(nowMs()).toISOString(), color: pickColor(state.books)
+      });
+      bookCache[rec.id] = db;
+      state.books.push(rec);
+      state.activeBookId = rec.id;
+      return rec;
+    }
+
+    // Wczytuje treść wszystkich książek; tych, których nie da się odczytać, nie ma już w bibliotece
+    async function restoreBooks() {
+      const keep = [];
+      for (const rec of state.books) {
+        let book = null;
+        if (rec.isDefault) book = defaultBook(state.lang);
+        else if (rec.book && Array.isArray(rec.book.chapters) && rec.book.chapters.length) book = rec.book;
+        else if (rec.store === 'idb' && rec.idbKey) {
+          try {
+            const b = await idbGet(rec.idbKey);
+            if (b && Array.isArray(b.chapters) && b.chapters.length) book = b;
+          } catch (e) {}
+        }
+        if (!book) continue;
+        bookCache[rec.id] = book;
+        rec.title = book.title;
+        rec.chapterCount = book.chapters.length;
+        keep.push(rec);
+      }
+      state.books = keep;
+      if (!state.books.length) addSampleBook();
+      if (!state.books.some(r => r.id === state.activeBookId)) state.activeBookId = state.books[0].id;
+      saveState();
+    }
+
+    // Termin odblokowania rozdziału i danej książki (każda ma własny harmonogram)
+    function unlockDateOf(rec, index) {
+      if (index === 0) return new Date(rec.startDateISO);
+      const base = new Date(rec.startDateISO);
+      const [hh, mm] = (rec.unlockTime || '08:00').split(':').map(Number);
+      base.setDate(base.getDate() + index * rec.freqDays);
+      base.setHours(Number.isFinite(hh) ? hh : 8, Number.isFinite(mm) ? mm : 0, 0, 0);
       return base;
+    }
+
+    function isOpenRec(rec, i) {
+      return nowMs() >= unlockDateOf(rec, i).getTime() || rec.unlocked.includes(i);
+    }
+
+    function localDateStr(d) {
+      const p = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
     }
 
     function setTheme(t) {
@@ -426,12 +1236,13 @@
     }
 
     function switchTab(tab) {
-      ['reader', 'calendar', 'settings'].forEach(t => {
-        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
-        document.getElementById('nav-' + t).classList.toggle('active', t === tab);
+      ['reader', 'calendar', 'settings'].forEach(name => {
+        document.getElementById('tab-' + name).classList.toggle('hidden', name !== tab);
+        document.getElementById('nav-' + name).classList.toggle('active', name === tab);
       });
       if (tab === 'calendar') renderCalendar();
       if (tab === 'reader') renderReader();
+      if (tab === 'settings') renderLibrary();
     }
 
     let lockedUntilMs = null;
@@ -445,22 +1256,60 @@
       return (days ? days + 'd ' : '') + pad(hrs) + 'h ' + pad(mins) + 'm ' + pad(secs) + 's';
     }
 
+    function shortTitle(s) { return s.length > 18 ? s.slice(0, 17) + '…' : s; }
+
+    function setActiveBook(id) {
+      if (!state.books.some(r => r.id === id)) return;
+      state.activeBookId = id;
+      saveState();
+      renderReader();
+      renderLibrary();
+    }
+
+    function renderBookChips() {
+      const box = document.getElementById('bookChips');
+      if (!box) return;
+      if (state.books.length < 2) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+      box.classList.remove('hidden');
+      box.innerHTML = state.books.map(r =>
+        `<button class="chip ${r.id === state.activeBookId ? 'active' : ''}" onclick="setActiveBook('${r.id}')"><span class="dot" style="background:${r.color}"></span>${escapeHtml(shortTitle(recTitle(r)))}</button>`
+      ).join('');
+    }
+
+    // Ręczne odblokowanie – tylko kolejnego rozdziału (poprzedni musi być już otwarty)
+    function unlockNextChapter(idx) {
+      const rec = activeRec();
+      if (idx > 0 && !isOpenRec(rec, idx - 1)) return;
+      if (!rec.unlocked.includes(idx)) rec.unlocked.push(idx);
+      saveState();
+      renderReader();
+      renderLibrary();
+      window.scrollTo(0, 0);
+    }
+
     function renderReader() {
+      const rec = activeRec();
+      const book = bookOf(rec);
+      if (!book) return;
+      renderBookChips();
       const box = document.getElementById('readerContent');
-      const total = state.book.chapters.length;
-      const idx = Math.min(state.currentIndex, total - 1);
-      const chap = state.book.chapters[idx];
-      const unlockDate = getChapterUnlockDate(idx);
-      const isLocked = nowMs() < unlockDate.getTime();
-      const pct = Math.round((state.completed.length / total) * 100);
+      const total = book.chapters.length;
+      const idx = Math.min(rec.currentIndex, total - 1);
+      const chap = book.chapters[idx];
+      const unlockDate = unlockDateOf(rec, idx);
+      const isLocked = !isOpenRec(rec, idx);
+      const canUnlock = idx === 0 || isOpenRec(rec, idx - 1);
+      const pct = Math.round((rec.completed.length / total) * 100);
+      const left = 100 - pct;
+      const chaptersLeft = total - rec.completed.length;
 
       let html = `
-        <div style="font-size:12px;color:var(--muted);font-weight:600;">${escapeHtml(state.book.title)}</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600;">${escapeHtml(book.title)}${rec.finishedAt ? ' · ' + t(rec.finishedEarly ? 'finishedEarlyBadge' : 'finishedBadge') : ''}</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
         <div class="chapter-meta">
-          <span>Rozdział ${idx + 1} z ${total}</span>
-          <span>Ukończono: ${pct}%</span>
+          <span>${t('chapterOf', { i: idx + 1, n: total })} · ${t('chaptersLeft', { k: chaptersLeft })}</span>
         </div>
+        <div class="pct-row"><span class="pct-read">${t('pctRead', { p: pct })}</span><span class="pct-left">${t('pctLeft', { l: left })}</span></div>
       `;
 
       if (isLocked) {
@@ -469,28 +1318,36 @@
         html += `
           <div class="lock-box">
             <div style="font-size:40px;">🔒</div>
-            <h2 style="margin:8px 0 4px;">Kolejny rozdział czeka na swój czas</h2>
+            <h2 style="margin:8px 0 4px;">${t('lockTitle')}</h2>
             <p style="color:var(--muted);font-size:14px;">
               <strong>${escapeHtml(chap.title)}</strong><br/>
-              Odblokowanie: ${unlockDate.toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              ${t('unlockAt')} ${unlockDate.toLocaleString(loc(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
             </p>
             <div class="countdown" id="countdown">${formatCountdown(diff)}</div>
-            <button class="btn btn-secondary" onclick="switchTab('calendar')">Zobacz pełny harmonogram</button>
+            ${canUnlock ? `<button class="btn" onclick="unlockNextChapter(${idx})">${t('unlockNext')}</button>
+            <p style="color:var(--muted);font-size:12px;margin:6px 0 14px;">${t('unlockHint')}</p>` : ''}
+            <button class="btn btn-secondary" onclick="switchTab('calendar')">${t('seeSchedule')}</button>
           </div>
         `;
       } else {
         lockedUntilMs = null;
-        const isDone = state.completed.includes(idx);
+        const isDone = rec.completed.includes(idx);
         const paragraphs = chap.content.split(/\n+/).filter(p => p.trim()).map(p => `<p>${escapeHtml(p)}</p>`).join('');
         html += `
           <h1 class="chapter-title">${escapeHtml(chap.title)}</h1>
           <div class="reader-body">${paragraphs}</div>
           <hr style="border:none;border-top:1px solid var(--border);margin:22px 0;" />
           ${idx < total - 1
-            ? `<button class="btn" onclick="completeChapter(${idx})">${isDone ? 'Przejdź do następnego rozdziału ➡️' : '✅ Oznacz rozdział jako przeczytany'}</button>`
-            : `<div style="text-align:center;font-weight:700;color:var(--accent);">🎉 Gratulacje! Ukończyłeś całą książkę!</div>`
+            ? `<button class="btn" onclick="completeChapter(${idx})">${isDone ? t('goNext') : t('markRead')}</button>`
+            : (rec.finishedAt
+                ? `<div style="text-align:center;font-weight:700;color:var(--accent);">${t('congrats')}</div>`
+                : `<button class="btn" onclick="finishBook(false)">${t('finishBook')}</button>`)
           }
         `;
+      }
+      if (!rec.finishedAt && !(idx === total - 1 && !isLocked)) {
+        html += `<button class="btn btn-secondary" style="margin-top:14px;" onclick="finishBook(true)">${t('finishEarly')}</button>
+          <p style="color:var(--muted);font-size:12px;margin:6px 0 0;">${t('finishEarlyHint')}</p>`;
       }
       box.innerHTML = html;
     }
@@ -504,31 +1361,272 @@
       if (el) el.textContent = formatCountdown(diff);
     }
 
+    // ===== Licznik przeczytanych słów i książek (dziennik – zostaje po usunięciu książki) =====
+    function countWords(text) { return ((text || '').match(/\S+/g) || []).length; }
+    function logRead(words, books) {
+      if (!words && !books) return -1;
+      const before = journey().reached;
+      state.log.push({ ts: nowMs(), words: words || 0, books: books || 0 });
+      const after = journey().reached;
+      updateRewardIcon();
+      return after > before ? after : -1;   // numer właśnie osiągniętego celu
+    }
+
     function completeChapter(idx) {
-      if (!state.completed.includes(idx)) state.completed.push(idx);
-      if (idx + 1 < state.book.chapters.length) {
-        state.currentIndex = idx + 1;
+      const rec = activeRec();
+      const book = bookOf(rec);
+      let reached = -1;
+      if (!rec.completed.includes(idx)) {
+        rec.completed.push(idx);
+        reached = logRead(countWords(book.chapters[idx].content), 0);
       }
+      if (idx + 1 < book.chapters.length) rec.currentIndex = idx + 1;
       saveState();
       renderReader();
+      renderLibrary();
       window.scrollTo(0, 0);
+      if (reached >= 0) showRewards({ title: t('rwReached', { n: bodyName(reached) }) });
+    }
+
+    // Zakończenie książki: normalnie (ostatni rozdział przeczytany) albo wcześniej – zaliczona jako przeczytana
+    function finishBook(early) {
+      const rec = activeRec();
+      const book = bookOf(rec);
+      if (!rec || !book || rec.finishedAt) return;
+      if (early && !confirm(t('finishEarlyConfirm', { t: recTitle(rec) }))) return;
+      const total = book.chapters.length;
+      let words = 0;
+      if (!early) {
+        const last = total - 1;
+        if (!rec.completed.includes(last)) { rec.completed.push(last); words += countWords(book.chapters[last].content); }
+      }
+      const reached = logRead(words, 1);
+      for (let i = 0; i < total; i++) {
+        if (!rec.completed.includes(i)) rec.completed.push(i);
+        if (!rec.unlocked.includes(i)) rec.unlocked.push(i);
+      }
+      rec.finishedAt = new Date(nowMs()).toISOString();
+      rec.finishedEarly = !!early;
+      saveState();
+      renderReader();
+      renderLibrary();
+      window.scrollTo(0, 0);
+      showRewards({ title: reached >= 0 ? t('rwReached', { n: bodyName(reached) }) : t('rwFinished', { t: recTitle(rec) }) });
+    }
+
+    // ===== Nagrody: podsumowania + podróż przez Układ Słoneczny i dalej =====
+    const WORD_M = 1000;       // jedno przeczytane słowo = 1 km podróży (wartość w metrach)
+    const BOOK_WORDS = 80000;  // przeciętna powieść: ok. 80 000 słów (= 80 km)
+    const LY_KM = 9.4607e12;   // jeden rok świetlny w km
+    const AU_KM = 149597870.7;
+
+    // Cele podróży w kolejności rosnącej odległości od Ziemi.
+    // Planety: odległość, gdy stoją po tej samej stronie Słońca (|promień orbity − 1 AU|).
+    const BODIES = [
+      { id: 'moon', km: 384400, ic: '🌙' },
+      { id: 'venus', km: 0.277 * AU_KM, ic: '🟡' },
+      { id: 'mars', km: 0.524 * AU_KM, ic: '🔴' },
+      { id: 'mercury', km: 0.613 * AU_KM, ic: '⚪' },
+      { id: 'sun', km: AU_KM, ic: '☀️' },
+      { id: 'jupiter', km: 4.203 * AU_KM, ic: '🟠' },
+      { id: 'saturn', km: 8.537 * AU_KM, ic: '🪐' },
+      { id: 'uranus', km: 18.19 * AU_KM, ic: '🔵' },
+      { id: 'neptune', km: 29.07 * AU_KM, ic: '🟣' },
+      { id: 'pluto', km: 38.48 * AU_KM, ic: '🟤' },
+      { id: 'helio', km: 121 * AU_KM, ic: '🛰️' },          // wyjście z Układu Słonecznego (heliopauza)
+      { id: 'proxima', km: 4.246 * LY_KM, ic: '⭐' },
+      { id: 'center', km: 26000 * LY_KM, ic: '🌌' },
+      { id: 'andromeda', km: 2.5e6 * LY_KM, ic: '🌀' },
+      { id: 'virgo', km: 5.4e7 * LY_KM, ic: '✨' },
+      { id: 'universe', km: 4.65e10 * LY_KM, ic: '🔭' }
+    ];
+    const BODY_NAMES = {
+      pl: ['Księżyc', 'Wenus', 'Mars', 'Merkury', 'Słońce', 'Jowisz', 'Saturn', 'Uran', 'Neptun', 'Pluton', 'Wyjście z Układu Słonecznego', 'Proxima Centauri', 'Centrum Drogi Mlecznej', 'Galaktyka Andromedy', 'Gromada w Pannie', 'Skraj Wszechświata'],
+      en: ['Moon', 'Venus', 'Mars', 'Mercury', 'Sun', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Edge of the Solar System', 'Proxima Centauri', 'Milky Way centre', 'Andromeda Galaxy', 'Virgo Cluster', 'Edge of the Universe'],
+      de: ['Mond', 'Venus', 'Mars', 'Merkur', 'Sonne', 'Jupiter', 'Saturn', 'Uranus', 'Neptun', 'Pluto', 'Rand des Sonnensystems', 'Proxima Centauri', 'Zentrum der Milchstraße', 'Andromedagalaxie', 'Virgo-Haufen', 'Rand des Universums'],
+      es: ['Luna', 'Venus', 'Marte', 'Mercurio', 'Sol', 'Júpiter', 'Saturno', 'Urano', 'Neptuno', 'Plutón', 'Límite del Sistema Solar', 'Próxima Centauri', 'Centro de la Vía Láctea', 'Galaxia de Andrómeda', 'Cúmulo de Virgo', 'Borde del Universo'],
+      uk: ['Місяць', 'Венера', 'Марс', 'Меркурій', 'Сонце', 'Юпітер', 'Сатурн', 'Уран', 'Нептун', 'Плутон', 'Межа Сонячної системи', 'Проксима Центавра', 'Центр Чумацького Шляху', 'Галактика Андромеди', 'Скупчення Діви', 'Край Всесвіту']
+    };
+    function bodyName(i) { return (BODY_NAMES[state.lang] || BODY_NAMES.pl)[i]; }
+
+    function allWords() { return state.log.reduce((a, e) => a + e.words, 0); }
+
+    // Ile celów już osiągnięto (km podróży = słowa × 1 m)
+    function journeyOf(km) {
+      let reached = -1;
+      BODIES.forEach((b, i) => { if (km >= b.km) reached = i; });
+      const next = reached + 1 < BODIES.length ? reached + 1 : -1;
+      return { km, reached, next };
+    }
+    function journey() { return journeyOf(allWords() * WORD_M / 1000); }
+
+    // Ikona przycisku nagród = aktualny cel (najpierw Księżyc, potem kolejne ciała niebieskie)
+    function targetIndex(j) { return j.next >= 0 ? j.next : BODIES.length - 1; }
+    function updateRewardIcon() {
+      const b = document.getElementById('rwBtn');
+      if (b) b.textContent = BODIES[targetIndex(journey())].ic;
+    }
+
+    function periodStart(kind) {
+      const d = new Date(nowMs());
+      d.setHours(0, 0, 0, 0);
+      if (kind === 'week') d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // tydzień od poniedziałku
+      else if (kind === 'month') d.setDate(1);
+      else d.setMonth(0, 1);
+      return d.getTime();
+    }
+
+    function statsFor(kind) {
+      const from = periodStart(kind);
+      let words = 0, books = 0;
+      state.log.forEach(e => { if (e.ts >= from) { words += e.words; books += e.books; } });
+      return { words, books };
+    }
+
+    function fmtNum(n, opts) { return n.toLocaleString(loc(), opts || { maximumFractionDigits: 0 }); }
+
+    // Odległość w km -> czytelny tekst (m, km, mln km, mld km, lata świetlne)
+    function fmtDist(km) {
+      if (!(km > 0)) return '0 ' + t('uM');
+      if (km < 1) return fmtNum(km * 1000) + ' ' + t('uM');
+      if (km < 1e6) return fmtNum(km, { maximumFractionDigits: km < 100 ? 1 : 0 }) + ' ' + t('uKm');
+      if (km < 1e9) return fmtNum(km / 1e6, { maximumFractionDigits: 1 }) + ' ' + t('uMln') + ' ' + t('uKm');
+      if (km < 1e11) return fmtNum(km / 1e9, { maximumFractionDigits: 1 }) + ' ' + t('uMld') + ' ' + t('uKm');
+      const ly = km / LY_KM;
+      if (ly < 1000) return fmtNum(ly, { maximumSignificantDigits: 3 }) + ' ' + t('uLy');
+      if (ly < 1e6) return fmtNum(ly) + ' ' + t('uLy');
+      if (ly < 1e9) return fmtNum(ly / 1e6, { maximumFractionDigits: 1 }) + ' ' + t('uMln') + ' ' + t('uLy');
+      return fmtNum(ly / 1e9, { maximumFractionDigits: 1 }) + ' ' + t('uMld') + ' ' + t('uLy');
+    }
+
+    function fmtPct(p) {
+      if (!(p > 0)) return '0%';
+      if (p >= 100) return '100%';
+      if (p >= 0.001) return fmtNum(p, { maximumSignificantDigits: 2 }) + '%';
+      const e = Math.floor(Math.log10(p));
+      const sup = String(e).replace(/-/g, '⁻').replace(/\d/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+      return fmtNum(p / Math.pow(10, e), { maximumFractionDigits: 1 }) + '·10' + sup + '%';
+    }
+
+    function rewardCard(kind, target) {
+      const st = statsFor(kind);
+      const bk = st.books * BOOK_WORDS * WORD_M / 1000, wk = st.words * WORD_M / 1000;
+      const tb = BODIES[target];
+      const row = (ico, label, val, km) => `
+        <div class="rw-row">
+          <div><div class="rw-lab">${ico} ${label}</div><div class="rw-num">${fmtNum(val)}</div></div>
+          <div class="rw-dist"><strong>${fmtDist(km)}</strong><span>${tb.ic} ${escapeHtml(bodyName(target))}: ${t('pathPct', { p: fmtPct(km / tb.km * 100) })}</span></div>
+        </div>`;
+      return `
+        <div class="rw-card">
+          <div class="rw-period">${t('rw_' + kind)}</div>
+          ${row('📚', t('rwBooks'), st.books, bk)}
+          ${row('✍️', t('rwWords'), st.words, wk)}
+        </div>`;
+    }
+
+    function journeyHtml(j) {
+      if (j.next < 0) return `<div class="rw-card rw-journey"><div class="rw-period">${t('journeyTitle')}</div><div class="rw-jline">${BODIES[BODIES.length - 1].ic} ${t('jDone')}</div></div>`;
+      const nb = BODIES[j.next];
+      const prevKm = j.reached >= 0 ? BODIES[j.reached].km : 0;
+      const frac = Math.max(0, Math.min(1, (j.km - prevKm) / (nb.km - prevKm)));
+      const last = j.reached >= 0
+        ? `${BODIES[j.reached].ic} ${t('jReached', { n: escapeHtml(bodyName(j.reached)) })}`
+        : t('jStart');
+      return `
+        <div class="rw-card rw-journey">
+          <div class="rw-period">${t('journeyTitle')}</div>
+          <div class="rw-jline">${last}</div>
+          <div class="rw-jline"><strong>${nb.ic} ${t('jNext', { n: escapeHtml(bodyName(j.next)) })}</strong></div>
+          <div class="rw-jbar"><div style="width:${(frac * 100).toFixed(2)}%"></div></div>
+          <div class="rw-jmeta">${t('jProg', { p: fmtPct(frac * 100), a: fmtDist(j.km), b: fmtDist(nb.km) })}</div>
+        </div>`;
+    }
+
+    function milestonesHtml(j) {
+      return `<div class="rw-card"><div class="rw-period">${t('milestonesTitle')}</div>` + BODIES.map((b, i) => `
+        <div class="rw-ms ${i <= j.reached ? 'done' : ''}"><span>${b.ic} ${escapeHtml(bodyName(i))}</span><span>${fmtDist(b.km)} ${i <= j.reached ? '✅' : ''}</span></div>`).join('') + '</div>';
+    }
+
+    let rewardsTimer = null;
+
+    function showRewards(opts) {
+      opts = opts || {};
+      const box = document.getElementById('rewards');
+      if (!box) return;
+      clearTimeout(rewardsTimer);
+      const j = journey();
+      const target = targetIndex(j);
+      const empty = ['week', 'month', 'year'].every(k => { const x = statsFor(k); return !x.books && !x.words; });
+      document.getElementById('rwTitle').textContent = (opts.title ? '' : BODIES[target].ic + ' ') + (opts.title || t('rwTitle'));
+      document.getElementById('rwCards').innerHTML = journeyHtml(j) + ['week', 'month', 'year'].map(k => rewardCard(k, target)).join('') + milestonesHtml(j);
+      document.getElementById('rwNote').textContent = empty ? t('rwEmpty') : t('rwScale', { bw: fmtNum(BOOK_WORDS), bk: fmtNum(BOOK_WORDS * WORD_M / 1000) });
+      const auto = !!opts.auto;
+      document.getElementById('rwBar').classList.toggle('hidden', !auto);
+      document.getElementById('rwSkip').textContent = auto ? t('rwSkip') : t('rwClose');
+      box.classList.remove('hidden');
+      box.scrollTop = 0;
+      const fill = document.getElementById('rwFill');
+      fill.style.animation = 'none';
+      void fill.offsetWidth;
+      if (auto) {
+        fill.style.animation = 'rwCountdown 4s linear forwards';
+        rewardsTimer = setTimeout(closeRewards, 4000);
+      }
+    }
+
+    function closeRewards() {
+      clearTimeout(rewardsTimer);
+      const box = document.getElementById('rewards');
+      if (box) box.classList.add('hidden');
+    }
+
+    // ===== Kalendarz: rozdziały wszystkich książek (albo jednej) w kolejności terminów =====
+    let calFilter = 'all';
+
+    function setCalFilter(f) { calFilter = f; renderCalendar(); }
+
+    function calRecs() {
+      if (calFilter === 'all') return state.books;
+      const r = state.books.filter(x => x.id === calFilter);
+      return r.length ? r : state.books;
     }
 
     function renderCalendar() {
-      const list = document.getElementById('scheduleList');
-      const currentNow = nowMs();
-      list.innerHTML = state.book.chapters.map((ch, i) => {
-        const d = getChapterUnlockDate(i);
-        const done = state.completed.includes(i);
-        const open = currentNow >= d.getTime();
-        let pill = `<span class="status-pill st-lock">🔒 ${d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}</span>`;
-        if (done) pill = `<span class="status-pill st-done">✅ Przeczytane</span>`;
-        else if (open) pill = `<span class="status-pill st-open">📖 Dostępny</span>`;
+      if (!state.books.some(r => bookOf(r))) return;
+      if (calFilter !== 'all' && !state.books.some(r => r.id === calFilter)) calFilter = 'all';
+      const multi = state.books.length > 1;
+      const filt = document.getElementById('calFilters');
+      filt.classList.toggle('hidden', !multi);
+      if (multi) {
+        filt.innerHTML = `<button class="chip ${calFilter === 'all' ? 'active' : ''}" onclick="setCalFilter('all')">${t('calAll')}</button>` +
+          state.books.map(r => `<button class="chip ${calFilter === r.id ? 'active' : ''}" onclick="setCalFilter('${r.id}')"><span class="dot" style="background:${r.color}"></span>${escapeHtml(shortTitle(recTitle(r)))}</button>`).join('');
+      }
+      const recs = calRecs();
+      document.getElementById('calScope').textContent =
+        t('calScope', { name: calFilter === 'all' ? t('calScopeAll') : recTitle(recs[0]) });
+
+      const items = [];
+      recs.forEach((rec, ri) => {
+        const book = bookOf(rec);
+        if (!book) return;
+        book.chapters.forEach((ch, i) => items.push({ rec, ri, ch, i, d: unlockDateOf(rec, i) }));
+      });
+      items.sort((a, b) => (a.d - b.d) || (a.ri - b.ri) || (a.i - b.i));
+
+      const showBook = multi && calFilter === 'all';
+      document.getElementById('scheduleList').innerHTML = items.map(({ rec, ch, i, d }) => {
+        const done = rec.completed.includes(i);
+        const open = isOpenRec(rec, i);
+        let pill = `<span class="status-pill st-lock">🔒 ${d.toLocaleDateString(loc(), { day: 'numeric', month: 'short' })}</span>`;
+        if (done) pill = `<span class="status-pill st-done">${t('statusRead')}</span>`;
+        else if (open) pill = `<span class="status-pill st-open">${t('statusAvail')}</span>`;
         return `
-          <div class="schedule-item" onclick="openChapterIfAllowed(${i})" style="cursor:pointer;">
+          <div class="schedule-item" onclick="openChapterIfAllowed('${rec.id}', ${i})" style="cursor:pointer;${multi ? `border-left:4px solid ${rec.color};padding-left:10px;` : ''}">
             <div>
+              ${showBook ? `<div class="cal-book" style="color:${rec.color};">${escapeHtml(recTitle(rec))}</div>` : ''}
               <div style="font-weight:600;font-size:14px;">${escapeHtml(ch.title)}</div>
-              <div style="font-size:12px;color:var(--muted);">${d.toLocaleString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</div>
+              <div style="font-size:12px;color:var(--muted);">${d.toLocaleString(loc(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</div>
             </div>
             ${pill}
           </div>
@@ -536,60 +1634,123 @@
       }).join('');
     }
 
-    function openChapterIfAllowed(i) {
-      state.currentIndex = i;
+    function openChapterIfAllowed(bookId, i) {
+      const rec = state.books.find(r => r.id === bookId);
+      if (!rec) return;
+      state.activeBookId = rec.id;
+      rec.currentIndex = i;
       saveState();
       switchTab('reader');
     }
 
-    function updateScheduleSettings() {
-      state.freqDays = parseInt(document.getElementById('freqDays').value, 10) || 1;
-      state.unlockTime = document.getElementById('unlockTime').value || "08:00";
+    // ===== Biblioteka (Książka): lista książek + harmonogram wybranej książki =====
+    function selectLibraryBook(id) {
+      state.activeBookId = id;
       saveState();
+      renderLibrary();
+      renderBookChips();
+    }
+
+    function renderLibrary() {
+      const list = document.getElementById('libraryList');
+      if (!list) return;
+      document.getElementById('libraryTitle').textContent = t('myBooks', { n: state.books.length, max: MAX_BOOKS });
+      list.innerHTML = state.books.map(r => {
+        const b = bookOf(r);
+        if (!b) return '';
+        const pct = Math.round((r.completed.length / b.chapters.length) * 100);
+        return `
+          <div class="lib-item ${r.id === state.activeBookId ? 'active' : ''}" onclick="selectLibraryBook('${r.id}')">
+            <span class="dot" style="background:${r.color}"></span>
+            <div class="lib-main">
+              <div class="lib-title">${escapeHtml(b.title)}${r.finishedAt ? ' ✅' : ''}</div>
+              <div class="lib-meta">${t('bookMeta', { n: b.chapters.length, p: pct, l: 100 - pct })} · ⏱ ${t('everyN', { d: r.freqDays })}, ${escapeHtml(r.unlockTime)}</div>
+            </div>
+            <button class="lib-del" aria-label="Delete" onclick="event.stopPropagation(); deleteBook('${r.id}')">🗑️</button>
+          </div>`;
+      }).join('');
+
+      const rec = activeRec();
+      document.getElementById('scheduleForTitle').textContent = t('scheduleFor', { t: recTitle(rec) });
+      document.getElementById('freqDays').value = String(rec.freqDays);
+      document.getElementById('unlockTime').value = rec.unlockTime;
+      document.getElementById('startDate').value = localDateStr(new Date(rec.startDateISO));
+      document.getElementById('limitNote').classList.toggle('hidden', canAddBook());
+    }
+
+    function updateScheduleSettings() {
+      const rec = activeRec();
+      rec.freqDays = parseInt(document.getElementById('freqDays').value, 10) || 1;
+      rec.unlockTime = document.getElementById('unlockTime').value || '08:00';
+      const dv = document.getElementById('startDate').value;
+      if (dv) {
+        const today = localDateStr(new Date(nowMs()));
+        if (dv === today) {
+          // start dziś: pierwszy rozdział otwarty od razu
+          const startedToday = localDateStr(new Date(rec.startDateISO)) === today && new Date(rec.startDateISO).getTime() <= nowMs();
+          if (!startedToday) rec.startDateISO = new Date(nowMs()).toISOString();
+        } else {
+          const [y, m, d] = dv.split('-').map(Number);
+          const [hh, mm] = rec.unlockTime.split(':').map(Number);
+          rec.startDateISO = new Date(y, m - 1, d, hh || 0, mm || 0, 0, 0).toISOString();
+        }
+      }
+      saveState();
+      renderLibrary();
       renderReader();
     }
 
     function splitTextIntoChapters(rawText) {
       const cleaned = rawText.replace(/\r\n/g, '\n').trim();
-      const regex = /(?:^|\n)(?=(?:Rozdział|ROZDZIAŁ|Chapter|CHAPTER|Część|CZĘŚĆ)\s+[0-9IVXLCDM]+[^\n]*)/g;
+      const regex = /(?:^|\n)(?=(?:Rozdział|ROZDZIAŁ|Część|CZĘŚĆ|Chapter|CHAPTER|Part|PART|Kapitel|KAPITEL|Teil|TEIL|Capítulo|CAPÍTULO|Capitulo|CAPITULO|Parte|PARTE|Розділ|РОЗДІЛ|Глава|ГЛАВА|Частина|ЧАСТИНА)\s+[0-9IVXLCDM]+[^\n]{0,70}(?:\n|$))/g;
       const parts = cleaned.split(regex).map(s => s.trim()).filter(Boolean);
       if (parts.length >= 2) {
+        // tekst przed pierwszym nagłówkiem (strona tytułowa, spis treści): krótki dokładamy do rozdziału 1
+        const headRe = /^(?:Rozdział|ROZDZIAŁ|Część|CZĘŚĆ|Chapter|CHAPTER|Part|PART|Kapitel|KAPITEL|Teil|TEIL|Capítulo|CAPÍTULO|Capitulo|CAPITULO|Parte|PARTE|Розділ|РОЗДІЛ|Глава|ГЛАВА|Частина|ЧАСТИНА)\s+[0-9IVXLCDM]+/;
+        if (!headRe.test(parts[0]) && parts.length >= 3 && parts[0].length < 250) {
+          const pre = parts.shift();
+          parts[0] = parts[0].includes('\n') ? parts[0].replace('\n', '\n' + pre + '\n') : parts[0] + '\n' + pre;
+        }
         return parts.map((p, idx) => {
           const lines = p.split('\n');
           const title = lines[0].slice(0, 80);
           const content = lines.slice(1).join('\n').trim() || p;
-          return { title: title || `Rozdział ${idx + 1}`, content };
+          return { title: title || t('chapterN', { n: idx + 1 }), content };
         });
       }
-      // Podział po ~1200 słów jeśli brak nagłówków rozdziałów
-      const words = cleaned.split(/\s+/);
+      // Brak nagłówków rozdziałów: dzielimy po ~1200 słów, ale na granicy akapitów
       const chunkSize = 1200;
-      const chapters = [];
-      for (let i = 0; i < words.length; i += chunkSize) {
-        chapters.push({
-          title: `Część ${chapters.length + 1}`,
-          content: words.slice(i, i + chunkSize).join(' ')
-        });
+      const units = [];
+      for (const p of cleaned.split(/\n+/)) {
+        const w = p.split(/\s+/).filter(Boolean);
+        if (!w.length) continue;
+        if (w.length <= chunkSize) units.push({ text: p.trim(), n: w.length });
+        else for (let i = 0; i < w.length; i += chunkSize) {
+          const c = w.slice(i, i + chunkSize);
+          units.push({ text: c.join(' '), n: c.length });
+        }
       }
-      return chapters.length ? chapters : DEFAULT_BOOK.chapters;
+      const chapters = [];
+      let cur = [], cnt = 0;
+      const flush = () => {
+        if (cur.length) chapters.push({ title: t('partN', { n: chapters.length + 1 }), content: cur.join('\n') });
+        cur = []; cnt = 0;
+      };
+      for (const u of units) {
+        if (cur.length && cnt + u.n > chunkSize) flush();
+        cur.push(u.text);
+        cnt += u.n;
+      }
+      flush();
+      return chapters.length ? chapters : defaultBook(state.lang).chapters;
     }
 
     function importPastedText() {
-      const title = document.getElementById('customTitle').value.trim() || "Moja Książka";
+      if (!canAddBook()) return alert(t('limitReached'));
+      const title = document.getElementById('customTitle').value.trim() || t('defaultTitle');
       const text = document.getElementById('customText').value.trim();
-      if (!text) return alert("Wklej najpierw treść książki.");
+      if (!text) return alert(t('pasteFirst'));
       loadNewBook(title, splitTextIntoChapters(text));
-    }
-
-    function htmlToText(doc) {
-      const blocks = doc.body.querySelectorAll('p, li');
-      const parts = [];
-      blocks.forEach(b => {
-        const t = b.textContent.replace(/\s+/g, ' ').trim();
-        if (t) parts.push(t);
-      });
-      if (!parts.length) return (doc.body.textContent || '').trim();
-      return parts.join('\n\n');
     }
 
     // Kolejność plików wg "spine" z pliku OPF (a nie alfabetycznie)
@@ -615,85 +1776,689 @@
       }
     }
 
+    // ===== Wczytywanie plików: txt, epub, mobi, pdf, doc, docx =====
+    class UserError extends Error {
+      constructor(key) { super(key); this.key = key; }
+    }
+
+    function setBusy(on) {
+      const el = document.getElementById('busy');
+      if (el) el.classList.toggle('hidden', !on);
+    }
+
+    function needZip() {
+      if (!window.JSZip) throw new UserError('libFail');
+    }
+
+    // --- pomocnicze: tekst ---
+    function decodeText(buf) {
+      const u8 = new Uint8Array(buf);
+      if (u8[0] === 0xFF && u8[1] === 0xFE) return new TextDecoder('utf-16le').decode(buf.slice(2));
+      if (u8[0] === 0xFE && u8[1] === 0xFF) return new TextDecoder('utf-16be').decode(buf.slice(2));
+      try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(buf);
+      } catch (e) {
+        const fallback = { pl: 'windows-1250', uk: 'windows-1251' }[state.lang] || 'windows-1252';
+        return new TextDecoder(fallback).decode(buf);
+      }
+    }
+
+    const BLOCK_TAGS = new Set(['P', 'DIV', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'TR', 'SECTION',
+      'ARTICLE', 'UL', 'OL', 'TABLE', 'PRE', 'DD', 'DT', 'HR', 'FIGURE', 'CENTER']);
+
+    // HTML -> zwykły tekst, akapity oddzielone pustą linią
+    function htmlToText(doc) {
+      let out = '';
+      (function walk(node) {
+        for (const c of node.childNodes) {
+          if (c.nodeType === 3) {
+            out += c.nodeValue.replace(/\s+/g, ' ');
+          } else if (c.nodeType === 1) {
+            const tag = c.tagName.toUpperCase();
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'HEAD') continue;
+            if (tag === 'BR') { out += '\n'; continue; }
+            const blk = BLOCK_TAGS.has(tag);
+            if (blk) out += '\n';
+            walk(c);
+            if (blk) out += '\n';
+          }
+        }
+      })(doc.body);
+      return out.split('\n').map(s => s.trim()).filter(Boolean).join('\n\n');
+    }
+
+    function stripLeadingTitle(text, title) {
+      const norm = x => x.replace(/\s+/g, ' ').trim().toLowerCase();
+      const nl = text.indexOf('\n');
+      const first = nl < 0 ? text : text.slice(0, nl);
+      if (nl > 0 && title && norm(first) === norm(title)) return text.slice(nl).replace(/^\n+/, '');
+      return text;
+    }
+
+    function titleFromDoc(doc, text, n) {
+      const h = doc.querySelector('h1, h2, h3');
+      let title = h ? h.textContent.replace(/\s+/g, ' ').trim() : '';
+      if (!title) {
+        const first = (text.split('\n')[0] || '').trim();
+        if (first && first.length <= 60 && !/[.!?]$/.test(first)) title = first;
+      }
+      return (title || t('chapterN', { n })).slice(0, 80);
+    }
+
+    // Sekcje {title, paras:[]} -> rozdziały; krótkie wstępy dołącza do pierwszego rozdziału
+    function chaptersFromHeadingSplit(paras, idxs) {
+      const chapters = [];
+      for (let k = 0; k < idxs.length; k++) {
+        const end = k + 1 < idxs.length ? idxs[k + 1] : paras.length;
+        const body = paras.slice(idxs[k] + 1, end).map(p => p.text).join('\n');
+        chapters.push({ title: paras[idxs[k]].text.slice(0, 80), content: body || paras[idxs[k]].text });
+      }
+      const pre = paras.slice(0, idxs[0]).map(p => p.text).join('\n');
+      if (pre) {
+        if (pre.length >= 250) {
+          const first = paras[0].text;
+          chapters.unshift({ title: first.slice(0, 80), content: paras.slice(1, idxs[0]).map(p => p.text).join('\n') || first });
+        } else {
+          chapters[0].content = pre + '\n' + chapters[0].content;
+        }
+      }
+      return chapters;
+    }
+
+    // --- EPUB ---
+    async function parseEpub(buf) {
+      needZip();
+      const zip = await JSZip.loadAsync(buf);
+      let files = await getEpubOrder(zip);
+      if (!files.length) {
+        files = Object.keys(zip.files)
+          .filter(name => /\.(xhtml|html|htm)$/i.test(name) && !/nav|toc/i.test(name))
+          .sort();
+      }
+      const chapters = [];
+      for (const fname of files) {
+        const raw = await zip.file(fname).async('text');
+        const doc = new DOMParser().parseFromString(raw, 'text/html');
+        const text = htmlToText(doc);
+        if (text.length > 250) {
+          const title = titleFromDoc(doc, text, chapters.length + 1);
+          chapters.push({ title, content: stripLeadingTitle(text, title) });
+        }
+      }
+      if (!chapters.length) throw new UserError('epubNone');
+      return chapters;
+    }
+
+    // --- DOCX ---
+    async function parseDocx(buf) {
+      needZip();
+      const head = new Uint8Array(buf, 0, 2);
+      if (head[0] === 0xD0 && head[1] === 0xCF) return parseDoc(buf); // stary .doc z rozszerzeniem .docx
+      const zip = await JSZip.loadAsync(buf);
+      const docFile = zip.file('word/document.xml');
+      if (!docFile) throw new UserError('unsupportedFile');
+      const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+      const xml = new DOMParser().parseFromString(await docFile.async('text'), 'application/xml');
+      if (xml.getElementsByTagName('parsererror').length) throw new UserError('unsupportedFile');
+
+      const styleName = {};
+      const sf = zip.file('word/styles.xml');
+      if (sf) {
+        const sx = new DOMParser().parseFromString(await sf.async('text'), 'application/xml');
+        for (const st of sx.getElementsByTagNameNS(W, 'style')) {
+          const id = st.getAttributeNS(W, 'styleId');
+          const nm = st.getElementsByTagNameNS(W, 'name')[0];
+          if (id && nm) styleName[id] = (nm.getAttributeNS(W, 'val') || '').toLowerCase();
+        }
+      }
+      const child = (el, name) => Array.from(el.children).find(c => c.localName === name);
+      const SKIP = new Set(['drawing', 'pict', 'txbxContent', 'delText', 'instrText', 'del']);
+      function runText(node) {
+        let s = '';
+        for (const c of node.childNodes) {
+          if (c.nodeType !== 1) continue;
+          const n = c.localName;
+          if (SKIP.has(n)) continue;
+          if (n === 't') s += c.textContent;
+          else if (n === 'tab') s += ' ';
+          else if (n === 'br' || n === 'cr') s += '\n';
+          else if (n === 'noBreakHyphen') s += '-';
+          else s += runText(c);
+        }
+        return s;
+      }
+
+      const paras = [];
+      for (const p of xml.getElementsByTagNameNS(W, 'p')) {
+        let level = 0;
+        const ppr = child(p, 'pPr');
+        if (ppr) {
+          const ps = child(ppr, 'pStyle');
+          const sid = ps ? ps.getAttributeNS(W, 'val') : '';
+          const nm = (styleName[sid] || sid || '').toLowerCase();
+          if (/^toc/.test(nm)) continue; // spis treści
+          const m = nm.match(/^heading\s*([1-3])$/);
+          if (m) level = +m[1];
+          const ol = child(ppr, 'outlineLvl');
+          if (!level && ol) { const v = parseInt(ol.getAttributeNS(W, 'val'), 10); if (v >= 0 && v < 3) level = v + 1; }
+        }
+        const text = runText(p).replace(/[ \t ]+/g, ' ').replace(/ ?\n ?/g, '\n').trim();
+        if (text) paras.push({ text, level });
+      }
+      if (!paras.length) throw new UserError('noText');
+
+      for (const lvl of [1, 2, 3]) {
+        const idxs = [];
+        paras.forEach((p, i) => { if (p.level === lvl) idxs.push(i); });
+        if (idxs.length >= 2) return chaptersFromHeadingSplit(paras, idxs);
+      }
+      return splitTextIntoChapters(paras.map(p => p.text).join('\n'));
+    }
+
+    // --- DOC (Word 97-2003): czytnik pliku złożonego (CFB) + tablica kawałków tekstu ---
+    function parseCFB(buf) {
+      const u8 = new Uint8Array(buf);
+      const dv = new DataView(buf);
+      const sig = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+      for (let i = 0; i < 8; i++) if (u8[i] !== sig[i]) throw new UserError('unsupportedFile');
+      const ssz = 1 << dv.getUint16(0x1E, true);
+      const mssz = 1 << dv.getUint16(0x20, true);
+      const sectorOff = sid => (sid + 1) * ssz;
+      const MAXREG = 0xFFFFFFFA;
+
+      const fatSecs = [];
+      for (let i = 0; i < 109; i++) {
+        const v = dv.getUint32(0x4C + i * 4, true);
+        if (v < MAXREG) fatSecs.push(v);
+      }
+      let dif = dv.getUint32(0x44, true);
+      const nDif = dv.getUint32(0x48, true);
+      for (let k = 0; k < nDif && dif < MAXREG; k++) {
+        const off = sectorOff(dif);
+        for (let i = 0; i < ssz / 4 - 1; i++) {
+          const v = dv.getUint32(off + i * 4, true);
+          if (v < MAXREG) fatSecs.push(v);
+        }
+        dif = dv.getUint32(off + ssz - 4, true);
+      }
+      const fat = [];
+      for (const s of fatSecs) {
+        const off = sectorOff(s);
+        for (let i = 0; i < ssz / 4; i++) fat.push(dv.getUint32(off + i * 4, true));
+      }
+      const chain = start => {
+        const out = [];
+        let s = start;
+        while (s < MAXREG && out.length <= fat.length) { out.push(s); s = fat[s]; }
+        return out;
+      };
+      const readChain = (start, size) => {
+        const secs = chain(start);
+        const out = new Uint8Array(secs.length * ssz);
+        secs.forEach((s, i) => out.set(u8.subarray(sectorOff(s), sectorOff(s) + ssz), i * ssz));
+        return size == null ? out : out.subarray(0, size);
+      };
+
+      const dir = readChain(dv.getUint32(0x30, true));
+      const entries = [];
+      for (let o = 0; o + 128 <= dir.length; o += 128) {
+        const d = new DataView(dir.buffer, dir.byteOffset + o, 128);
+        const nl = d.getUint16(0x40, true);
+        let name = '';
+        for (let i = 0; i < Math.max(0, nl / 2 - 1); i++) name += String.fromCharCode(d.getUint16(i * 2, true));
+        entries.push({ name, type: d.getUint8(0x42), start: d.getUint32(0x74, true), size: d.getUint32(0x78, true) });
+      }
+      const root = entries[0];
+      const cutoff = dv.getUint32(0x38, true);
+      const miniStream = readChain(root.start, root.size);
+      const mf = readChain(dv.getUint32(0x3C, true));
+      const miniFat = new DataView(mf.buffer, mf.byteOffset, mf.byteLength);
+      const miniCount = Math.floor(mf.byteLength / 4);
+
+      function stream(name) {
+        const e = entries.find(x => x.type === 2 && x.name === name);
+        if (!e) return null;
+        if (e.size >= cutoff) return readChain(e.start, e.size);
+        const out = new Uint8Array(e.size);
+        let s = e.start, pos = 0, guard = 0;
+        while (s < MAXREG && pos < e.size && guard++ <= miniCount) {
+          const chunk = miniStream.subarray(s * mssz, s * mssz + mssz);
+          out.set(chunk.subarray(0, Math.min(chunk.length, e.size - pos)), pos);
+          pos += mssz;
+          s = s * 4 + 4 <= mf.byteLength ? miniFat.getUint32(s * 4, true) : 0xFFFFFFFE;
+        }
+        return out;
+      }
+      return { stream };
+    }
+
+    function cleanWordText(text) {
+      let out = '';
+      const stack = []; // true = jesteśmy w kodzie pola (np. HYPERLINK), który pomijamy
+      for (const ch of text) {
+        const c = ch.charCodeAt(0);
+        if (c === 0x13) { stack.push(true); continue; }
+        if (c === 0x14) { if (stack.length) stack[stack.length - 1] = false; continue; }
+        if (c === 0x15) { stack.pop(); continue; }
+        if (stack.some(Boolean)) continue;
+        if (c === 0x0D || c === 0x0C || c === 0x0B) out += '\n';
+        else if (c === 0x07 || c === 0x09) out += ' ';
+        else if (c === 0x1E) out += '-';
+        else if (c < 0x20) continue;
+        else out += ch;
+      }
+      return out.replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function parseDoc(buf) {
+      const head = new Uint8Array(buf, 0, 2);
+      if (head[0] === 0x50 && head[1] === 0x4B) return parseDocx(buf); // plik .docx z rozszerzeniem .doc
+      const cfb = parseCFB(buf);
+      const wd = cfb.stream('WordDocument');
+      if (!wd) throw new UserError('unsupportedFile');
+      const dv = new DataView(wd.buffer, wd.byteOffset, wd.byteLength);
+      if (dv.getUint16(0, true) !== 0xA5EC) throw new UserError('unsupportedFile');
+      const nFib = dv.getUint16(2, true);
+      const flags = dv.getUint16(0x0A, true);
+      if (flags & 0x0100) throw new UserError('fileProtected');
+
+      let text = '';
+      if (nFib < 0xC1) { // Word 6 / 95: tekst leży liniowo
+        const fcMin = dv.getUint32(0x18, true), fcMac = dv.getUint32(0x1C, true);
+        text = new TextDecoder('windows-1252').decode(wd.subarray(fcMin, fcMac));
+      } else {
+        const table = cfb.stream((flags & 0x0200) ? '1Table' : '0Table');
+        if (!table) throw new UserError('unsupportedFile');
+        const td = new DataView(table.buffer, table.byteOffset, table.byteLength);
+        const ccpText = dv.getInt32(0x4C, true);
+        const fcClx = dv.getUint32(0x1A2, true), lcbClx = dv.getUint32(0x1A6, true);
+        let p = fcClx, plcStart = -1, plcLen = 0;
+        while (p < fcClx + lcbClx) {
+          const clxt = td.getUint8(p);
+          if (clxt === 1) p += 3 + td.getUint16(p + 1, true);
+          else if (clxt === 2) { plcLen = td.getUint32(p + 1, true); plcStart = p + 5; break; }
+          else break;
+        }
+        if (plcStart < 0) throw new UserError('unsupportedFile');
+        const n = Math.floor((plcLen - 4) / 12);
+        const dec1252 = new TextDecoder('windows-1252'), dec16 = new TextDecoder('utf-16le');
+        const parts = [];
+        let total = 0;
+        for (let i = 0; i < n && total < ccpText; i++) {
+          const cpS = td.getUint32(plcStart + i * 4, true);
+          const cpE = td.getUint32(plcStart + (i + 1) * 4, true);
+          const fcRaw = td.getUint32(plcStart + (n + 1) * 4 + i * 8 + 2, true);
+          const len = Math.min(cpE - cpS, ccpText - total);
+          if (len <= 0) continue;
+          if (fcRaw & 0x40000000) {
+            const off = (fcRaw & 0x3FFFFFFF) / 2;
+            parts.push(dec1252.decode(wd.subarray(off, off + len)));
+          } else {
+            const off = fcRaw & 0x3FFFFFFF;
+            parts.push(dec16.decode(wd.subarray(off, off + len * 2)));
+          }
+          total += len;
+        }
+        text = parts.join('');
+      }
+      text = cleanWordText(text);
+      if (!text) throw new UserError('noText');
+      return splitTextIntoChapters(text);
+    }
+
+    // --- MOBI (PalmDOC / MOBI 6) ---
+    function palmDocDecompress(src) {
+      const out = [];
+      let i = 0;
+      while (i < src.length) {
+        const c = src[i++];
+        if (c === 0 || (c >= 9 && c <= 0x7F)) out.push(c);
+        else if (c >= 1 && c <= 8) { for (let k = 0; k < c && i < src.length; k++) out.push(src[i++]); }
+        else if (c >= 0xC0) { out.push(0x20, c ^ 0x80); }
+        else {
+          const w = (c << 8) | src[i++];
+          const dist = (w >> 3) & 0x7FF, len = (w & 7) + 3;
+          if (dist === 0 || dist > out.length) break;
+          for (let k = 0; k < len; k++) out.push(out[out.length - dist]);
+        }
+      }
+      return out;
+    }
+
+    function parseMobi(buf) {
+      const u8 = new Uint8Array(buf);
+      const dv = new DataView(buf);
+      const nrec = dv.getUint16(76, false);
+      if (nrec < 2) throw new UserError('unsupportedFile');
+      const offs = [];
+      for (let i = 0; i < nrec; i++) offs.push(dv.getUint32(78 + i * 8, false));
+      const rec = i => u8.subarray(offs[i], i + 1 < nrec ? offs[i + 1] : u8.length);
+      const r0 = rec(0);
+      const d0 = new DataView(r0.buffer, r0.byteOffset, r0.byteLength);
+      const comp = d0.getUint16(0, false);
+      const count = d0.getUint16(8, false);
+      const encryption = d0.getUint16(12, false);
+      if (String.fromCharCode(r0[16], r0[17], r0[18], r0[19]) !== 'MOBI') throw new UserError('mobiUnsupported');
+      if (encryption !== 0) throw new UserError('fileProtected');
+      const hlen = d0.getUint32(20, false);
+      const codepage = d0.getUint32(28, false);
+      const version = d0.getUint32(36, false);
+      if (comp === 17480 || version === 8 || (comp !== 1 && comp !== 2)) throw new UserError('mobiUnsupported');
+      const extra = (hlen >= 0xE4 && r0.length >= 0xF4) ? d0.getUint16(0xF2, false) : 0;
+
+      function trailing(r) {
+        let num = 0;
+        const size = r.length;
+        const entry = psize => {
+          let bitpos = 0, result = 0;
+          for (;;) {
+            const v = r[psize - 1];
+            result |= (v & 0x7F) << bitpos;
+            bitpos += 7;
+            psize -= 1;
+            if ((v & 0x80) !== 0 || bitpos >= 28 || psize === 0) return result;
+          }
+        };
+        let flags = extra >> 1;
+        while (flags) {
+          if (flags & 1) num += entry(size - num);
+          flags >>= 1;
+        }
+        if (extra & 1) num += (r[size - num - 1] & 3) + 1;
+        return num;
+      }
+
+      const chunks = [];
+      let total = 0;
+      for (let i = 1; i <= count && i < nrec; i++) {
+        let r = rec(i);
+        if (extra) r = r.subarray(0, Math.max(0, r.length - trailing(r)));
+        const bytes = comp === 2 ? Uint8Array.from(palmDocDecompress(r)) : r;
+        chunks.push(bytes);
+        total += bytes.length;
+      }
+      const all = new Uint8Array(total);
+      let pos = 0;
+      for (const c of chunks) { all.set(c, pos); pos += c.length; }
+      const html = new TextDecoder(codepage === 65001 ? 'utf-8' : 'windows-1252').decode(all);
+
+      const chapters = [];
+      let carry = '';
+      let carryDoc = null;
+      for (const part of html.split(/<mbp:pagebreak\s*\/?>/i)) {
+        const doc = new DOMParser().parseFromString(part, 'text/html');
+        const text = htmlToText(doc);
+        if (!text) continue;
+        const acc = carry ? carry + '\n\n' + text : text;
+        if (acc.length < 250) { carry = acc; carryDoc = carryDoc || doc; continue; }
+        const mTitle = titleFromDoc(carryDoc && !doc.querySelector('h1, h2, h3') ? carryDoc : doc, acc, chapters.length + 1);
+        chapters.push({ title: mTitle, content: stripLeadingTitle(acc, mTitle) });
+        carry = '';
+        carryDoc = null;
+      }
+      if (carry) {
+        if (chapters.length) chapters[chapters.length - 1].content += '\n\n' + carry;
+        else chapters.push({ title: t('chapterN', { n: 1 }), content: carry });
+      }
+      if (chapters.length >= 2) return chapters;
+      const whole = chapters.length ? chapters[0].content : htmlToText(new DOMParser().parseFromString(html, 'text/html'));
+      if (!whole) throw new UserError('noText');
+      return splitTextIntoChapters(whole);
+    }
+
+    // --- PDF (pdf.js ładowany dopiero przy otwarciu pliku PDF) ---
+    let pdfjsLib = null;
+    async function loadPdfJs() {
+      if (pdfjsLib) return pdfjsLib;
+      const m = await import('./lib/pdf.min.mjs');
+      m.GlobalWorkerOptions.workerSrc = new URL('./lib/pdf.worker.min.mjs', location.href).href;
+      pdfjsLib = m;
+      return m;
+    }
+
+    function median(arr) {
+      const a = arr.slice().sort((x, y) => x - y);
+      return a.length ? a[Math.floor(a.length / 2)] : 0;
+    }
+
+    // Elementy tekstu jednej strony -> akapity
+    function pageToParagraphs(items) {
+      const lines = [];
+      let cur = null;
+      for (const it of items) {
+        if (typeof it.str !== 'string') continue;
+        const x = it.transform[4], y = it.transform[5];
+        const h = it.height || Math.abs(it.transform[3]) || 10;
+        if (!cur || Math.abs(y - cur.y) > h * 0.5) {
+          if (cur) lines.push(cur);
+          cur = { x, y, h, text: '', endX: null };
+        }
+        if (!it.str) continue;
+        if (cur.text && cur.endX !== null && x - cur.endX > h * 0.15 && !/\s$/.test(cur.text) && !/^\s/.test(it.str)) cur.text += ' ';
+        cur.text += it.str;
+        cur.endX = x + (it.width || 0);
+        cur.h = Math.max(cur.h, h);
+      }
+      if (cur) lines.push(cur);
+      const ls = lines.map(l => ({ ...l, text: l.text.replace(/\s+/g, ' ').trim() })).filter(l => l.text);
+      const isPageNo = s => /^[-–—]?\s*\d{1,4}\s*[-–—]?$/.test(s);
+      if (ls.length > 1 && isPageNo(ls[ls.length - 1].text)) ls.pop();
+      if (ls.length > 1 && isPageNo(ls[0].text)) ls.shift();
+      if (!ls.length) return [];
+
+      const gaps = [];
+      for (let i = 1; i < ls.length; i++) { const g = ls[i - 1].y - ls[i].y; if (g > 0) gaps.push(g); }
+      const med = median(gaps);
+      const leftMargin = Math.min(...ls.map(l => l.x));
+      const paras = [];
+      let buf = ls[0].text;
+      for (let i = 1; i < ls.length; i++) {
+        const gap = ls[i - 1].y - ls[i].y;
+        const bigGap = med > 0 && gap > med * 1.45;
+        const indented = ls[i].x - leftMargin > ls[i].h * 0.8 && /[.!?…»”"')\]]$/.test(buf);
+        if (bigGap || indented) { paras.push(buf); buf = ls[i].text; }
+        else if (/[A-Za-zÀ-ž]-$/.test(buf) && /^\p{Ll}/u.test(ls[i].text)) buf = buf.slice(0, -1) + ls[i].text;
+        else buf += ' ' + ls[i].text;
+      }
+      paras.push(buf);
+      return paras;
+    }
+
+    function joinPages(pages, from, to) {
+      const paras = [];
+      for (let p = from; p < to; p++) {
+        pages[p].forEach((para, j) => {
+          const last = paras.length - 1;
+          if (j === 0 && last >= 0 && /^\p{Ll}/u.test(para) && !/[.!?…:;»”"')\]]$/.test(paras[last])) {
+            paras[last] = /[A-Za-zÀ-ž]-$/.test(paras[last]) ? paras[last].slice(0, -1) + para : paras[last] + ' ' + para;
+          } else paras.push(para);
+        });
+      }
+      return paras;
+    }
+
+    async function pdfOutlineSections(pdf, pages) {
+      let outline = await pdf.getOutline();
+      if (outline && outline.length === 1 && outline[0].items && outline[0].items.length >= 2) outline = outline[0].items;
+      if (!outline || outline.length < 2) return null;
+      const marks = [];
+      for (const o of outline) {
+        let dest = o.dest;
+        if (typeof dest === 'string') dest = await pdf.getDestination(dest);
+        if (!Array.isArray(dest)) continue;
+        const ref = dest[0];
+        let page;
+        if (ref && typeof ref === 'object') page = await pdf.getPageIndex(ref);
+        else if (Number.isInteger(ref)) page = ref;
+        else continue;
+        marks.push({ title: (o.title || '').replace(/\s+/g, ' ').trim().slice(0, 80), page });
+      }
+      marks.sort((a, b) => a.page - b.page);
+      const uniq = marks.filter((m, i) => i === 0 || m.page !== marks[i - 1].page);
+      if (uniq.length < 2) return null;
+      const chapters = [];
+      uniq.forEach((m, k) => {
+        const to = k + 1 < uniq.length ? uniq[k + 1].page : pages.length;
+        const content = stripLeadingTitle(joinPages(pages, m.page, to).join('\n'), m.title);
+        if (content) chapters.push({ title: m.title || t('chapterN', { n: chapters.length + 1 }), content });
+      });
+      const preParas = joinPages(pages, 0, uniq[0].page);
+      const pre = preParas.join('\n');
+      if (pre && chapters.length) {
+        if (pre.length >= 250) chapters.unshift({ title: preParas[0].slice(0, 80), content: preParas.slice(1).join('\n') || preParas[0] });
+        else chapters[0].content = pre + '\n' + chapters[0].content;
+      }
+      return chapters.length >= 2 ? chapters : null;
+    }
+
+    async function parsePdf(buf) {
+      let lib;
+      try { lib = await loadPdfJs(); } catch (e) { throw new UserError('libFail'); }
+      let pdf;
+      try {
+        pdf = await lib.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise;
+      } catch (e) {
+        if (e && e.name === 'PasswordException') throw new UserError('pdfPassword');
+        throw e;
+      }
+      const pages = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const tc = await page.getTextContent();
+        pages.push(pageToParagraphs(tc.items));
+        page.cleanup();
+      }
+      const chars = pages.reduce((a, p) => a + p.join('').length, 0);
+      if (chars < 20) throw new UserError('pdfNoText');
+      try {
+        const sections = await pdfOutlineSections(pdf, pages);
+        if (sections) return sections;
+      } catch (e) { /* brak spisu treści – dzielimy po tekście */ }
+      return splitTextIntoChapters(joinPages(pages, 0, pages.length).join('\n'));
+    }
+
+    // --- Obsługa wyboru pliku ---
     async function handleFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const title = file.name.replace(/\.(txt|epub)$/i, '');
-      const lower = file.name.toLowerCase();
+      if (!canAddBook()) { alert(t('limitReached')); e.target.value = ''; return; }
+      const ext = ((file.name.match(/\.([^.]+)$/) || [])[1] || '').toLowerCase();
+      const title = file.name.replace(/\.[^.]+$/, '');
+      let chapters = null;
+      setBusy(true);
       try {
-        if (lower.endsWith('.txt')) {
-          const text = await file.text();
-          loadNewBook(title, splitTextIntoChapters(text));
-        } else if (lower.endsWith('.epub')) {
-          if (!window.JSZip) return alert("Biblioteka do czytania EPUB nie została wczytana (wymagany internet przy pierwszym uruchomieniu).");
-          const zip = await JSZip.loadAsync(file);
-          let files = await getEpubOrder(zip);
-          if (!files.length) {
-            files = Object.keys(zip.files)
-              .filter(name => /\.(xhtml|html|htm)$/i.test(name) && !/nav|toc/i.test(name))
-              .sort();
-          }
-          const chapters = [];
-          for (const fname of files) {
-            const raw = await zip.file(fname).async('text');
-            const doc = new DOMParser().parseFromString(raw, 'text/html');
-            const text = htmlToText(doc);
-            if (text.length > 250) {
-              const h = doc.querySelector('h1, h2, h3');
-              chapters.push({
-                title: h ? h.textContent.replace(/\s+/g, ' ').trim().slice(0, 80) : `Rozdział ${chapters.length + 1}`,
-                content: text
-              });
-            }
-          }
-          if (!chapters.length) return alert("Nie udało się odczytać rozdziałów z pliku EPUB.");
-          loadNewBook(title, chapters);
-        }
+        const buf = await file.arrayBuffer();
+        if (ext === 'txt') chapters = splitTextIntoChapters(decodeText(buf));
+        else if (ext === 'epub') chapters = await parseEpub(buf);
+        else if (ext === 'mobi' || ext === 'azw') chapters = parseMobi(buf);
+        else if (ext === 'docx') chapters = await parseDocx(buf);
+        else if (ext === 'doc') chapters = parseDoc(buf);
+        else if (ext === 'pdf') chapters = await parsePdf(buf);
+        else throw new UserError('unsupportedFile');
+        if (!chapters || !chapters.length) throw new UserError('noText');
       } catch (err) {
-        alert("Błąd odczytu pliku: " + err.message);
-      } finally {
+        chapters = null;
+        setBusy(false);
         e.target.value = '';
+        alert(err instanceof UserError ? t(err.key) : t('fileError') + (err && err.message ? err.message : err));
+        return;
       }
+      setBusy(false);
+      e.target.value = '';
+      await loadNewBook(title, chapters);
     }
 
-    function loadNewBook(title, chapters) {
-      state.book = { title, chapters };
-      state.currentIndex = 0;
-      state.completed = [];
-      state.startDateISO = new Date().toISOString();
-      state.timeOffsetMs = 0;
+    // Dodaje książkę do biblioteki (maks. 5). Jedyną książkę przykładową zastępuje.
+    async function loadNewBook(title, chapters) {
+      if (!canAddBook()) { alert(t('limitReached')); return; }
+      const book = { title, chapters };
+      const id = newId();
+      let store = 'idb', idbKey = 'book:' + id;
+      try {
+        await idbSet(idbKey, book);
+      } catch (e) {
+        store = 'ls'; // brak IndexedDB – próbujemy localStorage
+        idbKey = null;
+      }
+      // stan biblioteki sprawdzamy dopiero teraz (w międzyczasie mógł się zmienić)
+      if (!canAddBook()) {
+        if (idbKey) idbDelete(idbKey).catch(() => {});
+        alert(t('limitReached'));
+        return;
+      }
+      const replaceSample = state.books.length === 1 && state.books[0].isDefault;
+      const rec = makeRec({
+        id, title, chapterCount: chapters.length, store, idbKey,
+        startDateISO: new Date(nowMs()).toISOString(),
+        color: pickColor(replaceSample ? [] : state.books)
+      });
+      if (store === 'ls') rec.book = book;
+      const prevBooks = state.books, prevActive = state.activeBookId;
+      state.books = replaceSample ? [rec] : prevBooks.concat(rec);
+      state.activeBookId = rec.id;
       if (!saveState()) {
-        alert("Książka jest zbyt duża, żeby zapisać ją w pamięci przeglądarki. Po zamknięciu aplikacji wróci poprzednia książka.");
-      } else {
-        alert(`Wczytano "${title}" (${chapters.length} rozdz.)!`);
+        state.books = prevBooks;
+        state.activeBookId = prevActive;
+        if (idbKey) idbDelete(idbKey).catch(() => {});
+        alert(t('tooBig'));
+        return;
       }
-      switchTab('reader');
+      bookCache[rec.id] = book;
+      if (replaceSample) {
+        if (prevBooks[0].idbKey) idbDelete(prevBooks[0].idbKey).catch(() => {});
+        delete bookCache[prevBooks[0].id];
+      }
+      alert(t('loaded', { t: title, n: chapters.length }) + '\n' + t('setScheduleHint'));
+      switchTab('settings');
     }
 
+    async function deleteBook(id) {
+      const rec = state.books.find(r => r.id === id);
+      if (!rec) return;
+      if (!confirm(t('confirmDelete', { t: recTitle(rec) }))) return;
+      state.books = state.books.filter(r => r.id !== id);
+      delete bookCache[id];
+      if (rec.idbKey) idbDelete(rec.idbKey).catch(() => {});
+      if (!state.books.length) addSampleBook();
+      if (!state.books.some(r => r.id === state.activeBookId)) state.activeBookId = state.books[0].id;
+      if (calFilter === id) calFilter = 'all';
+      saveState();
+      renderLibrary();
+      renderReader();
+    }
+
+    // Plik .ics: wszystkie książki albo tylko ta, którą wybrano w filtrze kalendarza
     function exportICS() {
       const pad = n => String(n).padStart(2, '0');
       const toICSDate = d => `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
-      const esc = t => String(t).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+      const esc = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+      const recs = calRecs();
       const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PaKu//PWA//PL', 'CALSCALE:GREGORIAN'];
-      state.book.chapters.forEach((ch, i) => {
-        const start = getChapterUnlockDate(i);
-        const end = new Date(start.getTime() + 30 * 60000);
-        lines.push(
-          'BEGIN:VEVENT',
-          `UID:drip-ch-${i}@czytnik`,
-          `DTSTAMP:${toICSDate(new Date())}`,
-          `DTSTART:${toICSDate(start)}`,
-          `DTEND:${toICSDate(end)}`,
-          `SUMMARY:${esc('📖 ' + state.book.title + ' — ' + ch.title)}`,
-          'DESCRIPTION:Czas na kolejny rozdział w aplikacji PaKu.',
-          'END:VEVENT'
-        );
+      recs.forEach(rec => {
+        const book = bookOf(rec);
+        if (!book) return;
+        book.chapters.forEach((ch, i) => {
+          const start = unlockDateOf(rec, i);
+          const end = new Date(start.getTime() + 30 * 60000);
+          lines.push(
+            'BEGIN:VEVENT',
+            `UID:drip-${rec.id}-ch-${i}@czytnik`,
+            `DTSTAMP:${toICSDate(new Date())}`,
+            `DTSTART:${toICSDate(start)}`,
+            `DTEND:${toICSDate(end)}`,
+            `SUMMARY:${esc('📖 ' + book.title + ' — ' + ch.title)}`,
+            `DESCRIPTION:${esc(t('icsDesc'))}`,
+            'END:VEVENT'
+          );
+        });
       });
       lines.push('END:VCALENDAR');
       const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'harmonogram-czytania.ics';
+      a.download = calFilter === 'all' || state.books.length < 2
+        ? 'harmonogram-czytania.ics'
+        : 'harmonogram-' + recTitle(recs[0]).replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40) + '.ics';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -706,26 +2471,46 @@
       renderReader();
     }
 
-    function resetProgress() {
-      if (!confirm("Zresetować postęp czytania?")) return;
-      state.currentIndex = 0;
-      state.completed = [];
-      state.startDateISO = new Date().toISOString();
+    function resetSimulation() {
       state.timeOffsetMs = 0;
       saveState();
       renderReader();
+    }
+
+    // Zeruje postęp tylko wybranej książki
+    function resetProgress() {
+      if (!confirm(t('confirmReset'))) return;
+      const rec = activeRec();
+      rec.currentIndex = 0;
+      rec.completed = [];
+      rec.unlocked = [];
+      rec.finishedAt = null;
+      rec.finishedEarly = false;
+      rec.startDateISO = new Date(nowMs()).toISOString();
+      saveState();
+      renderReader();
+      renderLibrary();
     }
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
     }
 
+    // Ekran startowy znika po 2 s (animacja CSS), potem usuwamy go z DOM
+    (function () {
+      const sp = document.getElementById('splash');
+      let shown = false;
+      const go = () => { if (shown) return; shown = true; showRewards({ auto: true }); };
+      if (sp) sp.addEventListener('animationend', ev => { if (ev.animationName === 'splashOut') { sp.remove(); go(); } });
+      setTimeout(go, 2600); // zabezpieczenie, gdyby animacja się nie wykonała
+    })();
+
     // Init
+    applyI18n();
+    updateRewardIcon();
     setTheme(state.theme || 'light');
     document.documentElement.style.setProperty('--reader-size', (state.fontSize || 18) + 'px');
-    document.getElementById('freqDays').value = state.freqDays || 1;
-    document.getElementById('unlockTime').value = state.unlockTime || "08:00";
-    renderReader();
+    restoreBooks().then(() => { renderReader(); renderLibrary(); });
     setInterval(() => {
       if (!document.getElementById('tab-reader').classList.contains('hidden')) tickCountdown();
     }, 1000);

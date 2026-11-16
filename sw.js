@@ -1,5 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v4';
-const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+const CACHE_NAME = 'drip-reader-pwa-v11';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,16 +7,15 @@ const ASSETS_TO_CACHE = [
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './lib/jszip.min.js',
+  './lib/pdf.min.mjs',
+  './lib/pdf.worker.min.mjs'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      await cache.addAll(ASSETS_TO_CACHE);
-      // Biblioteka do EPUB – zapisana, żeby import działał też offline
-      try { await cache.add(JSZIP_URL); } catch (e) {}
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
   self.skipWaiting();
 });
@@ -35,7 +33,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  // Strony (index.html): najpierw sieć, żeby aktualizacje były widoczne od razu; offline -> cache
+  // Strona (index.html): najpierw sieć, żeby aktualizacje były widoczne od razu; offline -> cache
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
