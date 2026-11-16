@@ -580,6 +580,27 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         <div class="controls-row" id="holChips"></div>
       </div>
 
+      <div class="card" id="splitCard">
+        <h3 id="splitTitle">✂️</h3>
+        <div id="splitInfo" style="color:var(--muted);font-size:13px;margin-bottom:10px;"></div>
+        <div id="splitSample" class="hidden" style="color:var(--muted);font-size:13px;" data-i18n="splitSample"></div>
+        <div id="splitControls">
+          <label data-i18n="splitModeLabel">Jak podzielić książkę?</label>
+          <select id="splitMode" onchange="splitUiChange(true)">
+            <option value="words" data-i18n="splitModeWords">Słów na rozdział</option>
+            <option value="pages" data-i18n="splitModePages">Stron na rozdział</option>
+            <option value="count" data-i18n="splitModeCount">Liczba rozdziałów</option>
+          </select>
+          <input type="number" id="splitValue" min="1" step="1" inputmode="numeric" oninput="splitUiChange()" style="margin-top:8px;" />
+          <div class="controls-row" id="splitPresets" style="margin-top:8px;"></div>
+          <label class="chk"><input type="checkbox" id="splitKeep" checked onchange="splitUiChange()" /> <span data-i18n="splitKeep">Zachowaj granice oryginalnych rozdziałów</span></label>
+          <div id="splitPreview" style="font-size:13px;font-weight:600;color:var(--accent);margin:8px 0 10px;"></div>
+          <button class="btn" onclick="applySplit()" data-i18n="splitApply">Zastosuj podział</button>
+          <button class="btn btn-secondary hidden" id="splitRestore" style="margin-top:8px;" onclick="restoreSplit()" data-i18n="splitRestore">Przywróć oryginalny podział</button>
+        </div>
+        <div id="splitMsg" style="font-size:13px;font-weight:600;color:var(--accent);margin-top:8px;"></div>
+      </div>
+
       <div class="card">
         <h3 id="scheduleForTitle">⏱️</h3>
         <label data-i18n="freqLabel">Co ile dni odblokować kolejny rozdział?</label>
@@ -736,6 +757,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Odblokowane rozdziały do przeczytania: {k}",
         snarkTitle: "😈 Tryb złośliwy",
         snarkText: "Wszystkie komunikaty, pochwały, cytaty i życzenia stają się dowcipne, ale złośliwe. Dla ludzi z poczuciem humoru – nic nie obrażam na serio. Działa we wszystkich językach aplikacji.",
+        splitTitle: "✂️ Podział na rozdziały: {t}",
+        splitInfo: "Teraz: {n} rozdz. · {w} słów (~{p} stron). Średnio ~{a} słów (~{ap} stron) na rozdział.",
+        splitModeLabel: "Jak podzielić tę książkę?",
+        splitModeWords: "Słów na rozdział",
+        splitModePages: "Stron na rozdział (1 strona ≈ 300 słów)",
+        splitModeCount: "Liczba rozdziałów",
+        splitKeep: "Zachowaj granice oryginalnych rozdziałów (dziel tylko za długie)",
+        splitPreview: "→ wyjdzie {n} rozdz., po ok. {a} słów (~{ap} str.)",
+        splitApply: "Zastosuj podział",
+        splitRestore: "↩️ Przywróć oryginalny podział",
+        splitConfirm: "Zmienić podział „{t}” na {n} rozdz. (po ok. {a} słów)? Postęp ({p}%) zostanie przeliczony, a bieżący rozdział odblokuje się według harmonogramu.",
+        splitDone: "✅ Podzielono na {n} rozdz. Postęp przeliczony.",
+        splitRestored: "✅ Przywrócono oryginalny podział ({n} rozdz.).",
+        splitSample: "Przykładowej książki nie da się przepodzielić. Wczytaj własną książkę.",
+        splitBad: "Wpisz liczbę większą od zera.",
+        splitTooSmall: "Rozdział musi mieć co najmniej 100 słów.",
         snarkOn: "😈 Tryb złośliwy: włączony",
         snarkOff: "😇 Tryb złośliwy: wyłączony",
         snarkWelcome: "Uwaga! Od teraz nie będę się patyczkować. 😈",
@@ -915,6 +952,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Unlocked chapters waiting for you: {k}",
         snarkTitle: "😈 Snark mode",
         snarkText: "All messages, praise, quotes and greetings turn witty but mean. For people with a sense of humour – nothing is meant seriously. Works in every language of the app.",
+        splitTitle: "✂️ Chapter split: {t}",
+        splitInfo: "Now: {n} ch. · {w} words (~{p} pages). Average ~{a} words (~{ap} pages) per chapter.",
+        splitModeLabel: "How to split this book?",
+        splitModeWords: "Words per chapter",
+        splitModePages: "Pages per chapter (1 page ≈ 300 words)",
+        splitModeCount: "Number of chapters",
+        splitKeep: "Keep original chapter boundaries (only split the long ones)",
+        splitPreview: "→ gives {n} ch., about {a} words (~{ap} pages) each",
+        splitApply: "Apply split",
+        splitRestore: "↩️ Restore original split",
+        splitConfirm: "Change the split of “{t}” to {n} ch. (about {a} words each)? Progress ({p}%) will be recalculated and the current chapter unlocks according to your schedule.",
+        splitDone: "✅ Split into {n} ch. Progress recalculated.",
+        splitRestored: "✅ Original split restored ({n} ch.).",
+        splitSample: "The sample book can't be re-split. Add your own book.",
+        splitBad: "Enter a number greater than zero.",
+        splitTooSmall: "A chapter must have at least 100 words.",
         snarkOn: "😈 Snark mode: on",
         snarkOff: "😇 Snark mode: off",
         snarkWelcome: "Warning! From now on I won't be going easy on you. 😈",
@@ -1094,6 +1147,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Freigeschaltete Kapitel zum Lesen: {k}",
         snarkTitle: "😈 Fieser Modus",
         snarkText: "Alle Meldungen, Lob, Zitate und Glückwünsche werden witzig, aber gemein. Für Menschen mit Humor – nichts ist ernst gemeint. Funktioniert in allen Sprachen der App.",
+        splitTitle: "✂️ Kapitelaufteilung: {t}",
+        splitInfo: "Jetzt: {n} Kap. · {w} Wörter (~{p} Seiten). Durchschnitt ~{a} Wörter (~{ap} Seiten) pro Kapitel.",
+        splitModeLabel: "Wie soll das Buch aufgeteilt werden?",
+        splitModeWords: "Wörter pro Kapitel",
+        splitModePages: "Seiten pro Kapitel (1 Seite ≈ 300 Wörter)",
+        splitModeCount: "Anzahl der Kapitel",
+        splitKeep: "Originale Kapitelgrenzen beibehalten (nur lange Kapitel teilen)",
+        splitPreview: "→ ergibt {n} Kap. mit je ca. {a} Wörtern (~{ap} Seiten)",
+        splitApply: "Aufteilung anwenden",
+        splitRestore: "↩️ Ursprüngliche Aufteilung wiederherstellen",
+        splitConfirm: "Aufteilung von „{t}“ auf {n} Kap. ändern (je ca. {a} Wörter)? Der Fortschritt ({p}%) wird neu berechnet, das aktuelle Kapitel wird nach Zeitplan freigeschaltet.",
+        splitDone: "✅ In {n} Kap. aufgeteilt. Fortschritt neu berechnet.",
+        splitRestored: "✅ Ursprüngliche Aufteilung wiederhergestellt ({n} Kap.).",
+        splitSample: "Das Beispielbuch kann nicht neu aufgeteilt werden. Lade ein eigenes Buch.",
+        splitBad: "Gib eine Zahl größer als null ein.",
+        splitTooSmall: "Ein Kapitel braucht mindestens 100 Wörter.",
         snarkOn: "😈 Fieser Modus: an",
         snarkOff: "😇 Fieser Modus: aus",
         snarkWelcome: "Achtung! Ab jetzt gibt es keine Schonung. 😈",
@@ -1273,6 +1342,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Capítulos desbloqueados por leer: {k}",
         snarkTitle: "😈 Modo malicioso",
         snarkText: "Todos los mensajes, elogios, citas y felicitaciones se vuelven ingeniosos pero malvados. Para gente con sentido del humor: nada va en serio. Funciona en todos los idiomas de la app.",
+        splitTitle: "✂️ División en capítulos: {t}",
+        splitInfo: "Ahora: {n} cap. · {w} palabras (~{p} páginas). Media de ~{a} palabras (~{ap} páginas) por capítulo.",
+        splitModeLabel: "¿Cómo dividir este libro?",
+        splitModeWords: "Palabras por capítulo",
+        splitModePages: "Páginas por capítulo (1 página ≈ 300 palabras)",
+        splitModeCount: "Número de capítulos",
+        splitKeep: "Conservar los límites de los capítulos originales (dividir solo los largos)",
+        splitPreview: "→ salen {n} cap., de unas {a} palabras (~{ap} págs.) cada uno",
+        splitApply: "Aplicar división",
+        splitRestore: "↩️ Restaurar la división original",
+        splitConfirm: "¿Cambiar la división de «{t}» a {n} cap. (unas {a} palabras cada uno)? El progreso ({p}%) se recalculará y el capítulo actual se desbloqueará según tu calendario.",
+        splitDone: "✅ Dividido en {n} cap. Progreso recalculado.",
+        splitRestored: "✅ División original restaurada ({n} cap.).",
+        splitSample: "El libro de ejemplo no se puede redividir. Añade un libro propio.",
+        splitBad: "Introduce un número mayor que cero.",
+        splitTooSmall: "Un capítulo debe tener al menos 100 palabras.",
         snarkOn: "😈 Modo malicioso: activado",
         snarkOff: "😇 Modo malicioso: desactivado",
         snarkWelcome: "¡Atención! A partir de ahora no seré amable. 😈",
@@ -1452,6 +1537,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Розблоковані розділи, що чекають: {k}",
         snarkTitle: "😈 Єхидний режим",
         snarkText: "Усі повідомлення, похвала, цитати й вітання стають дотепними, але єхидними. Для людей із почуттям гумору – нічого серйозно. Працює в усіх мовах застосунку.",
+        splitTitle: "✂️ Поділ на розділи: {t}",
+        splitInfo: "Зараз: {n} розд. · {w} слів (~{p} стор.). У середньому ~{a} слів (~{ap} стор.) на розділ.",
+        splitModeLabel: "Як поділити цю книжку?",
+        splitModeWords: "Слів на розділ",
+        splitModePages: "Сторінок на розділ (1 сторінка ≈ 300 слів)",
+        splitModeCount: "Кількість розділів",
+        splitKeep: "Зберегти межі оригінальних розділів (ділити лише задовгі)",
+        splitPreview: "→ вийде {n} розд., приблизно по {a} слів (~{ap} стор.)",
+        splitApply: "Застосувати поділ",
+        splitRestore: "↩️ Відновити оригінальний поділ",
+        splitConfirm: "Змінити поділ «{t}» на {n} розд. (приблизно по {a} слів)? Прогрес ({p}%) буде перераховано, а поточний розділ розблокується за розкладом.",
+        splitDone: "✅ Поділено на {n} розд. Прогрес перераховано.",
+        splitRestored: "✅ Оригінальний поділ відновлено ({n} розд.).",
+        splitSample: "Приклад книжки не можна переділити. Додайте власну книжку.",
+        splitBad: "Введіть число більше за нуль.",
+        splitTooSmall: "Розділ має містити щонайменше 100 слів.",
         snarkOn: "😈 Єхидний режим: увімкнено",
         snarkOff: "😇 Єхидний режим: вимкнено",
         snarkWelcome: "Увага! Відтепер я не церемонюся. 😈",
@@ -1663,6 +1764,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (typeof renderBirthdayCard === 'function') renderBirthdayCard();
       if (typeof renderRemindCard === 'function') renderRemindCard();
       if (typeof renderSnarkCard === 'function') renderSnarkCard();
+      if (typeof renderSplitCard === 'function') renderSplitCard();
     }
 
     function setLanguage(lang) {
@@ -2198,6 +2300,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         fresh = true;
         rec.completed.push(idx);
         words = countWords(book.chapters[idx].content);
+        if (rec.credit) { words = Math.max(0, words - rec.credit); rec.credit = 0; } // słowa przeczytane przed zmianą podziału
         reached = logRead(words, 0);
       }
       if (idx + 1 < total) { rec.currentIndex = idx + 1; rec.pos = null; }
@@ -2573,6 +2676,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       document.getElementById('startDate').value = localDateStr(new Date(rec.startDateISO));
       document.getElementById('limitNote').classList.toggle('hidden', canAddBook());
       const pc = document.getElementById('praiseOn'); if (pc) pc.checked = !!state.praise.on;
+      if (typeof renderSplitCard === 'function') renderSplitCard();
     }
 
     function updateScheduleSettings() {
@@ -3824,6 +3928,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       rec.finishedAt = null;
       rec.finishedEarly = false;
       rec.pos = null;
+      rec.credit = 0;
       rec.sched = null;
       rec.startDateISO = new Date(nowMs()).toISOString();
       saveState();
@@ -4304,6 +4409,190 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const on = !!(state.snark && state.snark.on);
       b.textContent = t(on ? 'snarkOn' : 'snarkOff'); b.classList.toggle('active', on);
       document.documentElement.toggleAttribute('data-snark', !!snarkDict());
+    }
+
+    // ===== Zmiana podziału książki na rozdziały (osobno dla każdej wczytanej książki) =====
+    const PAGE_WORDS = 300;       // 1 strona ≈ 300 słów
+    const SPLIT_MIN = 100;        // najmniejszy sensowny rozdział (słowa)
+    const SPLIT_MAX_CH = 2000;    // limit liczby rozdziałów
+
+    function flattenParas(book) {
+      const paras = [], curStarts = [];
+      let off = 0;
+      book.chapters.forEach(ch => {
+        curStarts.push(off);
+        String(ch.content || '').split(/\n+/).forEach(p => {
+          p = p.trim(); if (!p) return;
+          const n = countWords(p);
+          paras.push({ text: p, n, start: off });
+          off += n;
+        });
+      });
+      return { paras, total: off, curStarts };
+    }
+    // Dzieli zbyt długi akapit na zdania, a zdania dłuższe niż limit na słowa
+    function splitLongPara(p, limit) {
+      if (p.n <= limit) return [p];
+      const out = [];
+      let cur = [], cnt = 0;
+      const flush = () => { if (cur.length) { out.push({ text: cur.join(' '), n: cnt }); cur = []; cnt = 0; } };
+      const sents = p.text.match(/[^.!?…]+(?:[.!?…]+|$)\s*/g) || [p.text];
+      for (const sn of sents) {
+        const w = sn.split(/\s+/).filter(Boolean);
+        if (!w.length) continue;
+        if (w.length > limit) {
+          flush();
+          for (let i = 0; i < w.length; i += limit) { const c = w.slice(i, i + limit); out.push({ text: c.join(' '), n: c.length }); }
+          continue;
+        }
+        if (cnt + w.length > limit) flush();
+        cur.push(w.join(' ')); cnt += w.length;
+      }
+      flush();
+      return out;
+    }
+    // Dzieli listę akapitów na k mniej więcej równych części
+    function chunkParas(paras, k) {
+      const total = paras.reduce((a, p) => a + p.n, 0);
+      if (k <= 1 || !paras.length) return [paras.map(p => p.text).join('\n')];
+      const thr = total / k, limit = Math.max(1, Math.ceil(thr));
+      const units = [];
+      paras.forEach(p => splitLongPara(p, limit).forEach(u => units.push(u)));
+      const out = []; let cur = [], cnt = 0;
+      const flush = () => { if (cur.length) { out.push(cur.join('\n')); cur = []; cnt = 0; } };
+      for (const u of units) {
+        if (cur.length && out.length < k - 1 && cnt + u.n / 2 > thr) flush();
+        cur.push(u.text); cnt += u.n;
+      }
+      flush();
+      return out;
+    }
+    function origStructure(book, F) { return book.orig || { titles: book.chapters.map(c => c.title), starts: F.curStarts }; }
+
+    // plan: {mode:'words'|'pages'|'count'|'orig', value, keep}
+    function buildSplit(book, plan) {
+      const F = flattenParas(book), O = origStructure(book, F);
+      const total = F.total;
+      if (plan.mode === 'orig') {
+        const chapters = O.titles.map((title, i) => {
+          const lo = O.starts[i], hi = i + 1 < O.starts.length ? O.starts[i + 1] : Infinity;
+          const ps = F.paras.filter(p => p.start >= lo && p.start < hi);
+          return { title, content: ps.map(p => p.text).join('\n') };
+        }).filter(c => c.content.trim());
+        return { chapters, O };
+      }
+      let target = plan.mode === 'pages' ? plan.value * PAGE_WORDS : plan.value;
+      let globalK = null;
+      if (plan.mode === 'count') { globalK = Math.max(1, Math.min(SPLIT_MAX_CH, Math.floor(plan.value))); target = Math.ceil(total / globalK); }
+      target = Math.max(SPLIT_MIN, Math.floor(target));
+      const chapters = [];
+      const addUnit = (title, ps, k) => {
+        const parts = chunkParas(ps, k);
+        parts.forEach((c, j) => chapters.push({
+          title: title == null ? t('partN', { n: chapters.length + 1 }) : (parts.length > 1 ? title + ' (' + (j + 1) + '/' + parts.length + ')' : title),
+          content: c
+        }));
+      };
+      if (plan.keep && globalK == null) {
+        O.titles.forEach((title, i) => {
+          const lo = O.starts[i], hi = i + 1 < O.starts.length ? O.starts[i + 1] : Infinity;
+          const ps = F.paras.filter(p => p.start >= lo && p.start < hi);
+          if (!ps.length) return;
+          const w = ps.reduce((a, p) => a + p.n, 0);
+          addUnit(title, ps, Math.max(1, Math.ceil(w / (target * 1.1))));
+        });
+      } else {
+        addUnit(null, F.paras, globalK != null ? globalK : Math.max(1, Math.ceil(total / (target * 1.1))));
+      }
+      return { chapters: chapters.slice(0, SPLIT_MAX_CH), O, truncated: chapters.length > SPLIT_MAX_CH };
+    }
+
+    function readSplitUi() {
+      const mode = document.getElementById('splitMode').value, value = parseFloat(document.getElementById('splitValue').value);
+      return { mode, value, keep: document.getElementById('splitKeep').checked };
+    }
+    function splitValid(plan) {
+      if (!(plan.value > 0)) return 'splitBad';
+      const target = plan.mode === 'pages' ? plan.value * PAGE_WORDS : plan.value;
+      if (plan.mode !== 'count' && target < SPLIT_MIN) return 'splitTooSmall';
+      return null;
+    }
+    function splitUiChange(resetValue) {
+      const rec = activeRec(), book = bookOf(rec); if (!rec || !book) return;
+      const mode = document.getElementById('splitMode').value;
+      const presets = { words: [500, 1000, 1500, 2500, 4000], pages: [2, 4, 8, 15], count: [5, 10, 20, 40] }[mode];
+      const inp = document.getElementById('splitValue');
+      if (resetValue) inp.value = { words: 1200, pages: 4, count: 10 }[mode];
+      document.getElementById('splitPresets').innerHTML = presets.map(v => `<button class="chip" onclick="document.getElementById('splitValue').value=${v};splitUiChange()">${v}</button>`).join('');
+      const plan = readSplitUi(), pv = document.getElementById('splitPreview'), err = splitValid(plan);
+      if (err) { pv.textContent = t(err); return; }
+      try {
+        const r = buildSplit(book, plan), n = r.chapters.length, W = r.chapters.reduce((a, c) => a + countWords(c.content), 0), a = Math.round(W / Math.max(1, n));
+        pv.textContent = t('splitPreview', { n, a: fmtNum(a), ap: Math.max(1, Math.round(a / PAGE_WORDS)) });
+      } catch (e) { pv.textContent = ''; }
+    }
+    function renderSplitCard() {
+      const card = document.getElementById('splitCard'); if (!card) return;
+      const rec = activeRec(), book = bookOf(rec); if (!rec || !book) return;
+      document.getElementById('splitTitle').textContent = t('splitTitle', { t: recTitle(rec) });
+      const n = book.chapters.length, W = book.chapters.reduce((a, c) => a + countWords(c.content), 0), a = Math.round(W / Math.max(1, n));
+      document.getElementById('splitInfo').textContent = t('splitInfo', { n, w: fmtNum(W), p: Math.max(1, Math.round(W / PAGE_WORDS)), a: fmtNum(a), ap: Math.max(1, Math.round(a / PAGE_WORDS)) });
+      const sample = !!rec.isDefault;
+      document.getElementById('splitControls').classList.toggle('hidden', sample);
+      document.getElementById('splitSample').classList.toggle('hidden', !sample);
+      document.getElementById('splitRestore').classList.toggle('hidden', !book.orig);
+      if (!sample) splitUiChange(!document.getElementById('splitValue').value);
+    }
+    function applySplit() { return runSplit(readSplitUi()); }
+    function restoreSplit() { return runSplit({ mode: 'orig' }); }
+    async function runSplit(plan) {
+      const rec = activeRec(), book = bookOf(rec); if (!rec || !book || rec.isDefault) return;
+      const msg = document.getElementById('splitMsg');
+      if (plan.mode !== 'orig') { const err = splitValid(plan); if (err) { msg.textContent = t(err); return; } }
+      const res = buildSplit(book, plan), chs = res.chapters;
+      if (!chs.length) { msg.textContent = t('noText'); return; }
+      // ile słów już przeczytano
+      const doneWords = rec.finishedAt ? Infinity : rec.completed.reduce((a, i) => a + (book.chapters[i] ? countWords(book.chapters[i].content) : 0), 0);
+      const totalW = book.chapters.reduce((a, c) => a + countWords(c.content), 0);
+      const pct = rec.finishedAt ? 100 : Math.round(Math.min(doneWords, totalW) / Math.max(1, totalW) * 100);
+      const avg = Math.round(chs.reduce((a, c) => a + countWords(c.content), 0) / chs.length);
+      if (!confirm(t('splitConfirm', { t: recTitle(rec), n: chs.length, a: fmtNum(avg), p: pct }))) return;
+      const snapshot = { rec: JSON.parse(JSON.stringify(Object.assign({}, rec, { book: undefined }))), chapters: book.chapters, orig: book.orig, recBook: rec.book };
+      // nowa lista przeczytanych: rozdziały, które w całości mieszczą się w już przeczytanej części
+      const oldIdx = rec.currentIndex;
+      const oldWait = isOpenRec(rec, oldIdx) ? nowMs() : unlockDateOf(rec, oldIdx).getTime();
+      const completed = []; let cum = 0, credit = 0;
+      if (rec.finishedAt) chs.forEach((c, i) => completed.push(i));
+      else {
+        for (let i = 0; i < chs.length; i++) {
+          const w = countWords(chs[i].content);
+          if (cum + w <= doneWords) { completed.push(i); cum += w; } else break;
+        }
+        credit = Math.max(0, Math.min(doneWords, totalW) - cum);
+      }
+      const first = rec.finishedAt ? chs.length - 1 : Math.min(completed.length, chs.length - 1);
+      if (plan.mode !== 'orig' && !book.orig) book.orig = res.O; // zapamiętujemy oryginalny podział
+      if (plan.mode === 'orig') book.orig = null;
+      book.chapters = chs;
+      rec.chapterCount = chs.length;
+      rec.completed = completed; rec.currentIndex = first; rec.unlocked = []; rec.pos = null; rec.credit = credit;
+      if (rec.finishedAt || first === 0) rec.sched = null;
+      else {
+        const d = new Date(Math.max(nowMs(), oldWait));
+        rec.sched = { from: first, ymd: [d.getFullYear(), d.getMonth() + 1, d.getDate()] };
+      }
+      try {
+        if (rec.store === 'idb' && rec.idbKey) await idbSet(rec.idbKey, book);
+        else rec.book = book;
+        if (!saveState()) throw new Error('quota');
+      } catch (e) {
+        Object.keys(rec).forEach(k => delete rec[k]); Object.assign(rec, snapshot.rec);
+        book.chapters = snapshot.chapters; book.orig = snapshot.orig; if (snapshot.recBook) rec.book = snapshot.recBook;
+        try { if (rec.store === 'idb' && rec.idbKey) await idbSet(rec.idbKey, book); } catch (e2) {}
+        alert(t('tooBig')); return;
+      }
+      msg.textContent = t(plan.mode === 'orig' ? 'splitRestored' : 'splitDone', { n: chs.length });
+      renderLibrary(); renderReader(); renderCalendar(); renderSplitCard();
     }
 
     // Init
