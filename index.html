@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -109,6 +109,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     h1, h2, h3 { margin-top: 0; }
+    .acc-head { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .acc-head::after { content: '▾'; font-size: 18px; color: var(--muted); transition: transform .2s; flex: none; }
+    .card.acc:not(.open) .acc-head::after { transform: rotate(-90deg); }
+    .card.acc:not(.open) .acc-body { display: none; }
+    .card.acc.open .acc-head { margin-bottom: 12px; }
+    .acc-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+    .legal h4 { margin: 14px 0 4px; font-size: 14px; }
+    .legal p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text); }
+    .legal .legal-note { color: var(--muted); font-size: 12px; margin-top: 14px; }
+    .legal .fill { background: #fff3cd; color: #7a5a00; border-radius: 4px; padding: 0 3px; }
+    .pick-item { display: block; }
+    .pick-item .progress-bar { margin: 8px 0 4px; }
+    .pick-status { font-size: 12px; color: var(--muted); }
+    .pick-status.ready { color: var(--accent); font-weight: 600; }
     .chapter-title {
       font-family: Georgia, "Times New Roman", serif;
       font-size: 22px;
@@ -398,7 +412,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
     .chip .dot { margin-right: 6px; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85); }
-    .lib-item {
+    .lib-item, .pick-item {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -408,7 +422,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       margin-bottom: 8px;
       cursor: pointer;
     }
-    .lib-item.active { border-color: var(--accent); background: var(--accent-soft); }
+    .lib-item.active, .pick-item.active { border-color: var(--accent); background: var(--accent-soft); }
     .lib-main { flex: 1; min-width: 0; }
     .lib-title { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lib-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -478,8 +492,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     <div class="hdr-right">
     <button class="icon-btn" id="rwBtn" aria-label="Rewards" onclick="showRewards()">🌙</button>
     <select id="langSelect" class="lang-select" aria-label="Language" onchange="setLanguage(this.value)">
-      <option value="pl">Polski</option>
       <option value="en">English</option>
+      <option value="pl">Polski</option>
       <option value="de">Deutsch</option>
       <option value="es">Español</option>
       <option value="uk">Українська</option>
@@ -500,8 +514,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
     <!-- TAB 1: CZYTNIK -->
     <section id="tab-reader">
+      <div id="bookPicker" class="card hidden"></div>
+      <div id="backRow" class="controls-row hidden"><button class="chip" id="backToBooks" onclick="backToBooks()"></button></div>
       <div id="bookChips" class="controls-row hidden"></div>
-      <div class="controls-row">
+      <div class="controls-row" id="readerControls">
         <button class="chip" data-i18n="themeLight" onclick="setTheme('light')">☀️ Jasny</button>
         <button class="chip" data-i18n="themeSepia" onclick="setTheme('sepia')">📜 Sepia</button>
         <button class="chip" data-i18n="themeDark" onclick="setTheme('dark')">🌙 Noc</button>
@@ -649,6 +665,28 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         <p class="web-msg"><a href="https://wolnelektury.pl" target="_blank" rel="noopener">wolnelektury.pl</a> · <a href="https://www.gutenberg.org" target="_blank" rel="noopener">gutenberg.org</a> · <a href="https://standardebooks.org" target="_blank" rel="noopener">standardebooks.org</a></p>
       </div>
 
+      <div class="card" id="whyCard">
+        <h3 data-i18n="whyTitle">💜 Dlaczego PaKu?</h3>
+        <div id="whyBody" class="legal"></div>
+      </div>
+
+      <div class="card" id="supportCard">
+        <h3 data-i18n="supTitle">☕ Wesprzyj aplikację</h3>
+        <p style="color:var(--muted);font-size:14px;margin:0 0 12px;line-height:1.5;" data-i18n="supText"></p>
+        <a class="btn" id="bmcBtn" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;text-decoration:none;" data-i18n="supBtn">☕ Postaw mi kawę</a>
+        <p id="bmcSoon" class="hidden" style="font-size:12px;color:var(--muted);margin:8px 0 0;" data-i18n="supSoon"></p>
+      </div>
+
+      <div class="card" id="termsCard">
+        <h3 data-i18n="termsTitle">📄 Regulamin</h3>
+        <div id="termsBody" class="legal"></div>
+      </div>
+
+      <div class="card" id="privCard">
+        <h3 data-i18n="privTitle">🔒 Polityka prywatności</h3>
+        <div id="privBody" class="legal"></div>
+      </div>
+
       <div class="card">
         <label class="chk"><input type="checkbox" id="praiseOn" onchange="togglePraise(this.checked)" /> <span data-i18n="praiseToggle">🎉 Słowa uznania po każdym rozdziale</span></label>
       </div>
@@ -757,6 +795,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Odblokowane rozdziały do przeczytania: {k}",
         snarkTitle: "😈 Tryb złośliwy",
         snarkText: "Wszystkie komunikaty, pochwały, cytaty i życzenia stają się dowcipne, ale złośliwe. Dla ludzi z poczuciem humoru – nic nie obrażam na serio. Działa we wszystkich językach aplikacji.",
+        whyTitle: "💜 Dlaczego PaKu?",
+        supTitle: "☕ Wesprzyj aplikację",
+        supText: "Wszystko w PaKu jest i będzie darmowe. Kupienie wirtualnej kawy jest całkowicie dobrowolne i służy wyłącznie wsparciu procesu twórczego. Nic się przez to nie odblokowuje.",
+        supBtn: "☕ Postaw mi kawę",
+        supSoon: "Link do wsparcia pojawi się wkrótce.",
+        termsTitle: "📄 Regulamin",
+        privTitle: "🔒 Polityka prywatności",
+        legalFill: "[uzupełnij]",
+        legalNote: "Dokumenty mają charakter uproszczony. W razie rozbieżności wiążąca jest wersja polska.",
+        pickTitle: "📚 Co dziś czytasz?",
+        pickHint: "Wybierz książkę, do której chcesz wrócić.",
+        pickReady: "📖 Rozdział {i} czeka na Ciebie",
+        pickLocked: "🔒 Kolejny rozdział: {when}",
+        pickDone: "✅ Ukończona",
+        allBooks: "Wszystkie książki",
         splitTitle: "✂️ Podział na rozdziały: {t}",
         splitInfo: "Teraz: {n} rozdz. · {w} słów (~{p} stron). Średnio ~{a} słów (~{ap} stron) na rozdział.",
         splitModeLabel: "Jak podzielić tę książkę?",
@@ -952,6 +1005,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Unlocked chapters waiting for you: {k}",
         snarkTitle: "😈 Snark mode",
         snarkText: "All messages, praise, quotes and greetings turn witty but mean. For people with a sense of humour – nothing is meant seriously. Works in every language of the app.",
+        whyTitle: "💜 Why PaKu?",
+        supTitle: "☕ Support the app",
+        supText: "Everything in PaKu is and will stay free. Buying a virtual coffee is entirely voluntary and only supports the creative process. Nothing gets unlocked by it.",
+        supBtn: "☕ Buy me a coffee",
+        supSoon: "The support link is coming soon.",
+        termsTitle: "📄 Terms of use",
+        privTitle: "🔒 Privacy policy",
+        legalFill: "[to be filled in]",
+        legalNote: "These documents are simplified. The Polish version prevails in case of discrepancy.",
+        pickTitle: "📚 What are you reading today?",
+        pickHint: "Pick the book you want to get back to.",
+        pickReady: "📖 Chapter {i} is waiting for you",
+        pickLocked: "🔒 Next chapter: {when}",
+        pickDone: "✅ Finished",
+        allBooks: "All books",
         splitTitle: "✂️ Chapter split: {t}",
         splitInfo: "Now: {n} ch. · {w} words (~{p} pages). Average ~{a} words (~{ap} pages) per chapter.",
         splitModeLabel: "How to split this book?",
@@ -1147,6 +1215,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Freigeschaltete Kapitel zum Lesen: {k}",
         snarkTitle: "😈 Fieser Modus",
         snarkText: "Alle Meldungen, Lob, Zitate und Glückwünsche werden witzig, aber gemein. Für Menschen mit Humor – nichts ist ernst gemeint. Funktioniert in allen Sprachen der App.",
+        whyTitle: "💜 Warum PaKu?",
+        supTitle: "☕ App unterstützen",
+        supText: "Alles in PaKu ist und bleibt kostenlos. Ein virtueller Kaffee ist völlig freiwillig und unterstützt nur den kreativen Prozess. Dadurch wird nichts freigeschaltet.",
+        supBtn: "☕ Spendier mir einen Kaffee",
+        supSoon: "Der Unterstützungslink folgt bald.",
+        termsTitle: "📄 Nutzungsbedingungen",
+        privTitle: "🔒 Datenschutzerklärung",
+        legalFill: "[auszufüllen]",
+        legalNote: "Diese Dokumente sind vereinfacht. Bei Abweichungen gilt die polnische Fassung.",
+        pickTitle: "📚 Was liest du heute?",
+        pickHint: "Wähle das Buch, zu dem du zurückkehren möchtest.",
+        pickReady: "📖 Kapitel {i} wartet auf dich",
+        pickLocked: "🔒 Nächstes Kapitel: {when}",
+        pickDone: "✅ Beendet",
+        allBooks: "Alle Bücher",
         splitTitle: "✂️ Kapitelaufteilung: {t}",
         splitInfo: "Jetzt: {n} Kap. · {w} Wörter (~{p} Seiten). Durchschnitt ~{a} Wörter (~{ap} Seiten) pro Kapitel.",
         splitModeLabel: "Wie soll das Buch aufgeteilt werden?",
@@ -1342,6 +1425,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Capítulos desbloqueados por leer: {k}",
         snarkTitle: "😈 Modo malicioso",
         snarkText: "Todos los mensajes, elogios, citas y felicitaciones se vuelven ingeniosos pero malvados. Para gente con sentido del humor: nada va en serio. Funciona en todos los idiomas de la app.",
+        whyTitle: "💜 ¿Por qué PaKu?",
+        supTitle: "☕ Apoya la app",
+        supText: "Todo en PaKu es y seguirá siendo gratuito. Un café virtual es totalmente voluntario y solo apoya el proceso creativo. No se desbloquea nada con ello.",
+        supBtn: "☕ Invítame a un café",
+        supSoon: "El enlace de apoyo llegará pronto.",
+        termsTitle: "📄 Condiciones de uso",
+        privTitle: "🔒 Política de privacidad",
+        legalFill: "[por completar]",
+        legalNote: "Estos documentos son simplificados. En caso de discrepancia prevalece la versión polaca.",
+        pickTitle: "📚 ¿Qué lees hoy?",
+        pickHint: "Elige el libro al que quieres volver.",
+        pickReady: "📖 El capítulo {i} te espera",
+        pickLocked: "🔒 Próximo capítulo: {when}",
+        pickDone: "✅ Terminado",
+        allBooks: "Todos los libros",
         splitTitle: "✂️ División en capítulos: {t}",
         splitInfo: "Ahora: {n} cap. · {w} palabras (~{p} páginas). Media de ~{a} palabras (~{ap} páginas) por capítulo.",
         splitModeLabel: "¿Cómo dividir este libro?",
@@ -1537,6 +1635,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Розблоковані розділи, що чекають: {k}",
         snarkTitle: "😈 Єхидний режим",
         snarkText: "Усі повідомлення, похвала, цитати й вітання стають дотепними, але єхидними. Для людей із почуттям гумору – нічого серйозно. Працює в усіх мовах застосунку.",
+        whyTitle: "💜 Чому PaKu?",
+        supTitle: "☕ Підтримати застосунок",
+        supText: "Усе в PaKu є й залишиться безкоштовним. Віртуальна кава — цілком добровільна й лише підтримує творчий процес. Нічого додатково не відкривається.",
+        supBtn: "☕ Пригостити кавою",
+        supSoon: "Посилання на підтримку з’явиться незабаром.",
+        termsTitle: "📄 Регламент",
+        privTitle: "🔒 Політика приватності",
+        legalFill: "[заповнити]",
+        legalNote: "Ці документи спрощені. У разі розбіжностей визначальною є польська версія.",
+        pickTitle: "📚 Що читаєш сьогодні?",
+        pickHint: "Обери книжку, до якої хочеш повернутися.",
+        pickReady: "📖 Розділ {i} чекає на тебе",
+        pickLocked: "🔒 Наступний розділ: {when}",
+        pickDone: "✅ Завершено",
+        allBooks: "Усі книжки",
         splitTitle: "✂️ Поділ на розділи: {t}",
         splitInfo: "Зараз: {n} розд. · {w} слів (~{p} стор.). У середньому ~{a} слів (~{ap} стор.) на розділ.",
         splitModeLabel: "Як поділити цю книжку?",
@@ -1738,9 +1851,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       return JSON.parse(JSON.stringify(DEFAULT_BOOKS[lang] || DEFAULT_BOOKS.en));
     }
 
+    // Domyślnie angielski. Inny język wybiera się w menu u góry (albo linkiem ?lang=pl).
     function detectLang() {
-      const l = ((navigator.language || 'en') + '').slice(0, 2).toLowerCase();
-      return I18N[l] ? l : 'en';
+      try {
+        const q = (new URLSearchParams(location.search).get('lang') || '').toLowerCase();
+        if (I18N[q]) return q;
+      } catch (e) {}
+      return 'en';
     }
 
     function t(key, vars) {
@@ -2039,7 +2156,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
     function setActiveBook(id) {
       if (!state.books.some(r => r.id === id)) return;
-      state.activeBookId = id;
+      state.activeBookId = id; readerPicked = true;
       saveState();
       renderReader();
       renderLibrary();
@@ -2070,9 +2187,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const rec = activeRec();
       const book = bookOf(rec);
       if (!book) return;
-      renderBookChips();
-      if (typeof updateRemindBanner === 'function') updateRemindBanner();
       const box = document.getElementById('readerContent');
+      const sp = showPicker();
+      document.getElementById('bookPicker').classList.toggle('hidden', !sp);
+      document.getElementById('readerControls').classList.toggle('hidden', sp);
+      document.getElementById('backRow').classList.toggle('hidden', sp || state.books.length < 2);
+      document.getElementById('backToBooks').textContent = '📚 ' + t('allBooks');
+      box.classList.toggle('hidden', sp);
+      if (typeof updateRemindBanner === 'function') updateRemindBanner();
+      if (sp) {
+        lockedUntilMs = null; pagerAction = null;
+        const ch = document.getElementById('bookChips'); ch.classList.add('hidden'); ch.innerHTML = '';
+        renderPicker();
+        return;
+      }
+      renderBookChips();
       const total = book.chapters.length;
       const idx = Math.min(rec.currentIndex, total - 1);
       const chap = book.chapters[idx];
@@ -2677,6 +2806,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       document.getElementById('limitNote').classList.toggle('hidden', canAddBook());
       const pc = document.getElementById('praiseOn'); if (pc) pc.checked = !!state.praise.on;
       if (typeof renderSplitCard === 'function') renderSplitCard();
+      if (typeof renderLegalCards === 'function') renderLegalCards();
     }
 
     function updateScheduleSettings() {
@@ -3812,6 +3942,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     // Dodaje książkę do biblioteki (maks. 5). Jedyną książkę przykładową zastępuje.
     async function loadNewBook(title, chapters) {
       if (!canAddBook()) { alert(t('limitReached')); return; }
+      readerPicked = false; // po dodaniu kolejnej książki strona główna znów pyta, którą czytać
       const book = { title, chapters };
       const id = newId();
       let store = 'idb', idbKey = 'book:' + id;
@@ -4595,7 +4726,90 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       renderLibrary(); renderReader(); renderCalendar(); renderSplitCard();
     }
 
+    // ===== Strona główna: wybór książki (gdy wgrano więcej niż jedną) =====
+    let readerPicked = false;
+    function showPicker() { return state.books.length > 1 && !readerPicked; }
+    function openBook(id) {
+      if (!state.books.some(r => r.id === id)) return;
+      state.activeBookId = id; readerPicked = true;
+      saveState(); renderReader(); renderLibrary(); window.scrollTo(0, 0);
+    }
+    function backToBooks() {
+      readerPicked = false;
+      if (focusOn) toggleFocus(false);
+      renderReader(); window.scrollTo(0, 0);
+    }
+    function renderPicker() {
+      const box = document.getElementById('bookPicker');
+      let h = `<h3 style="margin-bottom:4px;">${t('pickTitle')}</h3><p style="color:var(--muted);font-size:13px;margin:0 0 12px;">${t('pickHint')}</p>`;
+      state.books.forEach(r => {
+        const b = bookOf(r); if (!b) return;
+        const total = b.chapters.length, pct = Math.round(r.completed.length / total * 100);
+        const idx = Math.min(r.currentIndex, total - 1);
+        let st, ready = false;
+        if (r.finishedAt) st = t('pickDone');
+        else if (isOpenRec(r, idx)) { st = t('pickReady', { i: idx + 1 }); ready = true; }
+        else st = t('pickLocked', { when: unlockDateOf(r, idx).toLocaleString(loc(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) });
+        h += `<div class="pick-item ${r.id === state.activeBookId ? 'active' : ''}" role="button" tabindex="0" data-book="${r.id}" onclick="openBook('${r.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBook('${r.id}')}">
+          <div style="display:flex;align-items:center;gap:10px;"><span class="dot" style="background:${r.color}"></span>
+          <div class="lib-main"><div class="lib-title">${escapeHtml(b.title)}${r.finishedAt ? ' ✅' : ''}</div>
+          <div class="lib-meta">${t('chapterOf', { i: idx + 1, n: total })} · ${t('pctRead', { p: pct })}</div></div></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="pick-status ${ready ? 'ready' : ''}">${st}</div></div>`;
+      });
+      box.innerHTML = h;
+    }
+
+    // ===== Rozwijane sekcje (menu) w zakładce Książka =====
+    function initAccordion() {
+      const cards = [...document.querySelectorAll('#tab-settings > .card')];
+      if (!state.accOpen || typeof state.accOpen !== 'object') state.accOpen = { accLib: true };
+      cards.forEach((card, i) => {
+        const h = card.querySelector(':scope > h3'); if (!h) return;
+        if (!card.id) card.id = i === 0 ? 'accLib' : 'acc' + i;
+        const body = document.createElement('div'); body.className = 'acc-body';
+        [...card.childNodes].filter(n => n !== h).forEach(n => body.appendChild(n));
+        card.appendChild(body);
+        card.classList.add('acc'); h.classList.add('acc-head');
+        h.setAttribute('role', 'button'); h.tabIndex = 0;
+        const apply = () => { const o = !!state.accOpen[card.id]; card.classList.toggle('open', o); h.setAttribute('aria-expanded', o ? 'true' : 'false'); };
+        const toggle = () => { state.accOpen[card.id] = !state.accOpen[card.id]; apply(); saveState(); };
+        h.addEventListener('click', toggle);
+        h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        card._accApply = apply; apply();
+      });
+    }
+    function accSet(open) {
+      document.querySelectorAll('#tab-settings > .card.acc').forEach(c => { state.accOpen[c.id] = !!open; c._accApply && c._accApply(); });
+      saveState();
+    }
+    function accOpenAll() { accSet(true); }
+
+    // ===== Dane usługodawcy i link do wsparcia (UZUPEŁNIJ przed publikacją) =====
+    const APP_OWNER = 'Piotr Żondełek';    // imię i nazwisko lub nazwa firmy administratora
+    const APP_EMAIL = 'zondelek.p.p@gmail.com';    // adres e-mail do kontaktu (reklamacje, prywatność)
+    const BMC_URL = 'https://buymeacoffee.com/Hieronim';      // np. 'https://buymeacoffee.com/twojanazwa'
+    const LEGAL = {"pl": {"terms": [["1. Postanowienia ogólne", "Regulamin określa zasady korzystania z bezpłatnej aplikacji PaKu („Aplikacja”), świadczonej drogą elektroniczną przez {owner} („Usługodawca”). Kontakt: {email}. Korzystanie z Aplikacji oznacza akceptację Regulaminu."], ["2. Rodzaj i zakres usługi", "Aplikacja jest czytnikiem e-booków (PWA), który odblokowuje rozdziały według ustalonego harmonogramu: umożliwia wczytywanie własnych plików, wyszukiwanie książek w serwisach z darmowymi lekturami, ustawianie harmonogramu, przypomnień i motywów oraz śledzenie postępów. Usługa jest świadczona nieodpłatnie, bez zakładania konta i bez rejestracji. Wszystkie funkcje Aplikacji są i będą darmowe."], ["3. Wymagania techniczne", "Do korzystania potrzebna jest nowoczesna przeglądarka z obsługą JavaScript, localStorage i IndexedDB. Internet jest potrzebny do instalacji, aktualizacji i funkcji sieciowych (np. wyszukiwanie książek). Powiadomienia zależą od urządzenia i przeglądarki i mogą nie działać niezawodnie."], ["4. Zasady korzystania", "Użytkownik wczytuje wyłącznie pliki, do których ma prawo. Aplikacja nie zawiera cudzych książek (poza krótkim tekstem przykładowym), nie udostępnia ich innym i nie obchodzi zabezpieczeń DRM. Zabronione jest dostarczanie za pomocą Aplikacji treści o charakterze bezprawnym oraz używanie jej w sposób zakłócający działanie. Wczytane książki pozostają na urządzeniu Użytkownika, a odpowiedzialność za zgodność z prawem autorskim ponosi Użytkownik."], ["Prawa autorskie i zakaz kopiowania", "Aplikacja PaKu, jej kod, układ, grafika, teksty, nazwa i ikona są chronione prawem autorskim. Bezpłatny dostęp nie jest licencją na kopiowanie. Bez pisemnej zgody Usługodawcy zabronione jest kopiowanie, powielanie, rozpowszechnianie, sprzedawanie, modyfikowanie, dekompilowanie Aplikacji ani tworzenie na jej podstawie własnych wersji czy publikowanie jej pod innym nazwiskiem lub nazwą. Wolno korzystać z Aplikacji osobiście i polecać ją innym, przekazując link lub kod QR. Użyte w Aplikacji biblioteki innych autorów podlegają własnym licencjom."], ["5. Dobrowolne wsparcie (Buy Me a Coffee)", "Wszystko w Aplikacji jest i będzie darmowe. Zakup wirtualnej kawy w serwisie Buy Me a Coffee jest całkowicie dobrowolny i służy wyłącznie wsparciu procesu twórczego. Nie jest opłatą za Aplikację, nie odblokowuje żadnych funkcji i nie daje dodatkowych praw. Płatność obsługuje zewnętrzny serwis na podstawie jego regulaminu."], ["6. Odpowiedzialność", "Aplikacja jest udostępniana w stanie, w jakim jest. Usługodawca dokłada starań, by działała poprawnie, ale nie gwarantuje nieprzerwanego działania ani niezawodności przypomnień. Dane są zapisane tylko na urządzeniu Użytkownika: wyczyszczenie danych przeglądarki lub usunięcie aplikacji usuwa książki i postępy. Postanowienie to nie wyłącza odpowiedzialności, której nie można wyłączyć na mocy prawa."], ["7. Reklamacje", "Uwagi i reklamacje dotyczące działania Aplikacji można zgłaszać na adres: {email}. Zgłoszenie powinno zawierać opis problemu oraz nazwę urządzenia i przeglądarki. Usługodawca rozpatruje je w ciągu 14 dni od otrzymania."], ["8. Zakończenie korzystania", "Użytkownik może w każdej chwili przestać korzystać z Aplikacji i usunąć swoje dane (usuwając książki, aplikację lub dane strony w przeglądarce). Usługodawca może zmienić lub zakończyć udostępnianie Aplikacji; informacja o tym pojawi się w Aplikacji."], ["9. Postanowienia końcowe", "O zmianach Regulaminu Usługodawca informuje w Aplikacji; zmiany nie działają wstecz. Stosuje się prawo polskie, z zachowaniem uprawnień konsumenta wynikających z bezwzględnie obowiązujących przepisów. Regulamin obowiązuje od 2026-11-16. W razie rozbieżności wiążąca jest wersja polska."]], "priv": [["1. Administrator", "Administratorem danych jest {owner}. Kontakt w sprawach prywatności: {email}."], ["2. Jakie dane i gdzie są przechowywane", "Aplikacja nie wymaga konta. Wczytane książki, postępy, ustawienia, godzina przypomnień oraz opcjonalna data urodzin (dzień i miesiąc) są zapisywane wyłącznie lokalnie na Twoim urządzeniu (localStorage, IndexedDB, pamięć podręczna aplikacji). Administrator nie otrzymuje tych danych i nie przechowuje ich na żadnym serwerze."], ["3. Cele i podstawy prawne", "Dane lokalne służą wyłącznie działaniu funkcji Aplikacji, którą sam uruchamiasz (art. 6 ust. 1 lit. b i f RODO). Data urodzin i powiadomienia są dobrowolne i oparte na Twojej zgodzie (art. 6 ust. 1 lit. a RODO); zgodę cofniesz w każdej chwili, usuwając datę lub wyłączając przypomnienia. Nie stosujemy profilowania ani zautomatyzowanego podejmowania decyzji."], ["4. Hosting i logi", "Aplikacja jest udostępniana przez GitHub Pages (GitHub, Inc.). Dostawca hostingu może przetwarzać adres IP i dane techniczne w dziennikach serwera, według własnej polityki prywatności, także poza Europejskim Obszarem Gospodarczym."], ["5. Usługi zewnętrzne", "Tylko jeśli z nich skorzystasz, Twoja przeglądarka połączy się bezpośrednio z: Wolne Lektury, Gutendex / Project Gutenberg (wyszukiwanie i pobieranie książek; przekazywany jest m.in. adres IP) oraz Buy Me a Coffee (dobrowolne wsparcie; dane płatności przetwarza ten serwis, Administrator ich nie widzi). Zasady tych serwisów są opisane w ich własnych politykach prywatności."], ["6. Pliki cookies i pamięć lokalna", "Aplikacja nie używa cookies reklamowych ani analitycznych i nie śledzi użytkowników. Pamięć lokalna przeglądarki jest niezbędna do świadczenia usługi, w której korzystasz z Aplikacji."], ["7. Odbiorcy i okres przechowywania", "Administrator nie przekazuje danych osobom trzecim. Dane lokalne są przechowywane na urządzeniu do czasu ich usunięcia przez Ciebie (usunięcie książki, reset postępu, wyczyszczenie danych witryny lub odinstalowanie aplikacji)."], ["8. Twoje prawa", "W zakresie, w jakim Administrator przetwarza dane, przysługuje Ci prawo dostępu, sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia, sprzeciwu oraz cofnięcia zgody, a także skargi do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, Warszawa). Ponieważ dane są na Twoim urządzeniu, większość z tych praw wykonasz sam w Aplikacji. Kontakt: {email}."], ["9. Dzieci i zmiany", "Funkcje oparte na zgodzie (powiadomienia, data urodzin) powinny być włączane przez osoby, które ukończyły 16 lat, lub za zgodą opiekuna. O zmianach polityki informujemy w Aplikacji. Obowiązuje od 2026-11-16. W razie rozbieżności wiążąca jest wersja polska."]]}, "en": {"terms": [["1. General", "These Terms set out the rules for using the free PaKu app (the “App”), provided electronically by {owner} (the “Provider”). Contact: {email}. Using the App means you accept these Terms."], ["2. Service", "The App is an e-book reader (PWA) that unlocks chapters on a schedule: you can load your own files, search free-book sites, set schedules, reminders and themes, and track progress. The service is free, with no account or registration. Every feature of the App is and will remain free."], ["3. Technical requirements", "You need a modern browser with JavaScript, localStorage and IndexedDB. Internet is needed for installation, updates and online features (e.g. book search). Notifications depend on your device and browser and may not work reliably."], ["4. Rules of use", "Load only files you have the right to use. The App contains no third-party books (apart from a short sample text), does not share books with others and does not bypass DRM. Delivering unlawful content through the App or disrupting it is prohibited. Loaded books stay on your device and you are responsible for copyright compliance."], ["Copyright and no copying", "The PaKu app, its code, layout, graphics, texts, name and icon are protected by copyright. Free access is not a licence to copy. Without the Provider’s written consent you may not copy, reproduce, distribute, sell, modify or decompile the App, create your own versions based on it, or publish it under another name. You may use the App personally and recommend it to others by sharing the link or QR code. Third-party libraries used in the App are subject to their own licences."], ["5. Voluntary support (Buy Me a Coffee)", "Everything in the App is and will stay free. Buying a virtual coffee on Buy Me a Coffee is entirely voluntary and only supports the creative process. It is not a fee for the App, unlocks no features and grants no extra rights. Payment is handled by that external service under its own terms."], ["6. Liability", "The App is provided “as is”. The Provider takes care that it works properly but does not guarantee uninterrupted operation or reliable reminders. Data is stored only on your device: clearing browser data or removing the app deletes books and progress. This does not exclude liability that cannot be excluded by law."], ["7. Complaints", "Send feedback and complaints about the App to {email}, describing the problem and your device and browser. The Provider will respond within 14 days."], ["8. Ending use", "You may stop using the App and delete your data at any time (delete books, the app or site data in your browser). The Provider may change or discontinue the App; notice will be given in the App."], ["9. Final provisions", "Changes to the Terms are announced in the App and are not retroactive. Polish law applies, without prejudice to mandatory consumer rights. Effective from 2026-11-16. The Polish version prevails in case of discrepancy."]], "priv": [["1. Controller", "The controller is {owner}. Privacy contact: {email}."], ["2. What data and where", "The App needs no account. Loaded books, progress, settings, reminder time and the optional birthday (day and month) are stored only locally on your device (localStorage, IndexedDB, app cache). The controller does not receive this data or store it on any server."], ["3. Purposes and legal bases", "Local data only makes the App’s features work, which you start yourself (Art. 6(1)(b) and (f) GDPR). Birthday and notifications are optional and based on your consent (Art. 6(1)(a) GDPR); withdraw it any time by removing the date or turning reminders off. There is no profiling or automated decision-making."], ["4. Hosting and logs", "The App is served by GitHub Pages (GitHub, Inc.). The host may process your IP address and technical data in server logs under its own privacy policy, including outside the European Economic Area."], ["5. External services", "Only if you use them, your browser connects directly to: Wolne Lektury, Gutendex / Project Gutenberg (book search and download; your IP address is sent) and Buy Me a Coffee (voluntary support; that service processes payment data, the controller never sees it). Their own privacy policies apply."], ["6. Cookies and local storage", "The App uses no advertising or analytics cookies and does not track users. Browser local storage is strictly necessary to provide the service you use."], ["7. Recipients and retention", "The controller shares no data with third parties. Local data stays on your device until you delete it (delete a book, reset progress, clear site data or uninstall the app)."], ["8. Your rights", "To the extent the controller processes data, you have the rights of access, rectification, erasure, restriction, portability, objection and withdrawal of consent, and to complain to the Polish supervisory authority (UODO, ul. Stawki 2, Warsaw) or your local authority. Since data is on your device, you can exercise most rights yourself in the App. Contact: {email}."], ["9. Children and changes", "Consent-based features (notifications, birthday) should be turned on by people aged 16+ or with a guardian’s consent. Changes are announced in the App. Effective from 2026-11-16. The Polish version prevails in case of discrepancy."]]}, "de": {"terms": [["1. Allgemeines", "Diese Nutzungsbedingungen regeln die Nutzung der kostenlosen App PaKu („App“), die elektronisch von {owner} („Anbieter“) bereitgestellt wird. Kontakt: {email}. Mit der Nutzung akzeptierst du diese Bedingungen."], ["2. Leistung", "Die App ist ein E-Book-Reader (PWA), der Kapitel nach Zeitplan freischaltet: eigene Dateien laden, Gratis-Bücher suchen, Zeitpläne, Erinnerungen und Designs einstellen, Fortschritt verfolgen. Der Dienst ist kostenlos, ohne Konto und ohne Registrierung. Alle Funktionen sind und bleiben kostenlos."], ["3. Technische Voraussetzungen", "Nötig ist ein moderner Browser mit JavaScript, localStorage und IndexedDB. Internet wird für Installation, Updates und Online-Funktionen (z. B. Buchsuche) gebraucht. Benachrichtigungen hängen von Gerät und Browser ab und funktionieren evtl. nicht zuverlässig."], ["4. Nutzungsregeln", "Lade nur Dateien, zu deren Nutzung du berechtigt bist. Die App enthält keine fremden Bücher (außer einem kurzen Beispieltext), gibt keine Bücher weiter und umgeht keinen DRM-Schutz. Rechtswidrige Inhalte und Störungen des Betriebs sind untersagt. Geladene Bücher bleiben auf deinem Gerät; für die Einhaltung des Urheberrechts bist du verantwortlich."], ["Urheberrecht und Kopierverbot", "Die App PaKu, ihr Code, Layout, Grafiken, Texte, Name und Icon sind urheberrechtlich geschützt. Kostenloser Zugang ist keine Kopierlizenz. Ohne schriftliche Zustimmung des Anbieters ist es untersagt, die App zu kopieren, zu vervielfältigen, zu verbreiten, zu verkaufen, zu verändern oder zu dekompilieren, eigene Versionen darauf aufzubauen oder sie unter anderem Namen zu veröffentlichen. Du darfst die App persönlich nutzen und per Link oder QR-Code weiterempfehlen. Verwendete Bibliotheken Dritter unterliegen eigenen Lizenzen."], ["5. Freiwillige Unterstützung (Buy Me a Coffee)", "Alles in der App ist und bleibt kostenlos. Der Kauf eines virtuellen Kaffees bei Buy Me a Coffee ist völlig freiwillig und unterstützt nur den kreativen Prozess. Er ist kein Entgelt für die App, schaltet keine Funktionen frei und gibt keine zusätzlichen Rechte. Die Zahlung wickelt der externe Dienst nach seinen eigenen Bedingungen ab."], ["6. Haftung", "Die App wird „wie besehen“ bereitgestellt. Der Anbieter bemüht sich um einwandfreien Betrieb, garantiert aber weder unterbrechungsfreien Betrieb noch zuverlässige Erinnerungen. Daten liegen nur auf deinem Gerät: Löschen der Browserdaten oder der App entfernt Bücher und Fortschritt. Gesetzlich nicht ausschließbare Haftung bleibt unberührt."], ["7. Beschwerden", "Rückmeldungen und Beschwerden an {email} mit Beschreibung des Problems sowie Gerät und Browser. Der Anbieter antwortet innerhalb von 14 Tagen."], ["8. Beendigung", "Du kannst die App jederzeit nicht mehr nutzen und deine Daten löschen (Bücher, App oder Websitedaten im Browser). Der Anbieter kann die App ändern oder einstellen; ein Hinweis erscheint in der App."], ["9. Schlussbestimmungen", "Änderungen werden in der App bekannt gegeben und wirken nicht rückwirkend. Es gilt polnisches Recht, zwingende Verbraucherrechte bleiben unberührt. Gültig ab 2026-11-16. Bei Abweichungen gilt die polnische Fassung."]], "priv": [["1. Verantwortlicher", "Verantwortlicher ist {owner}. Kontakt für Datenschutzfragen: {email}."], ["2. Welche Daten und wo", "Die App braucht kein Konto. Geladene Bücher, Fortschritt, Einstellungen, Erinnerungszeit und das optionale Geburtsdatum (Tag und Monat) werden nur lokal auf deinem Gerät gespeichert (localStorage, IndexedDB, App-Cache). Der Verantwortliche erhält diese Daten nicht und speichert sie auf keinem Server."], ["3. Zwecke und Rechtsgrundlagen", "Lokale Daten dienen nur dazu, die von dir gestarteten Funktionen der App zu betreiben (Art. 6 Abs. 1 lit. b und f DSGVO). Geburtsdatum und Benachrichtigungen sind freiwillig und beruhen auf deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO); du kannst sie jederzeit widerrufen, indem du das Datum entfernst oder Erinnerungen ausschaltest. Kein Profiling, keine automatisierten Entscheidungen."], ["4. Hosting und Logs", "Die App wird über GitHub Pages (GitHub, Inc.) ausgeliefert. Der Hoster kann IP-Adresse und technische Daten in Server-Logs nach eigener Datenschutzerklärung verarbeiten, auch außerhalb des EWR."], ["5. Externe Dienste", "Nur wenn du sie nutzt, verbindet sich dein Browser direkt mit: Wolne Lektury, Gutendex / Project Gutenberg (Buchsuche und Download; deine IP-Adresse wird übermittelt) und Buy Me a Coffee (freiwillige Unterstützung; Zahlungsdaten verarbeitet dieser Dienst, der Verantwortliche sieht sie nicht). Es gelten deren eigene Datenschutzerklärungen."], ["6. Cookies und lokaler Speicher", "Die App verwendet keine Werbe- oder Analyse-Cookies und trackt niemanden. Der lokale Browserspeicher ist für den Dienst unbedingt erforderlich."], ["7. Empfänger und Speicherdauer", "Der Verantwortliche gibt keine Daten an Dritte weiter. Lokale Daten bleiben auf deinem Gerät, bis du sie löschst (Buch löschen, Fortschritt zurücksetzen, Websitedaten löschen oder App deinstallieren)."], ["8. Deine Rechte", "Soweit der Verantwortliche Daten verarbeitet, hast du Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Übertragbarkeit, Widerspruch und Widerruf der Einwilligung sowie auf Beschwerde bei der polnischen Aufsichtsbehörde (UODO, ul. Stawki 2, Warschau) oder deiner örtlichen Behörde. Da die Daten auf deinem Gerät liegen, kannst du die meisten Rechte selbst in der App ausüben. Kontakt: {email}."], ["9. Kinder und Änderungen", "Einwilligungsbasierte Funktionen (Benachrichtigungen, Geburtsdatum) sollten ab 16 Jahren oder mit Zustimmung der Eltern aktiviert werden. Änderungen werden in der App bekannt gegeben. Gültig ab 2026-11-16. Bei Abweichungen gilt die polnische Fassung."]]}, "es": {"terms": [["1. Disposiciones generales", "Estas condiciones regulan el uso de la aplicación gratuita PaKu («la App»), prestada por vía electrónica por {owner} («el Proveedor»). Contacto: {email}. Usar la App implica aceptar estas condiciones."], ["2. Servicio", "La App es un lector de libros electrónicos (PWA) que desbloquea capítulos según un calendario: permite cargar tus propios archivos, buscar libros gratuitos, configurar calendario, recordatorios y temas, y seguir tu progreso. El servicio es gratuito, sin cuenta ni registro. Todas las funciones de la App son y seguirán siendo gratuitas."], ["3. Requisitos técnicos", "Necesitas un navegador moderno con JavaScript, localStorage e IndexedDB. Internet hace falta para instalar, actualizar y usar funciones en línea (p. ej. búsqueda de libros). Las notificaciones dependen del dispositivo y del navegador y pueden no funcionar de forma fiable."], ["4. Normas de uso", "Carga solo archivos que tengas derecho a usar. La App no incluye libros de terceros (salvo un breve texto de ejemplo), no los comparte y no elude el DRM. Está prohibido entregar contenidos ilícitos con la App o perturbar su funcionamiento. Los libros cargados permanecen en tu dispositivo y eres responsable de respetar los derechos de autor."], ["Derechos de autor y prohibición de copiar", "La app PaKu, su código, diseño, gráficos, textos, nombre e icono están protegidos por derechos de autor. El acceso gratuito no es una licencia de copia. Sin el consentimiento escrito del Proveedor está prohibido copiar, reproducir, distribuir, vender, modificar o descompilar la App, crear versiones propias a partir de ella o publicarla con otro nombre. Puedes usarla personalmente y recomendarla a otros compartiendo el enlace o el código QR. Las bibliotecas de terceros utilizadas se rigen por sus propias licencias."], ["5. Apoyo voluntario (Buy Me a Coffee)", "Todo en la App es y seguirá siendo gratuito. Comprar un café virtual en Buy Me a Coffee es totalmente voluntario y solo apoya el proceso creativo. No es un pago por la App, no desbloquea funciones ni da derechos adicionales. El pago lo gestiona ese servicio externo según sus propias condiciones."], ["6. Responsabilidad", "La App se ofrece «tal cual». El Proveedor se esfuerza por que funcione bien, pero no garantiza un funcionamiento ininterrumpido ni recordatorios fiables. Los datos se guardan solo en tu dispositivo: borrar los datos del navegador o la app elimina libros y progreso. Esto no excluye la responsabilidad que la ley no permite excluir."], ["7. Reclamaciones", "Envía comentarios y reclamaciones a {email}, describiendo el problema y tu dispositivo y navegador. El Proveedor responderá en 14 días."], ["8. Fin del uso", "Puedes dejar de usar la App y borrar tus datos en cualquier momento (libros, app o datos del sitio en el navegador). El Proveedor puede modificar o cerrar la App; se avisará en la App."], ["9. Disposiciones finales", "Los cambios se anunciarán en la App y no son retroactivos. Se aplica el derecho polaco, sin perjuicio de los derechos imperativos del consumidor. En vigor desde 2026-11-16. En caso de discrepancia prevalece la versión polaca."]], "priv": [["1. Responsable", "El responsable es {owner}. Contacto de privacidad: {email}."], ["2. Qué datos y dónde", "La App no requiere cuenta. Los libros cargados, el progreso, los ajustes, la hora de los recordatorios y la fecha de cumpleaños opcional (día y mes) se guardan solo localmente en tu dispositivo (localStorage, IndexedDB, caché de la app). El responsable no recibe estos datos ni los almacena en ningún servidor."], ["3. Finalidades y bases jurídicas", "Los datos locales solo sirven para que funcionen las funciones de la App que tú inicias (art. 6.1.b y f RGPD). El cumpleaños y las notificaciones son opcionales y se basan en tu consentimiento (art. 6.1.a RGPD); puedes retirarlo en cualquier momento borrando la fecha o desactivando los recordatorios. No hay perfilado ni decisiones automatizadas."], ["4. Alojamiento y registros", "La App se sirve mediante GitHub Pages (GitHub, Inc.). El proveedor de alojamiento puede tratar tu dirección IP y datos técnicos en registros del servidor según su propia política, incluso fuera del Espacio Económico Europeo."], ["5. Servicios externos", "Solo si los usas, tu navegador se conecta directamente con: Wolne Lektury, Gutendex / Project Gutenberg (búsqueda y descarga de libros; se envía tu dirección IP) y Buy Me a Coffee (apoyo voluntario; ese servicio trata los datos de pago, el responsable no los ve). Se aplican sus propias políticas de privacidad."], ["6. Cookies y almacenamiento local", "La App no usa cookies publicitarias ni analíticas y no rastrea a los usuarios. El almacenamiento local del navegador es estrictamente necesario para prestar el servicio."], ["7. Destinatarios y conservación", "El responsable no cede datos a terceros. Los datos locales permanecen en tu dispositivo hasta que los borres (eliminar un libro, reiniciar el progreso, borrar los datos del sitio o desinstalar la app)."], ["8. Tus derechos", "En la medida en que el responsable trate datos, tienes derecho de acceso, rectificación, supresión, limitación, portabilidad, oposición y retirada del consentimiento, y a reclamar ante la autoridad polaca (UODO, ul. Stawki 2, Varsovia) o la de tu país. Como los datos están en tu dispositivo, puedes ejercer la mayoría de los derechos tú mismo en la App. Contacto: {email}."], ["9. Menores y cambios", "Las funciones basadas en consentimiento (notificaciones, cumpleaños) deben activarlas personas de 16 años o más, o con permiso de su tutor. Los cambios se anunciarán en la App. En vigor desde 2026-11-16. En caso de discrepancia prevalece la versión polaca."]]}, "uk": {"terms": [["1. Загальні положення", "Цей регламент визначає правила користування безкоштовним застосунком PaKu («Застосунок»), який надає в електронній формі {owner} («Постачальник»). Контакт: {email}. Користування Застосунком означає прийняття регламенту."], ["2. Послуга", "Застосунок — це читалка електронних книжок (PWA), яка відкриває розділи за розкладом: можна завантажувати власні файли, шукати безкоштовні книжки, налаштовувати розклад, нагадування й теми та стежити за прогресом. Послуга безкоштовна, без облікового запису й реєстрації. Усі функції Застосунку є й залишаться безкоштовними."], ["3. Технічні вимоги", "Потрібен сучасний браузер із JavaScript, localStorage та IndexedDB. Інтернет потрібен для встановлення, оновлень і онлайн-функцій (наприклад, пошук книжок). Сповіщення залежать від пристрою й браузера та можуть працювати ненадійно."], ["4. Правила користування", "Завантажуйте лише файли, на використання яких маєте право. Застосунок не містить чужих книжок (окрім короткого тексту-прикладу), не передає їх іншим і не обходить захист DRM. Заборонено передавати через Застосунок протиправний вміст і порушувати його роботу. Завантажені книжки лишаються на вашому пристрої, а за дотримання авторського права відповідаєте ви."], ["Авторське право та заборона копіювання", "Застосунок PaKu, його код, макет, графіка, тексти, назва й іконка захищені авторським правом. Безкоштовний доступ не є ліцензією на копіювання. Без письмової згоди Постачальника заборонено копіювати, відтворювати, поширювати, продавати, змінювати чи декомпілювати Застосунок, створювати на його основі власні версії або публікувати його під іншим іменем чи назвою. Користуватися Застосунком особисто й радити його іншим за допомогою посилання чи QR-коду можна. Використані сторонні бібліотеки підпадають під власні ліцензії."], ["5. Добровільна підтримка (Buy Me a Coffee)", "Усе в Застосунку є й залишиться безкоштовним. Придбання віртуальної кави на Buy Me a Coffee цілком добровільне й лише підтримує творчий процес. Це не плата за Застосунок, воно нічого не відкриває й не надає додаткових прав. Платіж обробляє сторонній сервіс за власними правилами."], ["6. Відповідальність", "Застосунок надається «як є». Постачальник дбає про його справну роботу, але не гарантує безперервності та надійності нагадувань. Дані зберігаються лише на вашому пристрої: очищення даних браузера чи видалення застосунку видаляє книжки та прогрес. Це не виключає відповідальності, яку не можна виключити законом."], ["7. Скарги", "Зауваження й скарги надсилайте на {email}, описавши проблему, пристрій і браузер. Постачальник відповість упродовж 14 днів."], ["8. Припинення користування", "Ви можете будь-коли припинити користування й видалити свої дані (книжки, застосунок або дані сайту в браузері). Постачальник може змінити чи припинити Застосунок; повідомлення з’явиться в Застосунку."], ["9. Прикінцеві положення", "Про зміни повідомляється в Застосунку; вони не діють заднім числом. Застосовується польське право без шкоди для обов’язкових прав споживача. Діє з 2026-11-16. У разі розбіжностей визначальною є польська версія."]], "priv": [["1. Контролер даних", "Контролер — {owner}. Контакт з питань приватності: {email}."], ["2. Які дані та де", "Застосунок не потребує облікового запису. Завантажені книжки, прогрес, налаштування, час нагадувань і необов’язкова дата народження (день і місяць) зберігаються лише локально на вашому пристрої (localStorage, IndexedDB, кеш застосунку). Контролер не отримує цих даних і не зберігає їх на жодному сервері."], ["3. Цілі та правові підстави", "Локальні дані потрібні лише для роботи функцій, які ви запускаєте самі (ст. 6(1)(b) і (f) GDPR). Дата народження й сповіщення необов’язкові та ґрунтуються на вашій згоді (ст. 6(1)(a) GDPR); її можна відкликати будь-коли, видаливши дату або вимкнувши нагадування. Профілювання й автоматизованих рішень немає."], ["4. Хостинг і журнали", "Застосунок розміщено на GitHub Pages (GitHub, Inc.). Хостинг-провайдер може обробляти IP-адресу й технічні дані в журналах сервера за власною політикою, зокрема поза Європейською економічною зоною."], ["5. Зовнішні сервіси", "Лише якщо ви ними користуєтеся, браузер напряму з’єднується з: Wolne Lektury, Gutendex / Project Gutenberg (пошук і завантаження книжок; передається IP-адреса) та Buy Me a Coffee (добровільна підтримка; платіжні дані обробляє цей сервіс, контролер їх не бачить). Діють їхні власні політики приватності."], ["6. Cookies і локальне сховище", "Застосунок не використовує рекламних чи аналітичних cookies і не стежить за користувачами. Локальне сховище браузера необхідне для надання послуги."], ["7. Одержувачі та строк зберігання", "Контролер не передає дані третім особам. Локальні дані лишаються на пристрої, доки ви їх не видалите (видалення книжки, скидання прогресу, очищення даних сайту або видалення застосунку)."], ["8. Ваші права", "Тією мірою, якою контролер обробляє дані, ви маєте право на доступ, виправлення, видалення, обмеження, перенесення, заперечення та відкликання згоди, а також на скаргу до польського наглядового органу (UODO, ul. Stawki 2, Варшава) або до органу у вашій країні. Оскільки дані на вашому пристрої, більшість прав ви можете реалізувати самі в Застосунку. Контакт: {email}."], ["9. Діти та зміни", "Функції, що ґрунтуються на згоді (сповіщення, дата народження), мають вмикати особи від 16 років або за згодою опікуна. Про зміни повідомляється в Застосунку. Діє з 2026-11-16. У разі розбіжностей визначальною є польська версія."]]}};
+    const WHY = {"pl": [["Skąd się wzięła ta aplikacja", "PaKu powstało w odpowiedzi na potrzebę, która pojawia się wokół nas coraz wyraźniej: wiele osób chce czytać, ale potrzebuje do tego innej drogi niż „po prostu usiądź i przeczytaj”. Każdy z nas ma własny rytm uwagi, energii i motywacji i żaden nie jest gorszy. Ta aplikacja ma ułatwiać czytanie tym, którym codzienny nawyk przychodzi trudniej, w tym osobom neuroatypowym i z ADHD, ale może pomóc każdemu, kto lubi czytać w małych, spokojnych krokach. Nie jest wyrobem medycznym, nie leczy i nie zastępuje terapii ani pomocy specjalisty."], ["Jeden rozdział na raz zamiast ściany tekstu", "Gruba książka bywa przytłaczająca, a sam widok kilkuset stron potrafi zniechęcić. PaKu pokazuje jeden rozdział, a resztę zostawia na później. Decyzja „ile dziś czytać” jest już podjęta, więc na starcie potrzeba mniej wysiłku, a start bywa najtrudniejszy. Każdą książkę możesz podzielić na krótsze rozdziały (np. po 500 słów), żeby dzisiejszy cel był naprawdę niewielki."], ["Stała pora i przypomnienie zamiast pamiętania w głowie", "Planowanie, pamiętanie i rozpoczynanie czynności to funkcje wykonawcze, z którymi osoby z ADHD często mają większe trudności. Stała godzina odblokowania rozdziału i codzienne przypomnienie przenoszą ten ciężar z Twojej głowy do aplikacji. Nawyk łatwiej się buduje, gdy dzieje się o tej samej porze i nie wymaga nowej decyzji każdego dnia."], ["Nagroda od razu, bo odległy cel słabo motywuje", "Wiele osób z ADHD trudniej motywuje cel odległy w czasie: „skończę książkę za dwa miesiące” to za mało, żeby zacząć dziś. PaKu daje małe, szybkie sygnały postępu: pasek i procenty, miłe słowa po każdym rozdziale, podróż przez kosmos mierzoną przeczytanymi słowami i kolejne dni czytania. Dzięki temu każdy mały krok jest zauważony od razu, a nie dopiero na końcu."], ["Mniej rozproszeń", "W aplikacji nie ma reklam, powiadomień z mediów społecznościowych ani nieskończonego przewijania. Czytanie „po stronach” i tryb pełnej strony zostawiają na ekranie sam tekst. Możesz wybrać jasny, sepia lub ciemny motyw oraz wygodny rozmiar liter. Zablokowany rozdział nie kusi, żeby „przeczytać jeszcze jeden”, a gdy chcesz iść szybciej, odblokujesz go świadomie."], ["Łagodnie z przerwami", "Przerwa w czytaniu na kilka dni? PaKu cieszy się z powrotu i nie wyciąga konsekwencji. Gdy przeczytasz kilka rozdziałów naraz, harmonogram sam się przelicza: następny rozdział pojawi się jutro, a nie za tydzień. Nie ma tu serii, której utrata boli, ani poczucia winy."], ["Humor i własny styl", "Tryb złośliwy, motywy świąteczne i urodzinowe oraz możliwość zmiany wyglądu sprawiają, że czytanie bywa zabawne i „Twoje”. Odrobina nowości i humoru pomaga podtrzymać zainteresowanie."], ["Ważne", "Każda osoba jest inna. To, co pomaga jednym, innym może nie pasować. Jeśli trudności z koncentracją mocno utrudniają codzienne życie, warto porozmawiać ze specjalistą. PaKu ma być wsparciem w czytaniu, nie diagnozą ani leczeniem."]], "en": [["Where this app comes from", "PaKu was created in response to a need that is becoming ever more visible: many people want to read but need a different path than “just sit down and read.” Each of us has our own rhythm of attention, energy and motivation, and none is worse than another. The app aims to make reading easier for those for whom a daily habit comes harder, including neurodivergent people and people with ADHD, yet it can help anyone who likes to read in small, calm steps. It is not a medical device, does not treat anything and does not replace therapy or professional help."], ["One chapter at a time, not a wall of text", "A thick book can feel overwhelming, and the sight of several hundred pages can put you off. PaKu shows one chapter and leaves the rest for later. The decision “how much to read today” is already made, so starting takes less effort, and starting is often the hardest part. You can split any book into shorter chapters (e.g. 500 words) so today’s goal is truly small."], ["A fixed time and a reminder instead of remembering", "Planning, remembering and starting tasks are executive functions that people with ADHD often find harder. A fixed unlock time and a daily reminder move that load from your head into the app. A habit is easier to build when it happens at the same time and needs no new decision each day."], ["Instant reward, because far-off goals motivate poorly", "For many people with ADHD a distant goal is harder to act on: “I’ll finish the book in two months” is not enough to start today. PaKu gives small, quick signs of progress: a bar and percentages, kind words after each chapter, a journey through space measured in words you have read, and days of reading in a row. Every small step is noticed right away instead of only at the end."], ["Fewer distractions", "There are no ads, no social-media notifications and no endless scrolling. Page-by-page reading and full-page mode leave only the text on the screen. Choose a light, sepia or dark theme and a comfortable font size. A locked chapter does not tempt you to “read just one more”, and when you want to go faster you unlock it on purpose."], ["Gentle with breaks", "A few days without reading? PaKu is glad you are back and holds no grudge. If you read several chapters at once, the schedule recalculates: the next chapter comes tomorrow, not next week. There is no streak whose loss hurts and no guilt."], ["Humour and your own style", "Snark mode, holiday and birthday themes and customisable looks make reading fun and “yours”. A little novelty and humour helps keep interest alive."], ["Important", "Everyone is different. What helps some may not suit others. If difficulty concentrating seriously affects daily life, it is worth talking to a specialist. PaKu aims to support reading, not to diagnose or treat."]], "de": [["Woher diese App kommt", "PaKu entstand als Antwort auf ein Bedürfnis, das immer sichtbarer wird: Viele Menschen möchten lesen, brauchen dafür aber einen anderen Weg als „setz dich einfach hin und lies“. Jeder hat einen eigenen Rhythmus bei Aufmerksamkeit, Energie und Motivation, und keiner ist schlechter. Die App soll das Lesen für alle erleichtern, denen ein tägliches Ritual schwerer fällt, auch für neurodivergente Menschen und Menschen mit ADHS, kann aber jedem helfen, der gern in kleinen, ruhigen Schritten liest. Sie ist kein Medizinprodukt, behandelt nichts und ersetzt keine Therapie oder fachliche Hilfe."], ["Ein Kapitel nach dem anderen statt einer Textwand", "Ein dickes Buch kann erdrückend wirken, schon der Anblick mehrerer hundert Seiten kann entmutigen. PaKu zeigt ein Kapitel und hebt den Rest für später auf. Die Entscheidung „wie viel lese ich heute“ ist schon getroffen, der Start kostet weniger Kraft, und der Start ist oft das Schwerste. Du kannst jedes Buch in kürzere Kapitel teilen (z. B. 500 Wörter), damit das heutige Ziel wirklich klein ist."], ["Feste Zeit und Erinnerung statt Merken im Kopf", "Planen, Erinnern und Beginnen sind exekutive Funktionen, die Menschen mit ADHS oft schwerer fallen. Eine feste Freischaltzeit und die tägliche Erinnerung verlagern diese Last aus deinem Kopf in die App. Eine Gewohnheit entsteht leichter, wenn sie zur selben Zeit stattfindet und nicht jeden Tag eine neue Entscheidung verlangt."], ["Belohnung sofort, denn ferne Ziele motivieren schlecht", "Vielen Menschen mit ADHS fällt es schwerer, auf ein fernes Ziel hinzuarbeiten: „In zwei Monaten habe ich das Buch durch“ reicht nicht, um heute anzufangen. PaKu gibt kleine, schnelle Fortschrittssignale: Balken und Prozente, freundliche Worte nach jedem Kapitel, eine Reise durchs All, gemessen in gelesenen Wörtern, und aufeinanderfolgende Lesetage. Jeder kleine Schritt wird sofort bemerkt, nicht erst am Ende."], ["Weniger Ablenkung", "Es gibt keine Werbung, keine Social-Media-Benachrichtigungen und kein endloses Scrollen. Seitenweises Lesen und der Vollseitenmodus lassen nur den Text auf dem Bildschirm. Wähle ein helles, Sepia- oder dunkles Design und eine angenehme Schriftgröße. Ein gesperrtes Kapitel verführt nicht zum „nur noch einem“, und wenn du schneller willst, schaltest du es bewusst frei."], ["Sanft bei Pausen", "Ein paar Tage nicht gelesen? PaKu freut sich über deine Rückkehr und trägt nichts nach. Liest du mehrere Kapitel auf einmal, berechnet sich der Plan neu: Das nächste Kapitel kommt morgen, nicht nächste Woche. Es gibt keine Serie, deren Verlust schmerzt, und keine Schuldgefühle."], ["Humor und eigener Stil", "Der gemeine Modus, Feiertags- und Geburtstagsdesigns und anpassbares Aussehen machen Lesen lustig und „deins“. Ein wenig Neues und Humor hilft, das Interesse wachzuhalten."], ["Wichtig", "Jeder Mensch ist anders. Was den einen hilft, passt anderen vielleicht nicht. Wenn Konzentrationsprobleme den Alltag stark beeinträchtigen, lohnt sich ein Gespräch mit einer Fachperson. PaKu soll das Lesen unterstützen, nicht diagnostizieren oder behandeln."]], "es": [["De dónde viene esta app", "PaKu nació como respuesta a una necesidad cada vez más visible: mucha gente quiere leer, pero necesita otro camino que «siéntate y lee». Cada persona tiene su propio ritmo de atención, energía y motivación, y ninguno es peor. La app quiere facilitar la lectura a quienes un hábito diario les cuesta más, incluidas las personas neurodivergentes y con TDAH, pero puede ayudar a cualquiera que disfrute leyendo en pasos pequeños y tranquilos. No es un producto sanitario, no trata nada y no sustituye una terapia ni la ayuda profesional."], ["Un capítulo cada vez, no un muro de texto", "Un libro gordo puede abrumar, y solo ver varios cientos de páginas puede desanimar. PaKu muestra un capítulo y deja el resto para después. La decisión «cuánto leo hoy» ya está tomada, así que empezar cuesta menos, y empezar suele ser lo más difícil. Puedes dividir cualquier libro en capítulos más cortos (p. ej. 500 palabras) para que el objetivo de hoy sea realmente pequeño."], ["Hora fija y recordatorio en vez de acordarte tú", "Planificar, recordar y empezar tareas son funciones ejecutivas que a menudo cuestan más con TDAH. Una hora fija de desbloqueo y el recordatorio diario trasladan esa carga de tu cabeza a la app. Un hábito se construye más fácil cuando ocurre a la misma hora y no exige una decisión nueva cada día."], ["Recompensa al instante, porque las metas lejanas motivan poco", "A mucha gente con TDAH le cuesta más actuar por una meta lejana: «acabaré el libro en dos meses» no basta para empezar hoy. PaKu da señales pequeñas y rápidas de progreso: barra y porcentajes, palabras amables tras cada capítulo, un viaje por el espacio medido en palabras leídas y días seguidos de lectura. Cada paso pequeño se nota enseguida, no solo al final."], ["Menos distracciones", "No hay anuncios, notificaciones de redes sociales ni desplazamiento infinito. La lectura por páginas y el modo de página completa dejan solo el texto en pantalla. Elige un tema claro, sepia u oscuro y un tamaño de letra cómodo. Un capítulo bloqueado no tienta a «leer uno más», y cuando quieres ir más rápido lo desbloqueas a propósito."], ["Con suavidad ante las pausas", "¿Unos días sin leer? PaKu se alegra de tu vuelta y no guarda rencor. Si lees varios capítulos de golpe, el calendario se recalcula: el siguiente capítulo llega mañana, no la semana próxima. No hay rachas cuya pérdida duela ni culpa."], ["Humor y estilo propio", "El modo mordaz, los temas festivos y de cumpleaños y el aspecto personalizable hacen que leer sea divertido y «tuyo». Un poco de novedad y humor ayuda a mantener el interés."], ["Importante", "Cada persona es distinta. Lo que ayuda a unos puede no encajar con otros. Si las dificultades de concentración afectan mucho a la vida diaria, conviene hablar con un especialista. PaKu busca apoyar la lectura, no diagnosticar ni tratar."]], "uk": [["Звідки з’явився цей застосунок", "PaKu з’явився у відповідь на потребу, яку помічаємо дедалі виразніше: багато людей хочуть читати, але потребують іншого шляху, ніж «просто сядь і читай». У кожного власний ритм уваги, енергії та мотивації, і жоден не гірший. Застосунок має полегшити читання тим, кому щоденна звичка дається важче, зокрема нейроатиповим людям і людям із СДУГ, але може допомогти кожному, хто любить читати малими спокійними кроками. Це не медичний виріб, він нічого не лікує й не замінює терапію чи допомогу фахівця."], ["Один розділ за раз замість стіни тексту", "Товста книжка може приголомшувати, а вигляд кількох сотень сторінок здатен відбити охоту. PaKu показує один розділ, решту лишає на потім. Рішення «скільки читати сьогодні» вже ухвалено, тому на старті треба менше зусиль, а старт часто найважчий. Будь-яку книжку можна поділити на коротші розділи (наприклад, по 500 слів), щоб сьогоднішня мета була справді невеликою."], ["Фіксований час і нагадування замість пам’ятання в голові", "Планування, пам’ятання й початок дій — це виконавчі функції, які людям із СДУГ часто даються важче. Фіксований час відкриття розділу й щоденне нагадування переносять це навантаження з вашої голови в застосунок. Звичка формується легше, коли відбувається в один і той самий час і не вимагає нового рішення щодня."], ["Нагорода одразу, бо далека мета мотивує слабко", "Багатьом людям із СДУГ важче діяти заради далекої мети: «дочитаю книжку за два місяці» замало, щоб почати сьогодні. PaKu дає маленькі швидкі сигнали прогресу: смужку й відсотки, добрі слова після кожного розділу, подорож космосом, виміряну прочитаними словами, і дні читання поспіль. Кожен малий крок помічено одразу, а не лише наприкінці."], ["Менше відволікань", "У застосунку немає реклами, сповіщень із соцмереж і нескінченного гортання. Читання «по сторінках» і режим повної сторінки лишають на екрані лише текст. Оберіть світлу, сепію чи темну тему й зручний розмір літер. Заблокований розділ не спокушає «прочитати ще один», а коли хочете швидше, ви відкриваєте його свідомо."], ["М’яко щодо перерв", "Кілька днів без читання? PaKu радий вашому поверненню й не ставить на вас хрест. Якщо прочитаєте кілька розділів одразу, розклад перерахується: наступний розділ буде завтра, а не за тиждень. Немає серій, втрата яких болить, і немає почуття провини."], ["Гумор і власний стиль", "Злісний режим, святкові та іменинні теми й зміна вигляду роблять читання веселим і «вашим». Трохи новизни й гумору допомагає втримати інтерес."], ["Важливо", "Кожна людина інша. Те, що допомагає одним, іншим може не підійти. Якщо труднощі з концентрацією сильно ускладнюють щоденне життя, варто поговорити з фахівцем. PaKu має підтримувати читання, а не діагностувати чи лікувати."]]};
+    const LEGAL_COPY = {"pl": "© 2026 {owner}. Wszelkie prawa zastrzeżone.", "en": "© 2026 {owner}. All rights reserved.", "de": "© 2026 {owner}. Alle Rechte vorbehalten.", "es": "© 2026 {owner}. Todos los derechos reservados.", "uk": "© 2026 {owner}. Усі права захищено."};
+    function renderLegalCards() {
+      const lang = (state && state.lang) || 'en', doc = LEGAL[lang] || LEGAL.en;
+      const fill = v => v ? escapeHtml(v) : '<span class="fill">' + escapeHtml(t('legalFill')) + '</span>';
+      const sub = txt => escapeHtml(txt).replace(/\{owner\}/g, fill(APP_OWNER)).replace(/\{email\}/g, fill(APP_EMAIL));
+      const mk = arr => arr.map((x, i) => '<h4>' + (i + 1) + '. ' + escapeHtml(x[0].replace(/^\d+\.\s*/, '')) + '</h4><p>' + sub(x[1]) + '</p>').join('') + '<p class="legal-note">' + escapeHtml(t('legalNote')) + '</p><p class="legal-note">' + sub(LEGAL_COPY[lang] || LEGAL_COPY.en) + '</p>';
+      const w = document.getElementById('whyBody');
+      if (w) w.innerHTML = (WHY[lang] || WHY.en).map(x => '<h4>' + escapeHtml(x[0]) + '</h4><p>' + escapeHtml(x[1]) + '</p>').join('');
+      const a = document.getElementById('termsBody'), b = document.getElementById('privBody');
+      if (a) a.innerHTML = mk(doc.terms); if (b) b.innerHTML = mk(doc.priv);
+      const btn = document.getElementById('bmcBtn'), soon = document.getElementById('bmcSoon');
+      if (btn) {
+        if (BMC_URL) { btn.href = BMC_URL; btn.classList.remove('hidden'); if (soon) soon.classList.add('hidden'); }
+        else { btn.removeAttribute('href'); btn.classList.add('hidden'); if (soon) soon.classList.remove('hidden'); }
+      }
+    }
+
     // Init
+    initAccordion();
     applyI18n();
     renderQr();
     renderBirthdayCard();

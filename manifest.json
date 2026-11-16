@@ -1,7 +1,7 @@
 {
   "name": "PaKu",
   "short_name": "PaKu",
-  "description": "Czytnik e-booków udostępniający jeden rozdział na raz według wybranego harmonogramu.",
+  "description": "An e-book reader that unlocks one chapter at a time on a schedule you choose.",
   "start_url": "./index.html",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
@@ -10,7 +10,7 @@
   "orientation": "any",
   "id": "./index.html",
   "scope": "./",
-  "lang": "pl",
+  "lang": "en",
   "categories": ["books", "education"],
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
