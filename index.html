@@ -119,6 +119,24 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     .legal p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text); }
     .legal .legal-note { color: var(--muted); font-size: 12px; margin-top: 14px; }
     .legal .fill { background: #fff3cd; color: #7a5a00; border-radius: 4px; padding: 0 3px; }
+    .qm { background: rgba(255, 207, 64, 0.45); color: inherit; border-radius: 3px; padding: 0 1px; }
+    #pgMark.on { background: var(--accent); color: var(--on-accent); }
+    #selBar { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 66px); left: 50%; transform: translateX(-50%); z-index: 60; }
+    #selBar .btn { width: auto; padding: 11px 20px; box-shadow: 0 8px 24px rgba(40, 20, 90, 0.3); }
+    #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); z-index: 70; background: var(--text); color: var(--surface); padding: 10px 16px; border-radius: 14px; display: flex; gap: 14px; align-items: center; font-size: 14px; max-width: 92vw; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+    #toast button { background: none; border: none; color: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; font-size: 14px; padding: 0; }
+    #qModal { position: fixed; inset: 0; z-index: 940; background: rgba(27, 21, 48, 0.55); display: flex; align-items: center; justify-content: center; padding: 18px; }
+    .qm-box { width: 100%; max-width: 520px; max-height: 88vh; overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; box-shadow: 0 18px 50px rgba(40, 20, 90, 0.35); }
+    .qm-box textarea { width: 100%; min-height: 96px; box-sizing: border-box; }
+    .q-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .q-meta { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+    .q-text { margin: 0 0 8px; padding: 2px 0 2px 12px; border-left: 3px solid var(--accent); font-style: italic; line-height: 1.5; font-size: 15px; }
+    .q-cite { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+    .q-note { font-size: 13px; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; white-space: pre-wrap; }
+    .q-ctx { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+    .q-ctx b { color: var(--text); background: rgba(255, 207, 64, 0.35); font-weight: 400; }
+    .q-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .rev-banner { background: var(--accent-soft); border-radius: 12px; padding: 10px 12px; font-size: 13px; margin: 8px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
     .pick-item { display: block; }
     .pick-item .progress-bar { margin: 8px 0 4px; }
     .pick-status { font-size: 12px; color: var(--muted); }
@@ -188,6 +206,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     .pg-info { flex: none; min-width: 64px; text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
     .pg-next { flex: 1; margin: 0; height: 46px; padding: 0 10px; font-size: 15px; }
     .pg-next:disabled { opacity: 0.6; }
+    .pg-next { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 440px) { .pg-bar { gap: 6px; } .pg-btn { width: 42px; } .pg-info { min-width: 52px; } .pg-next.pg-final { font-size: 13px; padding: 0 6px; } }
     @media (prefers-reduced-motion: reduce) { .pager-inner { transition: none; } }
     .btn {
       display: inline-flex;
@@ -528,6 +548,32 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <div id="readerContent" class="card"></div>
     </section>
 
+    <!-- TAB: CYTATY I ZAKŁADKI -->
+    <section id="tab-quotes" class="hidden">
+      <div class="card">
+        <h3 data-i18n="quotesTitle" style="margin-bottom:6px;">📑 Cytaty i zakładki</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 10px;line-height:1.5;" data-i18n="qIntro"></p>
+        <input type="search" id="qSearchIn" data-i18n-ph="qSearchPh" oninput="qQuery=this.value; renderQuotes()" />
+        <div class="controls-row" id="qFilters" style="margin-top:8px;"></div>
+        <select id="qBookSel" onchange="qBookFilter=this.value; renderQuotes()" style="margin-top:8px;"></select>
+        <div id="qCount" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+      <div id="qList"></div>
+      <div class="card" id="qTools">
+        <label for="qStyleSel" data-i18n="qStyle">Styl przypisu</label>
+        <select id="qStyleSel" onchange="setQStyle(this.value)">
+          <option value="iso">ISO 690</option>
+          <option value="apa">APA 7</option>
+        </select>
+        <div class="controls-row" style="margin-top:10px;">
+          <button class="chip" onclick="exportQuotesMd()" data-i18n="qExportMd"></button>
+          <button class="chip" onclick="exportQuotesJson()" data-i18n="qExportJson"></button>
+          <button class="chip" onclick="document.getElementById('qImportIn').click()" data-i18n="qImport"></button>
+        </div>
+        <input type="file" id="qImportIn" accept=".json,application/json" class="hidden" onchange="importQuotesJson(this)" />
+      </div>
+    </section>
+
     <!-- TAB 2: HARMONOGRAM / KALENDARZ -->
     <section id="tab-calendar" class="hidden">
       <div class="card">
@@ -617,6 +663,25 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         <div id="splitMsg" style="font-size:13px;font-weight:600;color:var(--accent);margin-top:8px;"></div>
       </div>
 
+      <div class="card" id="bibCard">
+        <h3 id="bibTitleCard">📚</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 10px;line-height:1.5;" data-i18n="bibHint"></p>
+        <div id="bibSample" class="hidden" style="color:var(--muted);font-size:13px;" data-i18n="bibSample"></div>
+        <div id="bibForm">
+          <input type="text" id="bibAuthor" data-i18n-ph="bibAuthor" />
+          <input type="text" id="bibTitleIn" data-i18n-ph="bibTitleF" style="margin-top:8px;" />
+          <input type="text" id="bibPublisher" data-i18n-ph="bibPublisher" style="margin-top:8px;" />
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input type="text" id="bibYear" data-i18n-ph="bibYear" inputmode="numeric" style="flex:1;margin:0;" />
+            <input type="text" id="bibPlace" data-i18n-ph="bibPlace" style="flex:2;margin:0;" />
+          </div>
+          <input type="text" id="bibIsbn" data-i18n-ph="bibIsbn" style="margin-top:8px;" />
+          <input type="text" id="bibSource" data-i18n-ph="bibSource" autocapitalize="off" style="margin-top:8px;" />
+          <button class="btn" style="margin-top:10px;" onclick="saveBib()" data-i18n="bibSave">Zapisz dane</button>
+        </div>
+        <div id="bibMsg" style="font-size:13px;font-weight:600;color:var(--accent);margin-top:8px;"></div>
+      </div>
+
       <div class="card">
         <h3 id="scheduleForTitle">⏱️</h3>
         <label data-i18n="freqLabel">Co ile dni odblokować kolejny rozdział?</label>
@@ -702,8 +767,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </section>
   </main>
 
+  <div id="selBar" class="hidden"><button class="btn" id="selSave" onclick="saveSelectionAsQuote()" data-i18n="qSave">💬 Zapisz cytat</button></div>
+  <div id="toast" class="hidden" role="status" aria-live="polite"></div>
+  <div id="qModal" class="hidden" role="dialog" aria-modal="true"><div class="qm-box" id="qModalBody"></div></div>
+
   <nav>
     <button id="nav-reader" class="active" onclick="switchTab('reader')">📖<span data-i18n="navRead">Czytaj</span></button>
+    <button id="nav-quotes" onclick="switchTab('quotes')">📑<span data-i18n="navQuotes">Cytaty</span></button>
     <button id="nav-calendar" onclick="switchTab('calendar')">📅<span data-i18n="navCal">Kalendarz</span></button>
     <button id="nav-settings" onclick="switchTab('settings')">⚙️<span data-i18n="navBook">Książka</span></button>
   </nav>
@@ -795,6 +865,64 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Odblokowane rozdziały do przeczytania: {k}",
         snarkTitle: "😈 Tryb złośliwy",
         snarkText: "Wszystkie komunikaty, pochwały, cytaty i życzenia stają się dowcipne, ale złośliwe. Dla ludzi z poczuciem humoru – nic nie obrażam na serio. Działa we wszystkich językach aplikacji.",
+        navQuotes: "Cytaty",
+        quotesTitle: "📑 Cytaty i zakładki",
+        qIntro: "Zaznacz fragment w czytniku i dotknij „Zapisz cytat”. Cytaty i zakładki zostają w aplikacji nawet po usunięciu książki, razem z opisem bibliograficznym.",
+        qEmpty: "Nic tu jeszcze nie ma. Zaznacz fragment tekstu w czytniku albo dotknij 🔖, żeby założyć zakładkę.",
+        qSave: "💬 Zapisz cytat",
+        qSaved: "Cytat zapisany ✓",
+        qDup: "Ten cytat jest już zapisany",
+        qAddNote: "Dodaj notatkę",
+        qNote: "Notatka",
+        qNotePh: "Twoja myśl o tym fragmencie (opcjonalnie)",
+        qSaveBtn: "Zapisz",
+        qCancel: "Anuluj",
+        qClose: "Zamknij",
+        qBookmark: "Zakładka",
+        qMarkOn: "Zakładka dodana 🔖",
+        qMarkOff: "Zakładka usunięta",
+        qAll: "Wszystko",
+        qQuotes: "Cytaty",
+        qMarks: "Zakładki",
+        qAllBooks: "Wszystkie książki",
+        qSearchPh: "Szukaj w cytatach…",
+        qCopy: "📋 Kopiuj z opisem",
+        qCopied: "Skopiowano z opisem ✓",
+        qEdit: "✏️ Notatka",
+        qOpen: "📖 Otwórz w książce",
+        qCtx: "Kontekst",
+        qConfirmDel: "Usunąć ten wpis na stałe?",
+        qGone: "Tej książki nie ma już w aplikacji, ale cytat i opis bibliograficzny zostają. Poniżej zapisany kontekst.",
+        qNotFound: "Nie znaleziono tego fragmentu w książce (mogła się zmienić po ponownym podziale). Poniżej zapisany kontekst.",
+        qNotYet: "Ten fragment leży w jeszcze zablokowanym rozdziale. Poniżej zapisany kontekst.",
+        qTooLong: "Zaznaczenie jest za długie (maks. 3000 znaków).",
+        qStyle: "Styl przypisu",
+        qExportMd: "⬇️ Eksport (.md)",
+        qExportJson: "💾 Kopia zapasowa (.json)",
+        qImport: "⬆️ Wczytaj kopię",
+        qImported: "Wczytano nowych wpisów: {n}.",
+        qImportBad: "Nie udało się wczytać pliku kopii.",
+        qCount: "Wpisy: {n}",
+        qChapter: "rozdz. {i}",
+        qAvail: "Dostępne:",
+        qNoYear: "b.r.",
+        qKept: "Zapisane cytaty i zakładki ({n}) zostają w aplikacji razem z opisem bibliograficznym.",
+        qBookGone: "(książka usunięta)",
+        bibTitleCard: "📚 Dane bibliograficzne: {t}",
+        bibHint: "Trafiają do przypisu każdego cytatu. Uzupełnij to, czego aplikacja nie wykryła w pliku.",
+        bibAuthor: "Autor (np. Jan Kowalski)",
+        bibTitleF: "Tytuł",
+        bibPublisher: "Wydawca",
+        bibYear: "Rok wydania",
+        bibPlace: "Miejsce wydania",
+        bibIsbn: "ISBN",
+        bibSource: "Źródło lub adres www",
+        bibSave: "Zapisz dane",
+        bibSaved: "Zapisano. Zaktualizowane wpisy: {n}.",
+        bibSample: "Dla przykładowej książki dane bibliograficzne nie są potrzebne.",
+        revBanner: "Przeglądasz już przeczytany rozdział: {t}",
+        revBack: "← Wróć do bieżącego",
+        revBackPager: "← Wróć do czytania",
         whyTitle: "💜 Dlaczego PaKu?",
         supTitle: "☕ Wesprzyj aplikację",
         supText: "Wszystko w PaKu jest i będzie darmowe. Kupienie wirtualnej kawy jest całkowicie dobrowolne i służy wyłącznie wsparciu procesu twórczego. Nic się przez to nie odblokowuje.",
@@ -1005,6 +1133,64 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Unlocked chapters waiting for you: {k}",
         snarkTitle: "😈 Snark mode",
         snarkText: "All messages, praise, quotes and greetings turn witty but mean. For people with a sense of humour – nothing is meant seriously. Works in every language of the app.",
+        navQuotes: "Quotes",
+        quotesTitle: "📑 Quotes & bookmarks",
+        qIntro: "Select a passage in the reader and tap “Save quote”. Quotes and bookmarks stay in the app even after you delete the book, together with the bibliographic details.",
+        qEmpty: "Nothing here yet. Select some text in the reader, or tap 🔖 to add a bookmark.",
+        qSave: "💬 Save quote",
+        qSaved: "Quote saved ✓",
+        qDup: "This quote is already saved",
+        qAddNote: "Add a note",
+        qNote: "Note",
+        qNotePh: "Your thoughts on this passage (optional)",
+        qSaveBtn: "Save",
+        qCancel: "Cancel",
+        qClose: "Close",
+        qBookmark: "Bookmark",
+        qMarkOn: "Bookmark added 🔖",
+        qMarkOff: "Bookmark removed",
+        qAll: "All",
+        qQuotes: "Quotes",
+        qMarks: "Bookmarks",
+        qAllBooks: "All books",
+        qSearchPh: "Search your quotes…",
+        qCopy: "📋 Copy with source",
+        qCopied: "Copied with source ✓",
+        qEdit: "✏️ Note",
+        qOpen: "📖 Open in book",
+        qCtx: "Context",
+        qConfirmDel: "Delete this entry for good?",
+        qGone: "This book is no longer in the app, but the quote and its bibliographic details stay. Saved context below.",
+        qNotFound: "This passage was not found in the book (it may have changed after re-splitting). Saved context below.",
+        qNotYet: "This passage lies in a chapter that is still locked. Saved context below.",
+        qTooLong: "The selection is too long (max 3000 characters).",
+        qStyle: "Citation style",
+        qExportMd: "⬇️ Export (.md)",
+        qExportJson: "💾 Backup (.json)",
+        qImport: "⬆️ Load backup",
+        qImported: "New entries loaded: {n}.",
+        qImportBad: "Could not load the backup file.",
+        qCount: "Entries: {n}",
+        qChapter: "ch. {i}",
+        qAvail: "Available at:",
+        qNoYear: "n.d.",
+        qKept: "Your saved quotes and bookmarks ({n}) stay in the app together with their bibliographic details.",
+        qBookGone: "(book deleted)",
+        bibTitleCard: "📚 Bibliographic details: {t}",
+        bibHint: "These go into the citation of every quote. Fill in whatever the app could not detect in the file.",
+        bibAuthor: "Author (e.g. Jane Smith)",
+        bibTitleF: "Title",
+        bibPublisher: "Publisher",
+        bibYear: "Year of publication",
+        bibPlace: "Place of publication",
+        bibIsbn: "ISBN",
+        bibSource: "Source or web address",
+        bibSave: "Save details",
+        bibSaved: "Saved. Entries updated: {n}.",
+        bibSample: "The sample book needs no bibliographic details.",
+        revBanner: "You are browsing a chapter you already read: {t}",
+        revBack: "← Back to current",
+        revBackPager: "← Back to reading",
         whyTitle: "💜 Why PaKu?",
         supTitle: "☕ Support the app",
         supText: "Everything in PaKu is and will stay free. Buying a virtual coffee is entirely voluntary and only supports the creative process. Nothing gets unlocked by it.",
@@ -1215,6 +1401,64 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Freigeschaltete Kapitel zum Lesen: {k}",
         snarkTitle: "😈 Fieser Modus",
         snarkText: "Alle Meldungen, Lob, Zitate und Glückwünsche werden witzig, aber gemein. Für Menschen mit Humor – nichts ist ernst gemeint. Funktioniert in allen Sprachen der App.",
+        navQuotes: "Zitate",
+        quotesTitle: "📑 Zitate & Lesezeichen",
+        qIntro: "Markiere eine Stelle im Reader und tippe auf „Zitat speichern“. Zitate und Lesezeichen bleiben samt bibliografischen Angaben in der App, auch wenn du das Buch löschst.",
+        qEmpty: "Noch nichts hier. Markiere Text im Reader oder tippe auf 🔖, um ein Lesezeichen zu setzen.",
+        qSave: "💬 Zitat speichern",
+        qSaved: "Zitat gespeichert ✓",
+        qDup: "Dieses Zitat ist schon gespeichert",
+        qAddNote: "Notiz hinzufügen",
+        qNote: "Notiz",
+        qNotePh: "Deine Gedanken zu dieser Stelle (optional)",
+        qSaveBtn: "Speichern",
+        qCancel: "Abbrechen",
+        qClose: "Schließen",
+        qBookmark: "Lesezeichen",
+        qMarkOn: "Lesezeichen gesetzt 🔖",
+        qMarkOff: "Lesezeichen entfernt",
+        qAll: "Alle",
+        qQuotes: "Zitate",
+        qMarks: "Lesezeichen",
+        qAllBooks: "Alle Bücher",
+        qSearchPh: "In Zitaten suchen…",
+        qCopy: "📋 Mit Quelle kopieren",
+        qCopied: "Mit Quelle kopiert ✓",
+        qEdit: "✏️ Notiz",
+        qOpen: "📖 Im Buch öffnen",
+        qCtx: "Kontext",
+        qConfirmDel: "Diesen Eintrag endgültig löschen?",
+        qGone: "Dieses Buch ist nicht mehr in der App, doch Zitat und bibliografische Angaben bleiben. Gespeicherter Kontext unten.",
+        qNotFound: "Die Stelle wurde im Buch nicht gefunden (evtl. nach neuer Aufteilung verändert). Gespeicherter Kontext unten.",
+        qNotYet: "Diese Stelle liegt in einem noch gesperrten Kapitel. Gespeicherter Kontext unten.",
+        qTooLong: "Die Markierung ist zu lang (max. 3000 Zeichen).",
+        qStyle: "Zitierstil",
+        qExportMd: "⬇️ Export (.md)",
+        qExportJson: "💾 Sicherung (.json)",
+        qImport: "⬆️ Sicherung laden",
+        qImported: "Neue Einträge geladen: {n}.",
+        qImportBad: "Die Sicherungsdatei konnte nicht geladen werden.",
+        qCount: "Einträge: {n}",
+        qChapter: "Kap. {i}",
+        qAvail: "Verfügbar unter:",
+        qNoYear: "o. J.",
+        qKept: "Deine gespeicherten Zitate und Lesezeichen ({n}) bleiben samt bibliografischen Angaben in der App.",
+        qBookGone: "(Buch gelöscht)",
+        bibTitleCard: "📚 Bibliografische Angaben: {t}",
+        bibHint: "Sie landen im Nachweis jedes Zitats. Ergänze, was die App in der Datei nicht erkannt hat.",
+        bibAuthor: "Autor (z. B. Erika Muster)",
+        bibTitleF: "Titel",
+        bibPublisher: "Verlag",
+        bibYear: "Erscheinungsjahr",
+        bibPlace: "Erscheinungsort",
+        bibIsbn: "ISBN",
+        bibSource: "Quelle oder Webadresse",
+        bibSave: "Angaben speichern",
+        bibSaved: "Gespeichert. Aktualisierte Einträge: {n}.",
+        bibSample: "Das Beispielbuch braucht keine bibliografischen Angaben.",
+        revBanner: "Du siehst ein bereits gelesenes Kapitel: {t}",
+        revBack: "← Zurück zum aktuellen",
+        revBackPager: "← Zurück zum Lesen",
         whyTitle: "💜 Warum PaKu?",
         supTitle: "☕ App unterstützen",
         supText: "Alles in PaKu ist und bleibt kostenlos. Ein virtueller Kaffee ist völlig freiwillig und unterstützt nur den kreativen Prozess. Dadurch wird nichts freigeschaltet.",
@@ -1425,6 +1669,64 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Capítulos desbloqueados por leer: {k}",
         snarkTitle: "😈 Modo malicioso",
         snarkText: "Todos los mensajes, elogios, citas y felicitaciones se vuelven ingeniosos pero malvados. Para gente con sentido del humor: nada va en serio. Funciona en todos los idiomas de la app.",
+        navQuotes: "Citas",
+        quotesTitle: "📑 Citas y marcadores",
+        qIntro: "Selecciona un fragmento en el lector y pulsa «Guardar cita». Las citas y los marcadores se quedan en la app, con sus datos bibliográficos, aunque borres el libro.",
+        qEmpty: "Aún no hay nada. Selecciona texto en el lector o pulsa 🔖 para añadir un marcador.",
+        qSave: "💬 Guardar cita",
+        qSaved: "Cita guardada ✓",
+        qDup: "Esta cita ya está guardada",
+        qAddNote: "Añadir nota",
+        qNote: "Nota",
+        qNotePh: "Tu opinión sobre este fragmento (opcional)",
+        qSaveBtn: "Guardar",
+        qCancel: "Cancelar",
+        qClose: "Cerrar",
+        qBookmark: "Marcador",
+        qMarkOn: "Marcador añadido 🔖",
+        qMarkOff: "Marcador eliminado",
+        qAll: "Todo",
+        qQuotes: "Citas",
+        qMarks: "Marcadores",
+        qAllBooks: "Todos los libros",
+        qSearchPh: "Buscar en las citas…",
+        qCopy: "📋 Copiar con fuente",
+        qCopied: "Copiado con fuente ✓",
+        qEdit: "✏️ Nota",
+        qOpen: "📖 Abrir en el libro",
+        qCtx: "Contexto",
+        qConfirmDel: "¿Eliminar esta entrada definitivamente?",
+        qGone: "Este libro ya no está en la app, pero la cita y sus datos bibliográficos se conservan. Contexto guardado abajo.",
+        qNotFound: "No se encontró este fragmento en el libro (puede haber cambiado tras volver a dividirlo). Contexto guardado abajo.",
+        qNotYet: "Este fragmento está en un capítulo aún bloqueado. Contexto guardado abajo.",
+        qTooLong: "La selección es demasiado larga (máx. 3000 caracteres).",
+        qStyle: "Estilo de cita",
+        qExportMd: "⬇️ Exportar (.md)",
+        qExportJson: "💾 Copia de seguridad (.json)",
+        qImport: "⬆️ Cargar copia",
+        qImported: "Entradas nuevas cargadas: {n}.",
+        qImportBad: "No se pudo cargar el archivo de copia.",
+        qCount: "Entradas: {n}",
+        qChapter: "cap. {i}",
+        qAvail: "Disponible en:",
+        qNoYear: "s. f.",
+        qKept: "Tus citas y marcadores guardados ({n}) se quedan en la app con sus datos bibliográficos.",
+        qBookGone: "(libro eliminado)",
+        bibTitleCard: "📚 Datos bibliográficos: {t}",
+        bibHint: "Se incluyen en la referencia de cada cita. Completa lo que la app no detectó en el archivo.",
+        bibAuthor: "Autor (p. ej. Ana García)",
+        bibTitleF: "Título",
+        bibPublisher: "Editorial",
+        bibYear: "Año de publicación",
+        bibPlace: "Lugar de publicación",
+        bibIsbn: "ISBN",
+        bibSource: "Fuente o dirección web",
+        bibSave: "Guardar datos",
+        bibSaved: "Guardado. Entradas actualizadas: {n}.",
+        bibSample: "El libro de ejemplo no necesita datos bibliográficos.",
+        revBanner: "Estás viendo un capítulo ya leído: {t}",
+        revBack: "← Volver al actual",
+        revBackPager: "← Volver a la lectura",
         whyTitle: "💜 ¿Por qué PaKu?",
         supTitle: "☕ Apoya la app",
         supText: "Todo en PaKu es y seguirá siendo gratuito. Un café virtual es totalmente voluntario y solo apoya el proceso creativo. No se desbloquea nada con ello.",
@@ -1635,6 +1937,64 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         wbWaiting: "Розблоковані розділи, що чекають: {k}",
         snarkTitle: "😈 Єхидний режим",
         snarkText: "Усі повідомлення, похвала, цитати й вітання стають дотепними, але єхидними. Для людей із почуттям гумору – нічого серйозно. Працює в усіх мовах застосунку.",
+        navQuotes: "Цитати",
+        quotesTitle: "📑 Цитати й закладки",
+        qIntro: "Виділіть уривок у читалці й торкніться «Зберегти цитату». Цитати та закладки лишаються в застосунку разом із бібліографічним описом, навіть якщо видалити книжку.",
+        qEmpty: "Тут поки нічого немає. Виділіть текст у читалці або торкніться 🔖, щоб додати закладку.",
+        qSave: "💬 Зберегти цитату",
+        qSaved: "Цитату збережено ✓",
+        qDup: "Цю цитату вже збережено",
+        qAddNote: "Додати нотатку",
+        qNote: "Нотатка",
+        qNotePh: "Ваша думка про цей уривок (необов’язково)",
+        qSaveBtn: "Зберегти",
+        qCancel: "Скасувати",
+        qClose: "Закрити",
+        qBookmark: "Закладка",
+        qMarkOn: "Закладку додано 🔖",
+        qMarkOff: "Закладку видалено",
+        qAll: "Усе",
+        qQuotes: "Цитати",
+        qMarks: "Закладки",
+        qAllBooks: "Усі книжки",
+        qSearchPh: "Шукати в цитатах…",
+        qCopy: "📋 Копіювати з описом",
+        qCopied: "Скопійовано з описом ✓",
+        qEdit: "✏️ Нотатка",
+        qOpen: "📖 Відкрити в книжці",
+        qCtx: "Контекст",
+        qConfirmDel: "Видалити цей запис назавжди?",
+        qGone: "Цієї книжки вже немає в застосунку, але цитата й бібліографічний опис залишаються. Збережений контекст нижче.",
+        qNotFound: "Цього уривка не знайдено в книжці (вона могла змінитися після повторного поділу). Збережений контекст нижче.",
+        qNotYet: "Цей уривок лежить у ще заблокованому розділі. Збережений контекст нижче.",
+        qTooLong: "Виділення задовге (макс. 3000 символів).",
+        qStyle: "Стиль посилання",
+        qExportMd: "⬇️ Експорт (.md)",
+        qExportJson: "💾 Резервна копія (.json)",
+        qImport: "⬆️ Завантажити копію",
+        qImported: "Завантажено нових записів: {n}.",
+        qImportBad: "Не вдалося завантажити файл копії.",
+        qCount: "Записи: {n}",
+        qChapter: "розд. {i}",
+        qAvail: "Доступно:",
+        qNoYear: "б. р.",
+        qKept: "Збережені цитати й закладки ({n}) лишаються в застосунку разом із бібліографічним описом.",
+        qBookGone: "(книжку видалено)",
+        bibTitleCard: "📚 Бібліографічні дані: {t}",
+        bibHint: "Вони потрапляють у посилання до кожної цитати. Доповніть те, чого застосунок не виявив у файлі.",
+        bibAuthor: "Автор (напр. Іван Петренко)",
+        bibTitleF: "Назва",
+        bibPublisher: "Видавець",
+        bibYear: "Рік видання",
+        bibPlace: "Місце видання",
+        bibIsbn: "ISBN",
+        bibSource: "Джерело або вебадреса",
+        bibSave: "Зберегти дані",
+        bibSaved: "Збережено. Оновлено записів: {n}.",
+        bibSample: "Для прикладу книжки бібліографічні дані не потрібні.",
+        revBanner: "Ви переглядаєте вже прочитаний розділ: {t}",
+        revBack: "← Назад до поточного",
+        revBackPager: "← Назад до читання",
         whyTitle: "💜 Чому PaKu?",
         supTitle: "☕ Підтримати застосунок",
         supText: "Усе в PaKu є й залишиться безкоштовним. Віртуальна кава — цілком добровільна й лише підтримує творчий процес. Нічого додатково не відкривається.",
@@ -1882,6 +2242,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (typeof renderRemindCard === 'function') renderRemindCard();
       if (typeof renderSnarkCard === 'function') renderSnarkCard();
       if (typeof renderSplitCard === 'function') renderSplitCard();
+      if (typeof renderQuotes === 'function') renderQuotes();
+      if (typeof renderBibCard === 'function') renderBibCard();
     }
 
     function setLanguage(lang) {
@@ -2132,11 +2494,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
 
     function switchTab(tab) {
-      ['reader', 'calendar', 'settings'].forEach(name => {
+      ['reader', 'quotes', 'calendar', 'settings'].forEach(name => {
         document.getElementById('tab-' + name).classList.toggle('hidden', name !== tab);
         document.getElementById('nav-' + name).classList.toggle('active', name === tab);
       });
       if (tab === 'calendar') renderCalendar();
+      if (tab === 'quotes') renderQuotes();
       if (tab === 'reader') renderReader();
       if (tab === 'settings') { renderLibrary(); renderQr(); renderHolidayCard(); renderBirthdayCard(); renderRemindCard(); renderSnarkCard(); }
     }
@@ -2156,6 +2519,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
     function setActiveBook(id) {
       if (!state.books.some(r => r.id === id)) return;
+      if (state.activeBookId !== id) review = null;
       state.activeBookId = id; readerPicked = true;
       saveState();
       renderReader();
@@ -2202,6 +2566,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         return;
       }
       renderBookChips();
+      if (review && review.bookId !== rec.id) review = null;
+      if (review && renderReview(rec, book, box)) return;
+      review = null;
       const total = book.chapters.length;
       const idx = Math.min(rec.currentIndex, total - 1);
       const chap = book.chapters[idx];
@@ -2242,7 +2609,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       } else {
         lockedUntilMs = null;
         const isDone = rec.completed.includes(idx);
-        const paragraphs = chap.content.split(/\n+/).filter(p => p.trim()).map(p => `<p>${escapeHtml(p)}</p>`).join('');
+        const qre = quoteRegex(rec.id);
+        const paragraphs = chap.content.split(/\n+/).filter(p => p.trim()).map(p => `<p>${markQ(escapeHtml(p), qre)}</p>`).join('');
         // Ostatnia strona rozdziału zamienia przycisk "dalej" na akcję zakończenia rozdziału / książki
         if (idx < total - 1) pagerAction = { label: isDone ? t('goNext') : t('markRead'), fn: () => completeChapter(idx) };
         else if (rec.finishedAt) pagerAction = { label: '🎉', fn: null };
@@ -2253,12 +2621,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             <h1 class="chapter-title">${escapeHtml(chap.title)}</h1>
             <div class="reader-body">${paragraphs}</div>
           </div></div>
-          <div class="pg-bar">
-            <button class="pg-btn" id="pgPrev" aria-label="${t('pagePrev')}" onclick="pagerPrev()">◀</button>
-            <div class="pg-info" id="pgInfo">1 / 1</div>
-            <button class="pg-btn" id="pgFocus" aria-label="${t('fullPage')}" onclick="toggleFocus()">${focusOn ? '✕' : '⛶'}</button>
-            <button class="btn pg-next" id="pgNext" aria-label="${t('pageNext')}" onclick="pagerNext()">▶</button>
-          </div>
+          ${pgBarHtml()}
           ${rec.finishedAt && idx === total - 1 ? `<div style="text-align:center;font-weight:700;color:var(--accent);margin-top:8px;">${t('congrats')}</div>` : ''}
         `;
       }
@@ -2267,7 +2630,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           <p style="color:var(--muted);font-size:12px;margin:6px 0 0;">${t('finishEarlyHint')}</p></div>`;
       }
       box.innerHTML = html;
-      if (!isLocked) initPager(rec, idx);
+      if (!isLocked) { initPager(rec, idx); if (pendingGoto) { const sn = pendingGoto; pendingGoto = ''; setTimeout(() => pagerGoToText(sn), 60); } }
     }
 
     // ===== Czytanie "po stronach": tekst rozdziału układa się w kolumny i przewija się w poziomie =====
@@ -2330,6 +2693,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       pagerUpdate();
       if (pager.rec && !nosave) {
         pager.rec.pos = { i: pager.idx, f: pager.page / Math.max(1, pager.pages) };
+        if (pager.rec.review && review) review.f = pager.rec.pos.f;
         saveState();
       }
     }
@@ -2338,6 +2702,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const info = document.getElementById('pgInfo'), prev = document.getElementById('pgPrev'), next = document.getElementById('pgNext');
       if (!info) return;
       info.textContent = (pager.page + 1) + ' / ' + pager.pages;
+      if (typeof updateMarkBtn === 'function') updateMarkBtn();
       prev.disabled = pager.page === 0;
       const last = pager.page >= pager.pages - 1;
       if (last && pagerAction) {
@@ -2807,6 +3172,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const pc = document.getElementById('praiseOn'); if (pc) pc.checked = !!state.praise.on;
       if (typeof renderSplitCard === 'function') renderSplitCard();
       if (typeof renderLegalCards === 'function') renderLegalCards();
+      if (typeof renderBibCard === 'function') renderBibCard();
     }
 
     function updateScheduleSettings() {
@@ -3062,6 +3428,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       needZip();
       let zip;
       try { zip = await JSZip.loadAsync(buf); } catch (e) { throw new UserError('epubBad'); }
+      try { importMeta = await epubMeta(zip); } catch (e) { importMeta = null; }
       await checkEpubDrm(zip);
       let entries = await getEpubOrder(zip);
       if (!entries.length) {
@@ -3553,6 +3920,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         if (e && e.name === 'PasswordException') throw new UserError('pdfPassword');
         throw e;
       }
+      try { const md = await pdf.getMetadata(); const inf = (md && md.info) || {}; importMeta = cleanMeta({ title: inf.Title, author: inf.Author, year: (String(inf.CreationDate || '').match(/D:(\d{4})/) || [])[1] }); } catch (e) { importMeta = null; }
       const pages = [];
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -3596,6 +3964,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       try { text = new TextDecoder(enc).decode(buf); } catch (e) { text = new TextDecoder('utf-8').decode(buf); }
       const xml = new DOMParser().parseFromString(text.replace(/^﻿/, ''), 'application/xml');
       if (xml.getElementsByTagName('parsererror').length) throw new UserError('unsupportedFile');
+      try { importMeta = fb2Meta(xml); } catch (e) { importMeta = null; }
       const bodies = Array.from(xml.getElementsByTagName('*')).filter(e => e.localName === 'body');
       const main = bodies.find(b => !b.getAttribute('name')) || bodies[0]; // pomijamy body z przypisami
       if (!main) throw new UserError('noText');
@@ -3749,6 +4118,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
 
     async function parseByExt(buf, ext) {
+      importMeta = null;
       let chapters;
       if (ext === 'txt') chapters = splitTextIntoChapters(decodeText(buf));
       else if (ext === 'epub') chapters = await parseEpub(buf);
@@ -3830,7 +4200,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
 
     // Pobiera plik z adresu, rozpoznaje format i dodaje książkę do biblioteki
-    async function downloadAndAdd(url, title, extHint) {
+    async function downloadAndAdd(url, title, extHint, meta) {
       if (!canAddBook()) return alert(t('limitReached'));
       setBusy(true);
       let chapters;
@@ -3844,7 +4214,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         return;
       }
       setBusy(false);
-      await loadNewBook(title || titleFromUrl(url), chapters);
+      await loadNewBook(title || titleFromUrl(url), chapters, Object.assign({ source: url }, meta || {}));
     }
 
     async function importFromUrl() {
@@ -3873,7 +4243,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           webResults = (Array.isArray(wlIndex) ? wlIndex : []).filter(b => {
             const hay = normQ((b.title || '') + ' ' + (b.author || ''));
             return words.every(w => hay.includes(w));
-          }).slice(0, 20).map(b => ({ src: 'wl', title: b.title, author: b.author || '', href: b.href || (b.slug ? 'https://wolnelektury.pl/api/books/' + b.slug + '/' : '') }));
+          }).slice(0, 20).map(b => ({ src: 'wl', title: b.title, author: b.author || '', href: b.href || (b.slug ? 'https://wolnelektury.pl/api/books/' + b.slug + '/' : ''), page: b.slug ? 'https://wolnelektury.pl/katalog/lektura/' + b.slug + '/' : '' }));
         } else {
           const lang = state.lang;
           const d = (await fetchBuffer('https://gutendex.com/books/?search=' + encodeURIComponent(q) + '&languages=' + lang, 'json')).data;
@@ -3881,7 +4251,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             const f = b.formats || {};
             const ek = Object.keys(f).find(k => k.startsWith('application/epub+zip'));
             const tk = Object.keys(f).find(k => k.startsWith('text/plain'));
-            return { src: 'pg', title: b.title, author: (b.authors && b.authors[0] ? b.authors[0].name : ''), file: ek ? f[ek] : (tk ? f[tk] : ''), ext: ek ? 'epub' : 'txt' };
+            return { src: 'pg', page: b.id ? 'https://www.gutenberg.org/ebooks/' + b.id : '', title: b.title, author: (b.authors && b.authors[0] ? b.authors[0].name : ''), file: ek ? f[ek] : (tk ? f[tk] : ''), ext: ek ? 'epub' : 'txt' };
           }).filter(b => b.file).slice(0, 20);
         }
       } catch (err) {
@@ -3913,7 +4283,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         } catch (err) { setBusy(false); return alert(errText(err)); }
         setBusy(false);
       }
-      await downloadAndAdd(url, r.title, ext);
+      await downloadAndAdd(url, r.title, ext, { author: r.author, source: r.page || '' });
     }
 
     async function handleFileUpload(e) {
@@ -3940,10 +4310,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
 
     // Dodaje książkę do biblioteki (maks. 5). Jedyną książkę przykładową zastępuje.
-    async function loadNewBook(title, chapters) {
+    async function loadNewBook(title, chapters, extraMeta) {
       if (!canAddBook()) { alert(t('limitReached')); return; }
       readerPicked = false; // po dodaniu kolejnej książki strona główna znów pyta, którą czytać
       const book = { title, chapters };
+      { const m = mergeMeta(importMeta, extraMeta); importMeta = null; if (m) book.meta = m; }
       const id = newId();
       let store = 'idb', idbKey = 'book:' + id;
       try {
@@ -3987,7 +4358,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     async function deleteBook(id) {
       const rec = state.books.find(r => r.id === id);
       if (!rec) return;
-      if (!confirm(t('confirmDelete', { t: recTitle(rec) }))) return;
+      const kept = qStore.items.filter(q => q.bookId === id).length;
+      if (!confirm(t('confirmDelete', { t: recTitle(rec) }) + (kept ? '\n\n' + t('qKept', { n: kept }) : ''))) return;
       state.books = state.books.filter(r => r.id !== id);
       delete bookCache[id];
       if (rec.idbKey) idbDelete(rec.idbKey).catch(() => {});
@@ -4735,7 +5107,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       saveState(); renderReader(); renderLibrary(); window.scrollTo(0, 0);
     }
     function backToBooks() {
-      readerPicked = false;
+      readerPicked = false; review = null;
       if (focusOn) toggleFocus(false);
       renderReader(); window.scrollTo(0, 0);
     }
@@ -4789,7 +5161,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const APP_OWNER = 'Piotr Żondełek';    // imię i nazwisko lub nazwa firmy administratora
     const APP_EMAIL = 'zondelek.p.p@gmail.com';    // adres e-mail do kontaktu (reklamacje, prywatność)
     const BMC_URL = 'https://buymeacoffee.com/Hieronim';      // np. 'https://buymeacoffee.com/twojanazwa'
-    const LEGAL = {"pl": {"terms": [["1. Postanowienia ogólne", "Regulamin określa zasady korzystania z bezpłatnej aplikacji PaKu („Aplikacja”), świadczonej drogą elektroniczną przez {owner} („Usługodawca”). Kontakt: {email}. Korzystanie z Aplikacji oznacza akceptację Regulaminu."], ["2. Rodzaj i zakres usługi", "Aplikacja jest czytnikiem e-booków (PWA), który odblokowuje rozdziały według ustalonego harmonogramu: umożliwia wczytywanie własnych plików, wyszukiwanie książek w serwisach z darmowymi lekturami, ustawianie harmonogramu, przypomnień i motywów oraz śledzenie postępów. Usługa jest świadczona nieodpłatnie, bez zakładania konta i bez rejestracji. Wszystkie funkcje Aplikacji są i będą darmowe."], ["3. Wymagania techniczne", "Do korzystania potrzebna jest nowoczesna przeglądarka z obsługą JavaScript, localStorage i IndexedDB. Internet jest potrzebny do instalacji, aktualizacji i funkcji sieciowych (np. wyszukiwanie książek). Powiadomienia zależą od urządzenia i przeglądarki i mogą nie działać niezawodnie."], ["4. Zasady korzystania", "Użytkownik wczytuje wyłącznie pliki, do których ma prawo. Aplikacja nie zawiera cudzych książek (poza krótkim tekstem przykładowym), nie udostępnia ich innym i nie obchodzi zabezpieczeń DRM. Zabronione jest dostarczanie za pomocą Aplikacji treści o charakterze bezprawnym oraz używanie jej w sposób zakłócający działanie. Wczytane książki pozostają na urządzeniu Użytkownika, a odpowiedzialność za zgodność z prawem autorskim ponosi Użytkownik."], ["Prawa autorskie i zakaz kopiowania", "Aplikacja PaKu, jej kod, układ, grafika, teksty, nazwa i ikona są chronione prawem autorskim. Bezpłatny dostęp nie jest licencją na kopiowanie. Bez pisemnej zgody Usługodawcy zabronione jest kopiowanie, powielanie, rozpowszechnianie, sprzedawanie, modyfikowanie, dekompilowanie Aplikacji ani tworzenie na jej podstawie własnych wersji czy publikowanie jej pod innym nazwiskiem lub nazwą. Wolno korzystać z Aplikacji osobiście i polecać ją innym, przekazując link lub kod QR. Użyte w Aplikacji biblioteki innych autorów podlegają własnym licencjom."], ["5. Dobrowolne wsparcie (Buy Me a Coffee)", "Wszystko w Aplikacji jest i będzie darmowe. Zakup wirtualnej kawy w serwisie Buy Me a Coffee jest całkowicie dobrowolny i służy wyłącznie wsparciu procesu twórczego. Nie jest opłatą za Aplikację, nie odblokowuje żadnych funkcji i nie daje dodatkowych praw. Płatność obsługuje zewnętrzny serwis na podstawie jego regulaminu."], ["6. Odpowiedzialność", "Aplikacja jest udostępniana w stanie, w jakim jest. Usługodawca dokłada starań, by działała poprawnie, ale nie gwarantuje nieprzerwanego działania ani niezawodności przypomnień. Dane są zapisane tylko na urządzeniu Użytkownika: wyczyszczenie danych przeglądarki lub usunięcie aplikacji usuwa książki i postępy. Postanowienie to nie wyłącza odpowiedzialności, której nie można wyłączyć na mocy prawa."], ["7. Reklamacje", "Uwagi i reklamacje dotyczące działania Aplikacji można zgłaszać na adres: {email}. Zgłoszenie powinno zawierać opis problemu oraz nazwę urządzenia i przeglądarki. Usługodawca rozpatruje je w ciągu 14 dni od otrzymania."], ["8. Zakończenie korzystania", "Użytkownik może w każdej chwili przestać korzystać z Aplikacji i usunąć swoje dane (usuwając książki, aplikację lub dane strony w przeglądarce). Usługodawca może zmienić lub zakończyć udostępnianie Aplikacji; informacja o tym pojawi się w Aplikacji."], ["9. Postanowienia końcowe", "O zmianach Regulaminu Usługodawca informuje w Aplikacji; zmiany nie działają wstecz. Stosuje się prawo polskie, z zachowaniem uprawnień konsumenta wynikających z bezwzględnie obowiązujących przepisów. Regulamin obowiązuje od 2026-11-16. W razie rozbieżności wiążąca jest wersja polska."]], "priv": [["1. Administrator", "Administratorem danych jest {owner}. Kontakt w sprawach prywatności: {email}."], ["2. Jakie dane i gdzie są przechowywane", "Aplikacja nie wymaga konta. Wczytane książki, postępy, ustawienia, godzina przypomnień oraz opcjonalna data urodzin (dzień i miesiąc) są zapisywane wyłącznie lokalnie na Twoim urządzeniu (localStorage, IndexedDB, pamięć podręczna aplikacji). Administrator nie otrzymuje tych danych i nie przechowuje ich na żadnym serwerze."], ["3. Cele i podstawy prawne", "Dane lokalne służą wyłącznie działaniu funkcji Aplikacji, którą sam uruchamiasz (art. 6 ust. 1 lit. b i f RODO). Data urodzin i powiadomienia są dobrowolne i oparte na Twojej zgodzie (art. 6 ust. 1 lit. a RODO); zgodę cofniesz w każdej chwili, usuwając datę lub wyłączając przypomnienia. Nie stosujemy profilowania ani zautomatyzowanego podejmowania decyzji."], ["4. Hosting i logi", "Aplikacja jest udostępniana przez GitHub Pages (GitHub, Inc.). Dostawca hostingu może przetwarzać adres IP i dane techniczne w dziennikach serwera, według własnej polityki prywatności, także poza Europejskim Obszarem Gospodarczym."], ["5. Usługi zewnętrzne", "Tylko jeśli z nich skorzystasz, Twoja przeglądarka połączy się bezpośrednio z: Wolne Lektury, Gutendex / Project Gutenberg (wyszukiwanie i pobieranie książek; przekazywany jest m.in. adres IP) oraz Buy Me a Coffee (dobrowolne wsparcie; dane płatności przetwarza ten serwis, Administrator ich nie widzi). Zasady tych serwisów są opisane w ich własnych politykach prywatności."], ["6. Pliki cookies i pamięć lokalna", "Aplikacja nie używa cookies reklamowych ani analitycznych i nie śledzi użytkowników. Pamięć lokalna przeglądarki jest niezbędna do świadczenia usługi, w której korzystasz z Aplikacji."], ["7. Odbiorcy i okres przechowywania", "Administrator nie przekazuje danych osobom trzecim. Dane lokalne są przechowywane na urządzeniu do czasu ich usunięcia przez Ciebie (usunięcie książki, reset postępu, wyczyszczenie danych witryny lub odinstalowanie aplikacji)."], ["8. Twoje prawa", "W zakresie, w jakim Administrator przetwarza dane, przysługuje Ci prawo dostępu, sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia, sprzeciwu oraz cofnięcia zgody, a także skargi do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, Warszawa). Ponieważ dane są na Twoim urządzeniu, większość z tych praw wykonasz sam w Aplikacji. Kontakt: {email}."], ["9. Dzieci i zmiany", "Funkcje oparte na zgodzie (powiadomienia, data urodzin) powinny być włączane przez osoby, które ukończyły 16 lat, lub za zgodą opiekuna. O zmianach polityki informujemy w Aplikacji. Obowiązuje od 2026-11-16. W razie rozbieżności wiążąca jest wersja polska."]]}, "en": {"terms": [["1. General", "These Terms set out the rules for using the free PaKu app (the “App”), provided electronically by {owner} (the “Provider”). Contact: {email}. Using the App means you accept these Terms."], ["2. Service", "The App is an e-book reader (PWA) that unlocks chapters on a schedule: you can load your own files, search free-book sites, set schedules, reminders and themes, and track progress. The service is free, with no account or registration. Every feature of the App is and will remain free."], ["3. Technical requirements", "You need a modern browser with JavaScript, localStorage and IndexedDB. Internet is needed for installation, updates and online features (e.g. book search). Notifications depend on your device and browser and may not work reliably."], ["4. Rules of use", "Load only files you have the right to use. The App contains no third-party books (apart from a short sample text), does not share books with others and does not bypass DRM. Delivering unlawful content through the App or disrupting it is prohibited. Loaded books stay on your device and you are responsible for copyright compliance."], ["Copyright and no copying", "The PaKu app, its code, layout, graphics, texts, name and icon are protected by copyright. Free access is not a licence to copy. Without the Provider’s written consent you may not copy, reproduce, distribute, sell, modify or decompile the App, create your own versions based on it, or publish it under another name. You may use the App personally and recommend it to others by sharing the link or QR code. Third-party libraries used in the App are subject to their own licences."], ["5. Voluntary support (Buy Me a Coffee)", "Everything in the App is and will stay free. Buying a virtual coffee on Buy Me a Coffee is entirely voluntary and only supports the creative process. It is not a fee for the App, unlocks no features and grants no extra rights. Payment is handled by that external service under its own terms."], ["6. Liability", "The App is provided “as is”. The Provider takes care that it works properly but does not guarantee uninterrupted operation or reliable reminders. Data is stored only on your device: clearing browser data or removing the app deletes books and progress. This does not exclude liability that cannot be excluded by law."], ["7. Complaints", "Send feedback and complaints about the App to {email}, describing the problem and your device and browser. The Provider will respond within 14 days."], ["8. Ending use", "You may stop using the App and delete your data at any time (delete books, the app or site data in your browser). The Provider may change or discontinue the App; notice will be given in the App."], ["9. Final provisions", "Changes to the Terms are announced in the App and are not retroactive. Polish law applies, without prejudice to mandatory consumer rights. Effective from 2026-11-16. The Polish version prevails in case of discrepancy."]], "priv": [["1. Controller", "The controller is {owner}. Privacy contact: {email}."], ["2. What data and where", "The App needs no account. Loaded books, progress, settings, reminder time and the optional birthday (day and month) are stored only locally on your device (localStorage, IndexedDB, app cache). The controller does not receive this data or store it on any server."], ["3. Purposes and legal bases", "Local data only makes the App’s features work, which you start yourself (Art. 6(1)(b) and (f) GDPR). Birthday and notifications are optional and based on your consent (Art. 6(1)(a) GDPR); withdraw it any time by removing the date or turning reminders off. There is no profiling or automated decision-making."], ["4. Hosting and logs", "The App is served by GitHub Pages (GitHub, Inc.). The host may process your IP address and technical data in server logs under its own privacy policy, including outside the European Economic Area."], ["5. External services", "Only if you use them, your browser connects directly to: Wolne Lektury, Gutendex / Project Gutenberg (book search and download; your IP address is sent) and Buy Me a Coffee (voluntary support; that service processes payment data, the controller never sees it). Their own privacy policies apply."], ["6. Cookies and local storage", "The App uses no advertising or analytics cookies and does not track users. Browser local storage is strictly necessary to provide the service you use."], ["7. Recipients and retention", "The controller shares no data with third parties. Local data stays on your device until you delete it (delete a book, reset progress, clear site data or uninstall the app)."], ["8. Your rights", "To the extent the controller processes data, you have the rights of access, rectification, erasure, restriction, portability, objection and withdrawal of consent, and to complain to the Polish supervisory authority (UODO, ul. Stawki 2, Warsaw) or your local authority. Since data is on your device, you can exercise most rights yourself in the App. Contact: {email}."], ["9. Children and changes", "Consent-based features (notifications, birthday) should be turned on by people aged 16+ or with a guardian’s consent. Changes are announced in the App. Effective from 2026-11-16. The Polish version prevails in case of discrepancy."]]}, "de": {"terms": [["1. Allgemeines", "Diese Nutzungsbedingungen regeln die Nutzung der kostenlosen App PaKu („App“), die elektronisch von {owner} („Anbieter“) bereitgestellt wird. Kontakt: {email}. Mit der Nutzung akzeptierst du diese Bedingungen."], ["2. Leistung", "Die App ist ein E-Book-Reader (PWA), der Kapitel nach Zeitplan freischaltet: eigene Dateien laden, Gratis-Bücher suchen, Zeitpläne, Erinnerungen und Designs einstellen, Fortschritt verfolgen. Der Dienst ist kostenlos, ohne Konto und ohne Registrierung. Alle Funktionen sind und bleiben kostenlos."], ["3. Technische Voraussetzungen", "Nötig ist ein moderner Browser mit JavaScript, localStorage und IndexedDB. Internet wird für Installation, Updates und Online-Funktionen (z. B. Buchsuche) gebraucht. Benachrichtigungen hängen von Gerät und Browser ab und funktionieren evtl. nicht zuverlässig."], ["4. Nutzungsregeln", "Lade nur Dateien, zu deren Nutzung du berechtigt bist. Die App enthält keine fremden Bücher (außer einem kurzen Beispieltext), gibt keine Bücher weiter und umgeht keinen DRM-Schutz. Rechtswidrige Inhalte und Störungen des Betriebs sind untersagt. Geladene Bücher bleiben auf deinem Gerät; für die Einhaltung des Urheberrechts bist du verantwortlich."], ["Urheberrecht und Kopierverbot", "Die App PaKu, ihr Code, Layout, Grafiken, Texte, Name und Icon sind urheberrechtlich geschützt. Kostenloser Zugang ist keine Kopierlizenz. Ohne schriftliche Zustimmung des Anbieters ist es untersagt, die App zu kopieren, zu vervielfältigen, zu verbreiten, zu verkaufen, zu verändern oder zu dekompilieren, eigene Versionen darauf aufzubauen oder sie unter anderem Namen zu veröffentlichen. Du darfst die App persönlich nutzen und per Link oder QR-Code weiterempfehlen. Verwendete Bibliotheken Dritter unterliegen eigenen Lizenzen."], ["5. Freiwillige Unterstützung (Buy Me a Coffee)", "Alles in der App ist und bleibt kostenlos. Der Kauf eines virtuellen Kaffees bei Buy Me a Coffee ist völlig freiwillig und unterstützt nur den kreativen Prozess. Er ist kein Entgelt für die App, schaltet keine Funktionen frei und gibt keine zusätzlichen Rechte. Die Zahlung wickelt der externe Dienst nach seinen eigenen Bedingungen ab."], ["6. Haftung", "Die App wird „wie besehen“ bereitgestellt. Der Anbieter bemüht sich um einwandfreien Betrieb, garantiert aber weder unterbrechungsfreien Betrieb noch zuverlässige Erinnerungen. Daten liegen nur auf deinem Gerät: Löschen der Browserdaten oder der App entfernt Bücher und Fortschritt. Gesetzlich nicht ausschließbare Haftung bleibt unberührt."], ["7. Beschwerden", "Rückmeldungen und Beschwerden an {email} mit Beschreibung des Problems sowie Gerät und Browser. Der Anbieter antwortet innerhalb von 14 Tagen."], ["8. Beendigung", "Du kannst die App jederzeit nicht mehr nutzen und deine Daten löschen (Bücher, App oder Websitedaten im Browser). Der Anbieter kann die App ändern oder einstellen; ein Hinweis erscheint in der App."], ["9. Schlussbestimmungen", "Änderungen werden in der App bekannt gegeben und wirken nicht rückwirkend. Es gilt polnisches Recht, zwingende Verbraucherrechte bleiben unberührt. Gültig ab 2026-11-16. Bei Abweichungen gilt die polnische Fassung."]], "priv": [["1. Verantwortlicher", "Verantwortlicher ist {owner}. Kontakt für Datenschutzfragen: {email}."], ["2. Welche Daten und wo", "Die App braucht kein Konto. Geladene Bücher, Fortschritt, Einstellungen, Erinnerungszeit und das optionale Geburtsdatum (Tag und Monat) werden nur lokal auf deinem Gerät gespeichert (localStorage, IndexedDB, App-Cache). Der Verantwortliche erhält diese Daten nicht und speichert sie auf keinem Server."], ["3. Zwecke und Rechtsgrundlagen", "Lokale Daten dienen nur dazu, die von dir gestarteten Funktionen der App zu betreiben (Art. 6 Abs. 1 lit. b und f DSGVO). Geburtsdatum und Benachrichtigungen sind freiwillig und beruhen auf deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO); du kannst sie jederzeit widerrufen, indem du das Datum entfernst oder Erinnerungen ausschaltest. Kein Profiling, keine automatisierten Entscheidungen."], ["4. Hosting und Logs", "Die App wird über GitHub Pages (GitHub, Inc.) ausgeliefert. Der Hoster kann IP-Adresse und technische Daten in Server-Logs nach eigener Datenschutzerklärung verarbeiten, auch außerhalb des EWR."], ["5. Externe Dienste", "Nur wenn du sie nutzt, verbindet sich dein Browser direkt mit: Wolne Lektury, Gutendex / Project Gutenberg (Buchsuche und Download; deine IP-Adresse wird übermittelt) und Buy Me a Coffee (freiwillige Unterstützung; Zahlungsdaten verarbeitet dieser Dienst, der Verantwortliche sieht sie nicht). Es gelten deren eigene Datenschutzerklärungen."], ["6. Cookies und lokaler Speicher", "Die App verwendet keine Werbe- oder Analyse-Cookies und trackt niemanden. Der lokale Browserspeicher ist für den Dienst unbedingt erforderlich."], ["7. Empfänger und Speicherdauer", "Der Verantwortliche gibt keine Daten an Dritte weiter. Lokale Daten bleiben auf deinem Gerät, bis du sie löschst (Buch löschen, Fortschritt zurücksetzen, Websitedaten löschen oder App deinstallieren)."], ["8. Deine Rechte", "Soweit der Verantwortliche Daten verarbeitet, hast du Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Übertragbarkeit, Widerspruch und Widerruf der Einwilligung sowie auf Beschwerde bei der polnischen Aufsichtsbehörde (UODO, ul. Stawki 2, Warschau) oder deiner örtlichen Behörde. Da die Daten auf deinem Gerät liegen, kannst du die meisten Rechte selbst in der App ausüben. Kontakt: {email}."], ["9. Kinder und Änderungen", "Einwilligungsbasierte Funktionen (Benachrichtigungen, Geburtsdatum) sollten ab 16 Jahren oder mit Zustimmung der Eltern aktiviert werden. Änderungen werden in der App bekannt gegeben. Gültig ab 2026-11-16. Bei Abweichungen gilt die polnische Fassung."]]}, "es": {"terms": [["1. Disposiciones generales", "Estas condiciones regulan el uso de la aplicación gratuita PaKu («la App»), prestada por vía electrónica por {owner} («el Proveedor»). Contacto: {email}. Usar la App implica aceptar estas condiciones."], ["2. Servicio", "La App es un lector de libros electrónicos (PWA) que desbloquea capítulos según un calendario: permite cargar tus propios archivos, buscar libros gratuitos, configurar calendario, recordatorios y temas, y seguir tu progreso. El servicio es gratuito, sin cuenta ni registro. Todas las funciones de la App son y seguirán siendo gratuitas."], ["3. Requisitos técnicos", "Necesitas un navegador moderno con JavaScript, localStorage e IndexedDB. Internet hace falta para instalar, actualizar y usar funciones en línea (p. ej. búsqueda de libros). Las notificaciones dependen del dispositivo y del navegador y pueden no funcionar de forma fiable."], ["4. Normas de uso", "Carga solo archivos que tengas derecho a usar. La App no incluye libros de terceros (salvo un breve texto de ejemplo), no los comparte y no elude el DRM. Está prohibido entregar contenidos ilícitos con la App o perturbar su funcionamiento. Los libros cargados permanecen en tu dispositivo y eres responsable de respetar los derechos de autor."], ["Derechos de autor y prohibición de copiar", "La app PaKu, su código, diseño, gráficos, textos, nombre e icono están protegidos por derechos de autor. El acceso gratuito no es una licencia de copia. Sin el consentimiento escrito del Proveedor está prohibido copiar, reproducir, distribuir, vender, modificar o descompilar la App, crear versiones propias a partir de ella o publicarla con otro nombre. Puedes usarla personalmente y recomendarla a otros compartiendo el enlace o el código QR. Las bibliotecas de terceros utilizadas se rigen por sus propias licencias."], ["5. Apoyo voluntario (Buy Me a Coffee)", "Todo en la App es y seguirá siendo gratuito. Comprar un café virtual en Buy Me a Coffee es totalmente voluntario y solo apoya el proceso creativo. No es un pago por la App, no desbloquea funciones ni da derechos adicionales. El pago lo gestiona ese servicio externo según sus propias condiciones."], ["6. Responsabilidad", "La App se ofrece «tal cual». El Proveedor se esfuerza por que funcione bien, pero no garantiza un funcionamiento ininterrumpido ni recordatorios fiables. Los datos se guardan solo en tu dispositivo: borrar los datos del navegador o la app elimina libros y progreso. Esto no excluye la responsabilidad que la ley no permite excluir."], ["7. Reclamaciones", "Envía comentarios y reclamaciones a {email}, describiendo el problema y tu dispositivo y navegador. El Proveedor responderá en 14 días."], ["8. Fin del uso", "Puedes dejar de usar la App y borrar tus datos en cualquier momento (libros, app o datos del sitio en el navegador). El Proveedor puede modificar o cerrar la App; se avisará en la App."], ["9. Disposiciones finales", "Los cambios se anunciarán en la App y no son retroactivos. Se aplica el derecho polaco, sin perjuicio de los derechos imperativos del consumidor. En vigor desde 2026-11-16. En caso de discrepancia prevalece la versión polaca."]], "priv": [["1. Responsable", "El responsable es {owner}. Contacto de privacidad: {email}."], ["2. Qué datos y dónde", "La App no requiere cuenta. Los libros cargados, el progreso, los ajustes, la hora de los recordatorios y la fecha de cumpleaños opcional (día y mes) se guardan solo localmente en tu dispositivo (localStorage, IndexedDB, caché de la app). El responsable no recibe estos datos ni los almacena en ningún servidor."], ["3. Finalidades y bases jurídicas", "Los datos locales solo sirven para que funcionen las funciones de la App que tú inicias (art. 6.1.b y f RGPD). El cumpleaños y las notificaciones son opcionales y se basan en tu consentimiento (art. 6.1.a RGPD); puedes retirarlo en cualquier momento borrando la fecha o desactivando los recordatorios. No hay perfilado ni decisiones automatizadas."], ["4. Alojamiento y registros", "La App se sirve mediante GitHub Pages (GitHub, Inc.). El proveedor de alojamiento puede tratar tu dirección IP y datos técnicos en registros del servidor según su propia política, incluso fuera del Espacio Económico Europeo."], ["5. Servicios externos", "Solo si los usas, tu navegador se conecta directamente con: Wolne Lektury, Gutendex / Project Gutenberg (búsqueda y descarga de libros; se envía tu dirección IP) y Buy Me a Coffee (apoyo voluntario; ese servicio trata los datos de pago, el responsable no los ve). Se aplican sus propias políticas de privacidad."], ["6. Cookies y almacenamiento local", "La App no usa cookies publicitarias ni analíticas y no rastrea a los usuarios. El almacenamiento local del navegador es estrictamente necesario para prestar el servicio."], ["7. Destinatarios y conservación", "El responsable no cede datos a terceros. Los datos locales permanecen en tu dispositivo hasta que los borres (eliminar un libro, reiniciar el progreso, borrar los datos del sitio o desinstalar la app)."], ["8. Tus derechos", "En la medida en que el responsable trate datos, tienes derecho de acceso, rectificación, supresión, limitación, portabilidad, oposición y retirada del consentimiento, y a reclamar ante la autoridad polaca (UODO, ul. Stawki 2, Varsovia) o la de tu país. Como los datos están en tu dispositivo, puedes ejercer la mayoría de los derechos tú mismo en la App. Contacto: {email}."], ["9. Menores y cambios", "Las funciones basadas en consentimiento (notificaciones, cumpleaños) deben activarlas personas de 16 años o más, o con permiso de su tutor. Los cambios se anunciarán en la App. En vigor desde 2026-11-16. En caso de discrepancia prevalece la versión polaca."]]}, "uk": {"terms": [["1. Загальні положення", "Цей регламент визначає правила користування безкоштовним застосунком PaKu («Застосунок»), який надає в електронній формі {owner} («Постачальник»). Контакт: {email}. Користування Застосунком означає прийняття регламенту."], ["2. Послуга", "Застосунок — це читалка електронних книжок (PWA), яка відкриває розділи за розкладом: можна завантажувати власні файли, шукати безкоштовні книжки, налаштовувати розклад, нагадування й теми та стежити за прогресом. Послуга безкоштовна, без облікового запису й реєстрації. Усі функції Застосунку є й залишаться безкоштовними."], ["3. Технічні вимоги", "Потрібен сучасний браузер із JavaScript, localStorage та IndexedDB. Інтернет потрібен для встановлення, оновлень і онлайн-функцій (наприклад, пошук книжок). Сповіщення залежать від пристрою й браузера та можуть працювати ненадійно."], ["4. Правила користування", "Завантажуйте лише файли, на використання яких маєте право. Застосунок не містить чужих книжок (окрім короткого тексту-прикладу), не передає їх іншим і не обходить захист DRM. Заборонено передавати через Застосунок протиправний вміст і порушувати його роботу. Завантажені книжки лишаються на вашому пристрої, а за дотримання авторського права відповідаєте ви."], ["Авторське право та заборона копіювання", "Застосунок PaKu, його код, макет, графіка, тексти, назва й іконка захищені авторським правом. Безкоштовний доступ не є ліцензією на копіювання. Без письмової згоди Постачальника заборонено копіювати, відтворювати, поширювати, продавати, змінювати чи декомпілювати Застосунок, створювати на його основі власні версії або публікувати його під іншим іменем чи назвою. Користуватися Застосунком особисто й радити його іншим за допомогою посилання чи QR-коду можна. Використані сторонні бібліотеки підпадають під власні ліцензії."], ["5. Добровільна підтримка (Buy Me a Coffee)", "Усе в Застосунку є й залишиться безкоштовним. Придбання віртуальної кави на Buy Me a Coffee цілком добровільне й лише підтримує творчий процес. Це не плата за Застосунок, воно нічого не відкриває й не надає додаткових прав. Платіж обробляє сторонній сервіс за власними правилами."], ["6. Відповідальність", "Застосунок надається «як є». Постачальник дбає про його справну роботу, але не гарантує безперервності та надійності нагадувань. Дані зберігаються лише на вашому пристрої: очищення даних браузера чи видалення застосунку видаляє книжки та прогрес. Це не виключає відповідальності, яку не можна виключити законом."], ["7. Скарги", "Зауваження й скарги надсилайте на {email}, описавши проблему, пристрій і браузер. Постачальник відповість упродовж 14 днів."], ["8. Припинення користування", "Ви можете будь-коли припинити користування й видалити свої дані (книжки, застосунок або дані сайту в браузері). Постачальник може змінити чи припинити Застосунок; повідомлення з’явиться в Застосунку."], ["9. Прикінцеві положення", "Про зміни повідомляється в Застосунку; вони не діють заднім числом. Застосовується польське право без шкоди для обов’язкових прав споживача. Діє з 2026-11-16. У разі розбіжностей визначальною є польська версія."]], "priv": [["1. Контролер даних", "Контролер — {owner}. Контакт з питань приватності: {email}."], ["2. Які дані та де", "Застосунок не потребує облікового запису. Завантажені книжки, прогрес, налаштування, час нагадувань і необов’язкова дата народження (день і місяць) зберігаються лише локально на вашому пристрої (localStorage, IndexedDB, кеш застосунку). Контролер не отримує цих даних і не зберігає їх на жодному сервері."], ["3. Цілі та правові підстави", "Локальні дані потрібні лише для роботи функцій, які ви запускаєте самі (ст. 6(1)(b) і (f) GDPR). Дата народження й сповіщення необов’язкові та ґрунтуються на вашій згоді (ст. 6(1)(a) GDPR); її можна відкликати будь-коли, видаливши дату або вимкнувши нагадування. Профілювання й автоматизованих рішень немає."], ["4. Хостинг і журнали", "Застосунок розміщено на GitHub Pages (GitHub, Inc.). Хостинг-провайдер може обробляти IP-адресу й технічні дані в журналах сервера за власною політикою, зокрема поза Європейською економічною зоною."], ["5. Зовнішні сервіси", "Лише якщо ви ними користуєтеся, браузер напряму з’єднується з: Wolne Lektury, Gutendex / Project Gutenberg (пошук і завантаження книжок; передається IP-адреса) та Buy Me a Coffee (добровільна підтримка; платіжні дані обробляє цей сервіс, контролер їх не бачить). Діють їхні власні політики приватності."], ["6. Cookies і локальне сховище", "Застосунок не використовує рекламних чи аналітичних cookies і не стежить за користувачами. Локальне сховище браузера необхідне для надання послуги."], ["7. Одержувачі та строк зберігання", "Контролер не передає дані третім особам. Локальні дані лишаються на пристрої, доки ви їх не видалите (видалення книжки, скидання прогресу, очищення даних сайту або видалення застосунку)."], ["8. Ваші права", "Тією мірою, якою контролер обробляє дані, ви маєте право на доступ, виправлення, видалення, обмеження, перенесення, заперечення та відкликання згоди, а також на скаргу до польського наглядового органу (UODO, ul. Stawki 2, Варшава) або до органу у вашій країні. Оскільки дані на вашому пристрої, більшість прав ви можете реалізувати самі в Застосунку. Контакт: {email}."], ["9. Діти та зміни", "Функції, що ґрунтуються на згоді (сповіщення, дата народження), мають вмикати особи від 16 років або за згодою опікуна. Про зміни повідомляється в Застосунку. Діє з 2026-11-16. У разі розбіжностей визначальною є польська версія."]]}};
+    const LEGAL = {"pl": {"terms": [["1. Postanowienia ogólne", "Regulamin określa zasady korzystania z bezpłatnej aplikacji PaKu („Aplikacja”), świadczonej drogą elektroniczną przez {owner} („Usługodawca”). Kontakt: {email}. Korzystanie z Aplikacji oznacza akceptację Regulaminu."], ["2. Rodzaj i zakres usługi", "Aplikacja jest czytnikiem e-booków (PWA), który odblokowuje rozdziały według ustalonego harmonogramu: umożliwia wczytywanie własnych plików, wyszukiwanie książek w serwisach z darmowymi lekturami, ustawianie harmonogramu, przypomnień i motywów oraz śledzenie postępów. Usługa jest świadczona nieodpłatnie, bez zakładania konta i bez rejestracji. Wszystkie funkcje Aplikacji są i będą darmowe."], ["3. Wymagania techniczne", "Do korzystania potrzebna jest nowoczesna przeglądarka z obsługą JavaScript, localStorage i IndexedDB. Internet jest potrzebny do instalacji, aktualizacji i funkcji sieciowych (np. wyszukiwanie książek). Powiadomienia zależą od urządzenia i przeglądarki i mogą nie działać niezawodnie."], ["4. Zasady korzystania", "Użytkownik wczytuje wyłącznie pliki, do których ma prawo. Aplikacja nie zawiera cudzych książek (poza krótkim tekstem przykładowym), nie udostępnia ich innym i nie obchodzi zabezpieczeń DRM. Zabronione jest dostarczanie za pomocą Aplikacji treści o charakterze bezprawnym oraz używanie jej w sposób zakłócający działanie. Wczytane książki pozostają na urządzeniu Użytkownika, a odpowiedzialność za zgodność z prawem autorskim ponosi Użytkownik. Cytaty i zakładki zapisane w Aplikacji służą do użytku osobistego; za zgodność ich dalszego wykorzystania z prawem (w tym z zasadami dozwolonego cytatu) odpowiada Użytkownik."], ["Prawa autorskie i zakaz kopiowania", "Aplikacja PaKu, jej kod, układ, grafika, teksty, nazwa i ikona są chronione prawem autorskim. Bezpłatny dostęp nie jest licencją na kopiowanie. Bez pisemnej zgody Usługodawcy zabronione jest kopiowanie, powielanie, rozpowszechnianie, sprzedawanie, modyfikowanie, dekompilowanie Aplikacji ani tworzenie na jej podstawie własnych wersji czy publikowanie jej pod innym nazwiskiem lub nazwą. Wolno korzystać z Aplikacji osobiście i polecać ją innym, przekazując link lub kod QR. Użyte w Aplikacji biblioteki innych autorów podlegają własnym licencjom."], ["5. Dobrowolne wsparcie (Buy Me a Coffee)", "Wszystko w Aplikacji jest i będzie darmowe. Zakup wirtualnej kawy w serwisie Buy Me a Coffee jest całkowicie dobrowolny i służy wyłącznie wsparciu procesu twórczego. Nie jest opłatą za Aplikację, nie odblokowuje żadnych funkcji i nie daje dodatkowych praw. Płatność obsługuje zewnętrzny serwis na podstawie jego regulaminu."], ["6. Odpowiedzialność", "Aplikacja jest udostępniana w stanie, w jakim jest. Usługodawca dokłada starań, by działała poprawnie, ale nie gwarantuje nieprzerwanego działania ani niezawodności przypomnień. Dane są zapisane tylko na urządzeniu Użytkownika: wyczyszczenie danych przeglądarki lub usunięcie aplikacji usuwa książki i postępy. Postanowienie to nie wyłącza odpowiedzialności, której nie można wyłączyć na mocy prawa."], ["7. Reklamacje", "Uwagi i reklamacje dotyczące działania Aplikacji można zgłaszać na adres: {email}. Zgłoszenie powinno zawierać opis problemu oraz nazwę urządzenia i przeglądarki. Usługodawca rozpatruje je w ciągu 14 dni od otrzymania."], ["8. Zakończenie korzystania", "Użytkownik może w każdej chwili przestać korzystać z Aplikacji i usunąć swoje dane (usuwając książki, aplikację lub dane strony w przeglądarce). Usługodawca może zmienić lub zakończyć udostępnianie Aplikacji; informacja o tym pojawi się w Aplikacji."], ["9. Postanowienia końcowe", "O zmianach Regulaminu Usługodawca informuje w Aplikacji; zmiany nie działają wstecz. Stosuje się prawo polskie, z zachowaniem uprawnień konsumenta wynikających z bezwzględnie obowiązujących przepisów. Regulamin obowiązuje od 2026-11-16. W razie rozbieżności wiążąca jest wersja polska."]], "priv": [["1. Administrator", "Administratorem danych jest {owner}. Kontakt w sprawach prywatności: {email}."], ["2. Jakie dane i gdzie są przechowywane", "Aplikacja nie wymaga konta. Wczytane książki, postępy, zapisane cytaty i zakładki (z opisem bibliograficznym), ustawienia, godzina przypomnień oraz opcjonalna data urodzin (dzień i miesiąc) są zapisywane wyłącznie lokalnie na Twoim urządzeniu (localStorage, IndexedDB, pamięć podręczna aplikacji). Administrator nie otrzymuje tych danych i nie przechowuje ich na żadnym serwerze."], ["3. Cele i podstawy prawne", "Dane lokalne służą wyłącznie działaniu funkcji Aplikacji, którą sam uruchamiasz (art. 6 ust. 1 lit. b i f RODO). Data urodzin i powiadomienia są dobrowolne i oparte na Twojej zgodzie (art. 6 ust. 1 lit. a RODO); zgodę cofniesz w każdej chwili, usuwając datę lub wyłączając przypomnienia. Nie stosujemy profilowania ani zautomatyzowanego podejmowania decyzji."], ["4. Hosting i logi", "Aplikacja jest udostępniana przez GitHub Pages (GitHub, Inc.). Dostawca hostingu może przetwarzać adres IP i dane techniczne w dziennikach serwera, według własnej polityki prywatności, także poza Europejskim Obszarem Gospodarczym."], ["5. Usługi zewnętrzne", "Tylko jeśli z nich skorzystasz, Twoja przeglądarka połączy się bezpośrednio z: Wolne Lektury, Gutendex / Project Gutenberg (wyszukiwanie i pobieranie książek; przekazywany jest m.in. adres IP) oraz Buy Me a Coffee (dobrowolne wsparcie; dane płatności przetwarza ten serwis, Administrator ich nie widzi). Zasady tych serwisów są opisane w ich własnych politykach prywatności."], ["6. Pliki cookies i pamięć lokalna", "Aplikacja nie używa cookies reklamowych ani analitycznych i nie śledzi użytkowników. Pamięć lokalna przeglądarki jest niezbędna do świadczenia usługi, w której korzystasz z Aplikacji."], ["7. Odbiorcy i okres przechowywania", "Administrator nie przekazuje danych osobom trzecim. Dane lokalne są przechowywane na urządzeniu do czasu ich usunięcia przez Ciebie (usunięcie książki, reset postępu, wyczyszczenie danych witryny lub odinstalowanie aplikacji)."], ["8. Twoje prawa", "W zakresie, w jakim Administrator przetwarza dane, przysługuje Ci prawo dostępu, sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia, sprzeciwu oraz cofnięcia zgody, a także skargi do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, Warszawa). Ponieważ dane są na Twoim urządzeniu, większość z tych praw wykonasz sam w Aplikacji. Kontakt: {email}."], ["9. Dzieci i zmiany", "Funkcje oparte na zgodzie (powiadomienia, data urodzin) powinny być włączane przez osoby, które ukończyły 16 lat, lub za zgodą opiekuna. O zmianach polityki informujemy w Aplikacji. Obowiązuje od 2026-11-16. W razie rozbieżności wiążąca jest wersja polska."]]}, "en": {"terms": [["1. General", "These Terms set out the rules for using the free PaKu app (the “App”), provided electronically by {owner} (the “Provider”). Contact: {email}. Using the App means you accept these Terms."], ["2. Service", "The App is an e-book reader (PWA) that unlocks chapters on a schedule: you can load your own files, search free-book sites, set schedules, reminders and themes, and track progress. The service is free, with no account or registration. Every feature of the App is and will remain free."], ["3. Technical requirements", "You need a modern browser with JavaScript, localStorage and IndexedDB. Internet is needed for installation, updates and online features (e.g. book search). Notifications depend on your device and browser and may not work reliably."], ["4. Rules of use", "Load only files you have the right to use. The App contains no third-party books (apart from a short sample text), does not share books with others and does not bypass DRM. Delivering unlawful content through the App or disrupting it is prohibited. Loaded books stay on your device and you are responsible for copyright compliance. Quotes and bookmarks saved in the App are for personal use; you are responsible for any further use complying with the law (including the rules on quotation)."], ["Copyright and no copying", "The PaKu app, its code, layout, graphics, texts, name and icon are protected by copyright. Free access is not a licence to copy. Without the Provider’s written consent you may not copy, reproduce, distribute, sell, modify or decompile the App, create your own versions based on it, or publish it under another name. You may use the App personally and recommend it to others by sharing the link or QR code. Third-party libraries used in the App are subject to their own licences."], ["5. Voluntary support (Buy Me a Coffee)", "Everything in the App is and will stay free. Buying a virtual coffee on Buy Me a Coffee is entirely voluntary and only supports the creative process. It is not a fee for the App, unlocks no features and grants no extra rights. Payment is handled by that external service under its own terms."], ["6. Liability", "The App is provided “as is”. The Provider takes care that it works properly but does not guarantee uninterrupted operation or reliable reminders. Data is stored only on your device: clearing browser data or removing the app deletes books and progress. This does not exclude liability that cannot be excluded by law."], ["7. Complaints", "Send feedback and complaints about the App to {email}, describing the problem and your device and browser. The Provider will respond within 14 days."], ["8. Ending use", "You may stop using the App and delete your data at any time (delete books, the app or site data in your browser). The Provider may change or discontinue the App; notice will be given in the App."], ["9. Final provisions", "Changes to the Terms are announced in the App and are not retroactive. Polish law applies, without prejudice to mandatory consumer rights. Effective from 2026-11-16. The Polish version prevails in case of discrepancy."]], "priv": [["1. Controller", "The controller is {owner}. Privacy contact: {email}."], ["2. What data and where", "The App needs no account. Loaded books, progress, saved quotes and bookmarks (with bibliographic details), settings, reminder time and the optional birthday (day and month) are stored only locally on your device (localStorage, IndexedDB, app cache). The controller does not receive this data or store it on any server."], ["3. Purposes and legal bases", "Local data only makes the App’s features work, which you start yourself (Art. 6(1)(b) and (f) GDPR). Birthday and notifications are optional and based on your consent (Art. 6(1)(a) GDPR); withdraw it any time by removing the date or turning reminders off. There is no profiling or automated decision-making."], ["4. Hosting and logs", "The App is served by GitHub Pages (GitHub, Inc.). The host may process your IP address and technical data in server logs under its own privacy policy, including outside the European Economic Area."], ["5. External services", "Only if you use them, your browser connects directly to: Wolne Lektury, Gutendex / Project Gutenberg (book search and download; your IP address is sent) and Buy Me a Coffee (voluntary support; that service processes payment data, the controller never sees it). Their own privacy policies apply."], ["6. Cookies and local storage", "The App uses no advertising or analytics cookies and does not track users. Browser local storage is strictly necessary to provide the service you use."], ["7. Recipients and retention", "The controller shares no data with third parties. Local data stays on your device until you delete it (delete a book, reset progress, clear site data or uninstall the app)."], ["8. Your rights", "To the extent the controller processes data, you have the rights of access, rectification, erasure, restriction, portability, objection and withdrawal of consent, and to complain to the Polish supervisory authority (UODO, ul. Stawki 2, Warsaw) or your local authority. Since data is on your device, you can exercise most rights yourself in the App. Contact: {email}."], ["9. Children and changes", "Consent-based features (notifications, birthday) should be turned on by people aged 16+ or with a guardian’s consent. Changes are announced in the App. Effective from 2026-11-16. The Polish version prevails in case of discrepancy."]]}, "de": {"terms": [["1. Allgemeines", "Diese Nutzungsbedingungen regeln die Nutzung der kostenlosen App PaKu („App“), die elektronisch von {owner} („Anbieter“) bereitgestellt wird. Kontakt: {email}. Mit der Nutzung akzeptierst du diese Bedingungen."], ["2. Leistung", "Die App ist ein E-Book-Reader (PWA), der Kapitel nach Zeitplan freischaltet: eigene Dateien laden, Gratis-Bücher suchen, Zeitpläne, Erinnerungen und Designs einstellen, Fortschritt verfolgen. Der Dienst ist kostenlos, ohne Konto und ohne Registrierung. Alle Funktionen sind und bleiben kostenlos."], ["3. Technische Voraussetzungen", "Nötig ist ein moderner Browser mit JavaScript, localStorage und IndexedDB. Internet wird für Installation, Updates und Online-Funktionen (z. B. Buchsuche) gebraucht. Benachrichtigungen hängen von Gerät und Browser ab und funktionieren evtl. nicht zuverlässig."], ["4. Nutzungsregeln", "Lade nur Dateien, zu deren Nutzung du berechtigt bist. Die App enthält keine fremden Bücher (außer einem kurzen Beispieltext), gibt keine Bücher weiter und umgeht keinen DRM-Schutz. Rechtswidrige Inhalte und Störungen des Betriebs sind untersagt. Geladene Bücher bleiben auf deinem Gerät; für die Einhaltung des Urheberrechts bist du verantwortlich. In der App gespeicherte Zitate und Lesezeichen dienen dem persönlichen Gebrauch; für die rechtmäßige Weiterverwendung (einschließlich der Zitatregeln) bist du verantwortlich."], ["Urheberrecht und Kopierverbot", "Die App PaKu, ihr Code, Layout, Grafiken, Texte, Name und Icon sind urheberrechtlich geschützt. Kostenloser Zugang ist keine Kopierlizenz. Ohne schriftliche Zustimmung des Anbieters ist es untersagt, die App zu kopieren, zu vervielfältigen, zu verbreiten, zu verkaufen, zu verändern oder zu dekompilieren, eigene Versionen darauf aufzubauen oder sie unter anderem Namen zu veröffentlichen. Du darfst die App persönlich nutzen und per Link oder QR-Code weiterempfehlen. Verwendete Bibliotheken Dritter unterliegen eigenen Lizenzen."], ["5. Freiwillige Unterstützung (Buy Me a Coffee)", "Alles in der App ist und bleibt kostenlos. Der Kauf eines virtuellen Kaffees bei Buy Me a Coffee ist völlig freiwillig und unterstützt nur den kreativen Prozess. Er ist kein Entgelt für die App, schaltet keine Funktionen frei und gibt keine zusätzlichen Rechte. Die Zahlung wickelt der externe Dienst nach seinen eigenen Bedingungen ab."], ["6. Haftung", "Die App wird „wie besehen“ bereitgestellt. Der Anbieter bemüht sich um einwandfreien Betrieb, garantiert aber weder unterbrechungsfreien Betrieb noch zuverlässige Erinnerungen. Daten liegen nur auf deinem Gerät: Löschen der Browserdaten oder der App entfernt Bücher und Fortschritt. Gesetzlich nicht ausschließbare Haftung bleibt unberührt."], ["7. Beschwerden", "Rückmeldungen und Beschwerden an {email} mit Beschreibung des Problems sowie Gerät und Browser. Der Anbieter antwortet innerhalb von 14 Tagen."], ["8. Beendigung", "Du kannst die App jederzeit nicht mehr nutzen und deine Daten löschen (Bücher, App oder Websitedaten im Browser). Der Anbieter kann die App ändern oder einstellen; ein Hinweis erscheint in der App."], ["9. Schlussbestimmungen", "Änderungen werden in der App bekannt gegeben und wirken nicht rückwirkend. Es gilt polnisches Recht, zwingende Verbraucherrechte bleiben unberührt. Gültig ab 2026-11-16. Bei Abweichungen gilt die polnische Fassung."]], "priv": [["1. Verantwortlicher", "Verantwortlicher ist {owner}. Kontakt für Datenschutzfragen: {email}."], ["2. Welche Daten und wo", "Die App braucht kein Konto. Geladene Bücher, Fortschritt, gespeicherte Zitate und Lesezeichen (mit bibliografischen Angaben), Einstellungen, Erinnerungszeit und das optionale Geburtsdatum (Tag und Monat) werden nur lokal auf deinem Gerät gespeichert (localStorage, IndexedDB, App-Cache). Der Verantwortliche erhält diese Daten nicht und speichert sie auf keinem Server."], ["3. Zwecke und Rechtsgrundlagen", "Lokale Daten dienen nur dazu, die von dir gestarteten Funktionen der App zu betreiben (Art. 6 Abs. 1 lit. b und f DSGVO). Geburtsdatum und Benachrichtigungen sind freiwillig und beruhen auf deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO); du kannst sie jederzeit widerrufen, indem du das Datum entfernst oder Erinnerungen ausschaltest. Kein Profiling, keine automatisierten Entscheidungen."], ["4. Hosting und Logs", "Die App wird über GitHub Pages (GitHub, Inc.) ausgeliefert. Der Hoster kann IP-Adresse und technische Daten in Server-Logs nach eigener Datenschutzerklärung verarbeiten, auch außerhalb des EWR."], ["5. Externe Dienste", "Nur wenn du sie nutzt, verbindet sich dein Browser direkt mit: Wolne Lektury, Gutendex / Project Gutenberg (Buchsuche und Download; deine IP-Adresse wird übermittelt) und Buy Me a Coffee (freiwillige Unterstützung; Zahlungsdaten verarbeitet dieser Dienst, der Verantwortliche sieht sie nicht). Es gelten deren eigene Datenschutzerklärungen."], ["6. Cookies und lokaler Speicher", "Die App verwendet keine Werbe- oder Analyse-Cookies und trackt niemanden. Der lokale Browserspeicher ist für den Dienst unbedingt erforderlich."], ["7. Empfänger und Speicherdauer", "Der Verantwortliche gibt keine Daten an Dritte weiter. Lokale Daten bleiben auf deinem Gerät, bis du sie löschst (Buch löschen, Fortschritt zurücksetzen, Websitedaten löschen oder App deinstallieren)."], ["8. Deine Rechte", "Soweit der Verantwortliche Daten verarbeitet, hast du Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Übertragbarkeit, Widerspruch und Widerruf der Einwilligung sowie auf Beschwerde bei der polnischen Aufsichtsbehörde (UODO, ul. Stawki 2, Warschau) oder deiner örtlichen Behörde. Da die Daten auf deinem Gerät liegen, kannst du die meisten Rechte selbst in der App ausüben. Kontakt: {email}."], ["9. Kinder und Änderungen", "Einwilligungsbasierte Funktionen (Benachrichtigungen, Geburtsdatum) sollten ab 16 Jahren oder mit Zustimmung der Eltern aktiviert werden. Änderungen werden in der App bekannt gegeben. Gültig ab 2026-11-16. Bei Abweichungen gilt die polnische Fassung."]]}, "es": {"terms": [["1. Disposiciones generales", "Estas condiciones regulan el uso de la aplicación gratuita PaKu («la App»), prestada por vía electrónica por {owner} («el Proveedor»). Contacto: {email}. Usar la App implica aceptar estas condiciones."], ["2. Servicio", "La App es un lector de libros electrónicos (PWA) que desbloquea capítulos según un calendario: permite cargar tus propios archivos, buscar libros gratuitos, configurar calendario, recordatorios y temas, y seguir tu progreso. El servicio es gratuito, sin cuenta ni registro. Todas las funciones de la App son y seguirán siendo gratuitas."], ["3. Requisitos técnicos", "Necesitas un navegador moderno con JavaScript, localStorage e IndexedDB. Internet hace falta para instalar, actualizar y usar funciones en línea (p. ej. búsqueda de libros). Las notificaciones dependen del dispositivo y del navegador y pueden no funcionar de forma fiable."], ["4. Normas de uso", "Carga solo archivos que tengas derecho a usar. La App no incluye libros de terceros (salvo un breve texto de ejemplo), no los comparte y no elude el DRM. Está prohibido entregar contenidos ilícitos con la App o perturbar su funcionamiento. Los libros cargados permanecen en tu dispositivo y eres responsable de respetar los derechos de autor. Las citas y los marcadores guardados en la App son de uso personal; eres responsable de que cualquier uso posterior cumpla la ley (incluidas las normas sobre cita)."], ["Derechos de autor y prohibición de copiar", "La app PaKu, su código, diseño, gráficos, textos, nombre e icono están protegidos por derechos de autor. El acceso gratuito no es una licencia de copia. Sin el consentimiento escrito del Proveedor está prohibido copiar, reproducir, distribuir, vender, modificar o descompilar la App, crear versiones propias a partir de ella o publicarla con otro nombre. Puedes usarla personalmente y recomendarla a otros compartiendo el enlace o el código QR. Las bibliotecas de terceros utilizadas se rigen por sus propias licencias."], ["5. Apoyo voluntario (Buy Me a Coffee)", "Todo en la App es y seguirá siendo gratuito. Comprar un café virtual en Buy Me a Coffee es totalmente voluntario y solo apoya el proceso creativo. No es un pago por la App, no desbloquea funciones ni da derechos adicionales. El pago lo gestiona ese servicio externo según sus propias condiciones."], ["6. Responsabilidad", "La App se ofrece «tal cual». El Proveedor se esfuerza por que funcione bien, pero no garantiza un funcionamiento ininterrumpido ni recordatorios fiables. Los datos se guardan solo en tu dispositivo: borrar los datos del navegador o la app elimina libros y progreso. Esto no excluye la responsabilidad que la ley no permite excluir."], ["7. Reclamaciones", "Envía comentarios y reclamaciones a {email}, describiendo el problema y tu dispositivo y navegador. El Proveedor responderá en 14 días."], ["8. Fin del uso", "Puedes dejar de usar la App y borrar tus datos en cualquier momento (libros, app o datos del sitio en el navegador). El Proveedor puede modificar o cerrar la App; se avisará en la App."], ["9. Disposiciones finales", "Los cambios se anunciarán en la App y no son retroactivos. Se aplica el derecho polaco, sin perjuicio de los derechos imperativos del consumidor. En vigor desde 2026-11-16. En caso de discrepancia prevalece la versión polaca."]], "priv": [["1. Responsable", "El responsable es {owner}. Contacto de privacidad: {email}."], ["2. Qué datos y dónde", "La App no requiere cuenta. Los libros cargados, el progreso, las citas y marcadores guardados (con sus datos bibliográficos), los ajustes, la hora de los recordatorios y la fecha de cumpleaños opcional (día y mes) se guardan solo localmente en tu dispositivo (localStorage, IndexedDB, caché de la app). El responsable no recibe estos datos ni los almacena en ningún servidor."], ["3. Finalidades y bases jurídicas", "Los datos locales solo sirven para que funcionen las funciones de la App que tú inicias (art. 6.1.b y f RGPD). El cumpleaños y las notificaciones son opcionales y se basan en tu consentimiento (art. 6.1.a RGPD); puedes retirarlo en cualquier momento borrando la fecha o desactivando los recordatorios. No hay perfilado ni decisiones automatizadas."], ["4. Alojamiento y registros", "La App se sirve mediante GitHub Pages (GitHub, Inc.). El proveedor de alojamiento puede tratar tu dirección IP y datos técnicos en registros del servidor según su propia política, incluso fuera del Espacio Económico Europeo."], ["5. Servicios externos", "Solo si los usas, tu navegador se conecta directamente con: Wolne Lektury, Gutendex / Project Gutenberg (búsqueda y descarga de libros; se envía tu dirección IP) y Buy Me a Coffee (apoyo voluntario; ese servicio trata los datos de pago, el responsable no los ve). Se aplican sus propias políticas de privacidad."], ["6. Cookies y almacenamiento local", "La App no usa cookies publicitarias ni analíticas y no rastrea a los usuarios. El almacenamiento local del navegador es estrictamente necesario para prestar el servicio."], ["7. Destinatarios y conservación", "El responsable no cede datos a terceros. Los datos locales permanecen en tu dispositivo hasta que los borres (eliminar un libro, reiniciar el progreso, borrar los datos del sitio o desinstalar la app)."], ["8. Tus derechos", "En la medida en que el responsable trate datos, tienes derecho de acceso, rectificación, supresión, limitación, portabilidad, oposición y retirada del consentimiento, y a reclamar ante la autoridad polaca (UODO, ul. Stawki 2, Varsovia) o la de tu país. Como los datos están en tu dispositivo, puedes ejercer la mayoría de los derechos tú mismo en la App. Contacto: {email}."], ["9. Menores y cambios", "Las funciones basadas en consentimiento (notificaciones, cumpleaños) deben activarlas personas de 16 años o más, o con permiso de su tutor. Los cambios se anunciarán en la App. En vigor desde 2026-11-16. En caso de discrepancia prevalece la versión polaca."]]}, "uk": {"terms": [["1. Загальні положення", "Цей регламент визначає правила користування безкоштовним застосунком PaKu («Застосунок»), який надає в електронній формі {owner} («Постачальник»). Контакт: {email}. Користування Застосунком означає прийняття регламенту."], ["2. Послуга", "Застосунок — це читалка електронних книжок (PWA), яка відкриває розділи за розкладом: можна завантажувати власні файли, шукати безкоштовні книжки, налаштовувати розклад, нагадування й теми та стежити за прогресом. Послуга безкоштовна, без облікового запису й реєстрації. Усі функції Застосунку є й залишаться безкоштовними."], ["3. Технічні вимоги", "Потрібен сучасний браузер із JavaScript, localStorage та IndexedDB. Інтернет потрібен для встановлення, оновлень і онлайн-функцій (наприклад, пошук книжок). Сповіщення залежать від пристрою й браузера та можуть працювати ненадійно."], ["4. Правила користування", "Завантажуйте лише файли, на використання яких маєте право. Застосунок не містить чужих книжок (окрім короткого тексту-прикладу), не передає їх іншим і не обходить захист DRM. Заборонено передавати через Застосунок протиправний вміст і порушувати його роботу. Завантажені книжки лишаються на вашому пристрої, а за дотримання авторського права відповідаєте ви. Цитати й закладки, збережені в Застосунку, призначені для особистого користування; за законність їх подальшого використання (зокрема правил цитування) відповідаєте ви."], ["Авторське право та заборона копіювання", "Застосунок PaKu, його код, макет, графіка, тексти, назва й іконка захищені авторським правом. Безкоштовний доступ не є ліцензією на копіювання. Без письмової згоди Постачальника заборонено копіювати, відтворювати, поширювати, продавати, змінювати чи декомпілювати Застосунок, створювати на його основі власні версії або публікувати його під іншим іменем чи назвою. Користуватися Застосунком особисто й радити його іншим за допомогою посилання чи QR-коду можна. Використані сторонні бібліотеки підпадають під власні ліцензії."], ["5. Добровільна підтримка (Buy Me a Coffee)", "Усе в Застосунку є й залишиться безкоштовним. Придбання віртуальної кави на Buy Me a Coffee цілком добровільне й лише підтримує творчий процес. Це не плата за Застосунок, воно нічого не відкриває й не надає додаткових прав. Платіж обробляє сторонній сервіс за власними правилами."], ["6. Відповідальність", "Застосунок надається «як є». Постачальник дбає про його справну роботу, але не гарантує безперервності та надійності нагадувань. Дані зберігаються лише на вашому пристрої: очищення даних браузера чи видалення застосунку видаляє книжки та прогрес. Це не виключає відповідальності, яку не можна виключити законом."], ["7. Скарги", "Зауваження й скарги надсилайте на {email}, описавши проблему, пристрій і браузер. Постачальник відповість упродовж 14 днів."], ["8. Припинення користування", "Ви можете будь-коли припинити користування й видалити свої дані (книжки, застосунок або дані сайту в браузері). Постачальник може змінити чи припинити Застосунок; повідомлення з’явиться в Застосунку."], ["9. Прикінцеві положення", "Про зміни повідомляється в Застосунку; вони не діють заднім числом. Застосовується польське право без шкоди для обов’язкових прав споживача. Діє з 2026-11-16. У разі розбіжностей визначальною є польська версія."]], "priv": [["1. Контролер даних", "Контролер — {owner}. Контакт з питань приватності: {email}."], ["2. Які дані та де", "Застосунок не потребує облікового запису. Завантажені книжки, прогрес, збережені цитати й закладки (з бібліографічним описом), налаштування, час нагадувань і необов’язкова дата народження (день і місяць) зберігаються лише локально на вашому пристрої (localStorage, IndexedDB, кеш застосунку). Контролер не отримує цих даних і не зберігає їх на жодному сервері."], ["3. Цілі та правові підстави", "Локальні дані потрібні лише для роботи функцій, які ви запускаєте самі (ст. 6(1)(b) і (f) GDPR). Дата народження й сповіщення необов’язкові та ґрунтуються на вашій згоді (ст. 6(1)(a) GDPR); її можна відкликати будь-коли, видаливши дату або вимкнувши нагадування. Профілювання й автоматизованих рішень немає."], ["4. Хостинг і журнали", "Застосунок розміщено на GitHub Pages (GitHub, Inc.). Хостинг-провайдер може обробляти IP-адресу й технічні дані в журналах сервера за власною політикою, зокрема поза Європейською економічною зоною."], ["5. Зовнішні сервіси", "Лише якщо ви ними користуєтеся, браузер напряму з’єднується з: Wolne Lektury, Gutendex / Project Gutenberg (пошук і завантаження книжок; передається IP-адреса) та Buy Me a Coffee (добровільна підтримка; платіжні дані обробляє цей сервіс, контролер їх не бачить). Діють їхні власні політики приватності."], ["6. Cookies і локальне сховище", "Застосунок не використовує рекламних чи аналітичних cookies і не стежить за користувачами. Локальне сховище браузера необхідне для надання послуги."], ["7. Одержувачі та строк зберігання", "Контролер не передає дані третім особам. Локальні дані лишаються на пристрої, доки ви їх не видалите (видалення книжки, скидання прогресу, очищення даних сайту або видалення застосунку)."], ["8. Ваші права", "Тією мірою, якою контролер обробляє дані, ви маєте право на доступ, виправлення, видалення, обмеження, перенесення, заперечення та відкликання згоди, а також на скаргу до польського наглядового органу (UODO, ul. Stawki 2, Варшава) або до органу у вашій країні. Оскільки дані на вашому пристрої, більшість прав ви можете реалізувати самі в Застосунку. Контакт: {email}."], ["9. Діти та зміни", "Функції, що ґрунтуються на згоді (сповіщення, дата народження), мають вмикати особи від 16 років або за згодою опікуна. Про зміни повідомляється в Застосунку. Діє з 2026-11-16. У разі розбіжностей визначальною є польська версія."]]}};
     const WHY = {"pl": [["Skąd się wzięła ta aplikacja", "PaKu powstało w odpowiedzi na potrzebę, która pojawia się wokół nas coraz wyraźniej: wiele osób chce czytać, ale potrzebuje do tego innej drogi niż „po prostu usiądź i przeczytaj”. Każdy z nas ma własny rytm uwagi, energii i motywacji i żaden nie jest gorszy. Ta aplikacja ma ułatwiać czytanie tym, którym codzienny nawyk przychodzi trudniej, w tym osobom neuroatypowym i z ADHD, ale może pomóc każdemu, kto lubi czytać w małych, spokojnych krokach. Nie jest wyrobem medycznym, nie leczy i nie zastępuje terapii ani pomocy specjalisty."], ["Jeden rozdział na raz zamiast ściany tekstu", "Gruba książka bywa przytłaczająca, a sam widok kilkuset stron potrafi zniechęcić. PaKu pokazuje jeden rozdział, a resztę zostawia na później. Decyzja „ile dziś czytać” jest już podjęta, więc na starcie potrzeba mniej wysiłku, a start bywa najtrudniejszy. Każdą książkę możesz podzielić na krótsze rozdziały (np. po 500 słów), żeby dzisiejszy cel był naprawdę niewielki."], ["Stała pora i przypomnienie zamiast pamiętania w głowie", "Planowanie, pamiętanie i rozpoczynanie czynności to funkcje wykonawcze, z którymi osoby z ADHD często mają większe trudności. Stała godzina odblokowania rozdziału i codzienne przypomnienie przenoszą ten ciężar z Twojej głowy do aplikacji. Nawyk łatwiej się buduje, gdy dzieje się o tej samej porze i nie wymaga nowej decyzji każdego dnia."], ["Nagroda od razu, bo odległy cel słabo motywuje", "Wiele osób z ADHD trudniej motywuje cel odległy w czasie: „skończę książkę za dwa miesiące” to za mało, żeby zacząć dziś. PaKu daje małe, szybkie sygnały postępu: pasek i procenty, miłe słowa po każdym rozdziale, podróż przez kosmos mierzoną przeczytanymi słowami i kolejne dni czytania. Dzięki temu każdy mały krok jest zauważony od razu, a nie dopiero na końcu."], ["Mniej rozproszeń", "W aplikacji nie ma reklam, powiadomień z mediów społecznościowych ani nieskończonego przewijania. Czytanie „po stronach” i tryb pełnej strony zostawiają na ekranie sam tekst. Możesz wybrać jasny, sepia lub ciemny motyw oraz wygodny rozmiar liter. Zablokowany rozdział nie kusi, żeby „przeczytać jeszcze jeden”, a gdy chcesz iść szybciej, odblokujesz go świadomie."], ["Łagodnie z przerwami", "Przerwa w czytaniu na kilka dni? PaKu cieszy się z powrotu i nie wyciąga konsekwencji. Gdy przeczytasz kilka rozdziałów naraz, harmonogram sam się przelicza: następny rozdział pojawi się jutro, a nie za tydzień. Nie ma tu serii, której utrata boli, ani poczucia winy."], ["Humor i własny styl", "Tryb złośliwy, motywy świąteczne i urodzinowe oraz możliwość zmiany wyglądu sprawiają, że czytanie bywa zabawne i „Twoje”. Odrobina nowości i humoru pomaga podtrzymać zainteresowanie."], ["Ważne", "Każda osoba jest inna. To, co pomaga jednym, innym może nie pasować. Jeśli trudności z koncentracją mocno utrudniają codzienne życie, warto porozmawiać ze specjalistą. PaKu ma być wsparciem w czytaniu, nie diagnozą ani leczeniem."]], "en": [["Where this app comes from", "PaKu was created in response to a need that is becoming ever more visible: many people want to read but need a different path than “just sit down and read.” Each of us has our own rhythm of attention, energy and motivation, and none is worse than another. The app aims to make reading easier for those for whom a daily habit comes harder, including neurodivergent people and people with ADHD, yet it can help anyone who likes to read in small, calm steps. It is not a medical device, does not treat anything and does not replace therapy or professional help."], ["One chapter at a time, not a wall of text", "A thick book can feel overwhelming, and the sight of several hundred pages can put you off. PaKu shows one chapter and leaves the rest for later. The decision “how much to read today” is already made, so starting takes less effort, and starting is often the hardest part. You can split any book into shorter chapters (e.g. 500 words) so today’s goal is truly small."], ["A fixed time and a reminder instead of remembering", "Planning, remembering and starting tasks are executive functions that people with ADHD often find harder. A fixed unlock time and a daily reminder move that load from your head into the app. A habit is easier to build when it happens at the same time and needs no new decision each day."], ["Instant reward, because far-off goals motivate poorly", "For many people with ADHD a distant goal is harder to act on: “I’ll finish the book in two months” is not enough to start today. PaKu gives small, quick signs of progress: a bar and percentages, kind words after each chapter, a journey through space measured in words you have read, and days of reading in a row. Every small step is noticed right away instead of only at the end."], ["Fewer distractions", "There are no ads, no social-media notifications and no endless scrolling. Page-by-page reading and full-page mode leave only the text on the screen. Choose a light, sepia or dark theme and a comfortable font size. A locked chapter does not tempt you to “read just one more”, and when you want to go faster you unlock it on purpose."], ["Gentle with breaks", "A few days without reading? PaKu is glad you are back and holds no grudge. If you read several chapters at once, the schedule recalculates: the next chapter comes tomorrow, not next week. There is no streak whose loss hurts and no guilt."], ["Humour and your own style", "Snark mode, holiday and birthday themes and customisable looks make reading fun and “yours”. A little novelty and humour helps keep interest alive."], ["Important", "Everyone is different. What helps some may not suit others. If difficulty concentrating seriously affects daily life, it is worth talking to a specialist. PaKu aims to support reading, not to diagnose or treat."]], "de": [["Woher diese App kommt", "PaKu entstand als Antwort auf ein Bedürfnis, das immer sichtbarer wird: Viele Menschen möchten lesen, brauchen dafür aber einen anderen Weg als „setz dich einfach hin und lies“. Jeder hat einen eigenen Rhythmus bei Aufmerksamkeit, Energie und Motivation, und keiner ist schlechter. Die App soll das Lesen für alle erleichtern, denen ein tägliches Ritual schwerer fällt, auch für neurodivergente Menschen und Menschen mit ADHS, kann aber jedem helfen, der gern in kleinen, ruhigen Schritten liest. Sie ist kein Medizinprodukt, behandelt nichts und ersetzt keine Therapie oder fachliche Hilfe."], ["Ein Kapitel nach dem anderen statt einer Textwand", "Ein dickes Buch kann erdrückend wirken, schon der Anblick mehrerer hundert Seiten kann entmutigen. PaKu zeigt ein Kapitel und hebt den Rest für später auf. Die Entscheidung „wie viel lese ich heute“ ist schon getroffen, der Start kostet weniger Kraft, und der Start ist oft das Schwerste. Du kannst jedes Buch in kürzere Kapitel teilen (z. B. 500 Wörter), damit das heutige Ziel wirklich klein ist."], ["Feste Zeit und Erinnerung statt Merken im Kopf", "Planen, Erinnern und Beginnen sind exekutive Funktionen, die Menschen mit ADHS oft schwerer fallen. Eine feste Freischaltzeit und die tägliche Erinnerung verlagern diese Last aus deinem Kopf in die App. Eine Gewohnheit entsteht leichter, wenn sie zur selben Zeit stattfindet und nicht jeden Tag eine neue Entscheidung verlangt."], ["Belohnung sofort, denn ferne Ziele motivieren schlecht", "Vielen Menschen mit ADHS fällt es schwerer, auf ein fernes Ziel hinzuarbeiten: „In zwei Monaten habe ich das Buch durch“ reicht nicht, um heute anzufangen. PaKu gibt kleine, schnelle Fortschrittssignale: Balken und Prozente, freundliche Worte nach jedem Kapitel, eine Reise durchs All, gemessen in gelesenen Wörtern, und aufeinanderfolgende Lesetage. Jeder kleine Schritt wird sofort bemerkt, nicht erst am Ende."], ["Weniger Ablenkung", "Es gibt keine Werbung, keine Social-Media-Benachrichtigungen und kein endloses Scrollen. Seitenweises Lesen und der Vollseitenmodus lassen nur den Text auf dem Bildschirm. Wähle ein helles, Sepia- oder dunkles Design und eine angenehme Schriftgröße. Ein gesperrtes Kapitel verführt nicht zum „nur noch einem“, und wenn du schneller willst, schaltest du es bewusst frei."], ["Sanft bei Pausen", "Ein paar Tage nicht gelesen? PaKu freut sich über deine Rückkehr und trägt nichts nach. Liest du mehrere Kapitel auf einmal, berechnet sich der Plan neu: Das nächste Kapitel kommt morgen, nicht nächste Woche. Es gibt keine Serie, deren Verlust schmerzt, und keine Schuldgefühle."], ["Humor und eigener Stil", "Der gemeine Modus, Feiertags- und Geburtstagsdesigns und anpassbares Aussehen machen Lesen lustig und „deins“. Ein wenig Neues und Humor hilft, das Interesse wachzuhalten."], ["Wichtig", "Jeder Mensch ist anders. Was den einen hilft, passt anderen vielleicht nicht. Wenn Konzentrationsprobleme den Alltag stark beeinträchtigen, lohnt sich ein Gespräch mit einer Fachperson. PaKu soll das Lesen unterstützen, nicht diagnostizieren oder behandeln."]], "es": [["De dónde viene esta app", "PaKu nació como respuesta a una necesidad cada vez más visible: mucha gente quiere leer, pero necesita otro camino que «siéntate y lee». Cada persona tiene su propio ritmo de atención, energía y motivación, y ninguno es peor. La app quiere facilitar la lectura a quienes un hábito diario les cuesta más, incluidas las personas neurodivergentes y con TDAH, pero puede ayudar a cualquiera que disfrute leyendo en pasos pequeños y tranquilos. No es un producto sanitario, no trata nada y no sustituye una terapia ni la ayuda profesional."], ["Un capítulo cada vez, no un muro de texto", "Un libro gordo puede abrumar, y solo ver varios cientos de páginas puede desanimar. PaKu muestra un capítulo y deja el resto para después. La decisión «cuánto leo hoy» ya está tomada, así que empezar cuesta menos, y empezar suele ser lo más difícil. Puedes dividir cualquier libro en capítulos más cortos (p. ej. 500 palabras) para que el objetivo de hoy sea realmente pequeño."], ["Hora fija y recordatorio en vez de acordarte tú", "Planificar, recordar y empezar tareas son funciones ejecutivas que a menudo cuestan más con TDAH. Una hora fija de desbloqueo y el recordatorio diario trasladan esa carga de tu cabeza a la app. Un hábito se construye más fácil cuando ocurre a la misma hora y no exige una decisión nueva cada día."], ["Recompensa al instante, porque las metas lejanas motivan poco", "A mucha gente con TDAH le cuesta más actuar por una meta lejana: «acabaré el libro en dos meses» no basta para empezar hoy. PaKu da señales pequeñas y rápidas de progreso: barra y porcentajes, palabras amables tras cada capítulo, un viaje por el espacio medido en palabras leídas y días seguidos de lectura. Cada paso pequeño se nota enseguida, no solo al final."], ["Menos distracciones", "No hay anuncios, notificaciones de redes sociales ni desplazamiento infinito. La lectura por páginas y el modo de página completa dejan solo el texto en pantalla. Elige un tema claro, sepia u oscuro y un tamaño de letra cómodo. Un capítulo bloqueado no tienta a «leer uno más», y cuando quieres ir más rápido lo desbloqueas a propósito."], ["Con suavidad ante las pausas", "¿Unos días sin leer? PaKu se alegra de tu vuelta y no guarda rencor. Si lees varios capítulos de golpe, el calendario se recalcula: el siguiente capítulo llega mañana, no la semana próxima. No hay rachas cuya pérdida duela ni culpa."], ["Humor y estilo propio", "El modo mordaz, los temas festivos y de cumpleaños y el aspecto personalizable hacen que leer sea divertido y «tuyo». Un poco de novedad y humor ayuda a mantener el interés."], ["Importante", "Cada persona es distinta. Lo que ayuda a unos puede no encajar con otros. Si las dificultades de concentración afectan mucho a la vida diaria, conviene hablar con un especialista. PaKu busca apoyar la lectura, no diagnosticar ni tratar."]], "uk": [["Звідки з’явився цей застосунок", "PaKu з’явився у відповідь на потребу, яку помічаємо дедалі виразніше: багато людей хочуть читати, але потребують іншого шляху, ніж «просто сядь і читай». У кожного власний ритм уваги, енергії та мотивації, і жоден не гірший. Застосунок має полегшити читання тим, кому щоденна звичка дається важче, зокрема нейроатиповим людям і людям із СДУГ, але може допомогти кожному, хто любить читати малими спокійними кроками. Це не медичний виріб, він нічого не лікує й не замінює терапію чи допомогу фахівця."], ["Один розділ за раз замість стіни тексту", "Товста книжка може приголомшувати, а вигляд кількох сотень сторінок здатен відбити охоту. PaKu показує один розділ, решту лишає на потім. Рішення «скільки читати сьогодні» вже ухвалено, тому на старті треба менше зусиль, а старт часто найважчий. Будь-яку книжку можна поділити на коротші розділи (наприклад, по 500 слів), щоб сьогоднішня мета була справді невеликою."], ["Фіксований час і нагадування замість пам’ятання в голові", "Планування, пам’ятання й початок дій — це виконавчі функції, які людям із СДУГ часто даються важче. Фіксований час відкриття розділу й щоденне нагадування переносять це навантаження з вашої голови в застосунок. Звичка формується легше, коли відбувається в один і той самий час і не вимагає нового рішення щодня."], ["Нагорода одразу, бо далека мета мотивує слабко", "Багатьом людям із СДУГ важче діяти заради далекої мети: «дочитаю книжку за два місяці» замало, щоб почати сьогодні. PaKu дає маленькі швидкі сигнали прогресу: смужку й відсотки, добрі слова після кожного розділу, подорож космосом, виміряну прочитаними словами, і дні читання поспіль. Кожен малий крок помічено одразу, а не лише наприкінці."], ["Менше відволікань", "У застосунку немає реклами, сповіщень із соцмереж і нескінченного гортання. Читання «по сторінках» і режим повної сторінки лишають на екрані лише текст. Оберіть світлу, сепію чи темну тему й зручний розмір літер. Заблокований розділ не спокушає «прочитати ще один», а коли хочете швидше, ви відкриваєте його свідомо."], ["М’яко щодо перерв", "Кілька днів без читання? PaKu радий вашому поверненню й не ставить на вас хрест. Якщо прочитаєте кілька розділів одразу, розклад перерахується: наступний розділ буде завтра, а не за тиждень. Немає серій, втрата яких болить, і немає почуття провини."], ["Гумор і власний стиль", "Злісний режим, святкові та іменинні теми й зміна вигляду роблять читання веселим і «вашим». Трохи новизни й гумору допомагає втримати інтерес."], ["Важливо", "Кожна людина інша. Те, що допомагає одним, іншим може не підійти. Якщо труднощі з концентрацією сильно ускладнюють щоденне життя, варто поговорити з фахівцем. PaKu має підтримувати читання, а не діагностувати чи лікувати."]]};
     const LEGAL_COPY = {"pl": "© 2026 {owner}. Wszelkie prawa zastrzeżone.", "en": "© 2026 {owner}. All rights reserved.", "de": "© 2026 {owner}. Alle Rechte vorbehalten.", "es": "© 2026 {owner}. Todos los derechos reservados.", "uk": "© 2026 {owner}. Усі права захищено."};
     function renderLegalCards() {
@@ -4808,6 +5180,381 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }
     }
 
+    // ===== Cytaty, zakładki i opis bibliograficzny (zostają po usunięciu książki) =====
+    const QUOTES_KEY = 'paku_quotes_v1', QUOTE_MAX = 3000;
+    const QMARKS = { pl: ['„', '”'], en: ['“', '”'], de: ['„', '“'], es: ['«', '»'], uk: ['«', '»'] };
+    let qStore = { v: 1, items: [], style: 'iso' };
+    let qFilterSel = 'all', qBookFilter = 'all', qQuery = '', qCtxOpen = {};
+    let review = null, pendingGoto = '', importMeta = null, toastTimer = null;
+
+    function cleanMeta(m) {
+      if (!m) return null;
+      const o = {};
+      ['title', 'author', 'publisher', 'year', 'place', 'isbn', 'source', 'lang'].forEach(k => {
+        const v = String(m[k] == null ? '' : m[k]).replace(/\s+/g, ' ').trim().slice(0, 300);
+        if (v) o[k] = v;
+      });
+      return Object.keys(o).length ? o : null;
+    }
+    function mergeMeta(a, b) { return cleanMeta(Object.assign({}, b || {}, a || {})); } // dane z pliku mają pierwszeństwo
+    async function epubMeta(zip) {
+      const cf = zipEntry(zip, 'META-INF/container.xml'); if (!cf) return null;
+      const opfPath = new DOMParser().parseFromString(await cf.async('text'), 'application/xml').querySelector('rootfile').getAttribute('full-path');
+      const opfFile = zipEntry(zip, epubPath('', opfPath)); if (!opfFile) return null;
+      const opf = new DOMParser().parseFromString(await opfFile.async('text'), 'application/xml');
+      const all = n => Array.from(opf.getElementsByTagNameNS('*', n)).map(e => (e.textContent || '').trim()).filter(Boolean);
+      const ids = all('identifier'), isbn = ids.find(x => /isbn/i.test(x) || /^\d[\d-]{9,16}[\dxX]$/.test(x.replace(/^urn:isbn:/i, '')));
+      return cleanMeta({
+        title: all('title')[0], author: all('creator').join('; '), publisher: all('publisher')[0],
+        year: ((all('date')[0] || '').match(/\d{4}/) || [])[0], lang: all('language')[0],
+        isbn: isbn ? isbn.replace(/^urn:isbn:/i, '').replace(/^isbn[:\s]*/i, '') : ''
+      });
+    }
+    function fb2Meta(xml) {
+      const g = (el, n) => { const x = el && Array.from(el.getElementsByTagName('*')).find(e => e.localName === n); return x ? x.textContent.replace(/\s+/g, ' ').trim() : ''; };
+      const ti = Array.from(xml.getElementsByTagName('*')).find(e => e.localName === 'title-info');
+      const pi = Array.from(xml.getElementsByTagName('*')).find(e => e.localName === 'publish-info');
+      const au = ti && Array.from(ti.children).find(e => e.localName === 'author');
+      const author = au ? [g(au, 'first-name'), g(au, 'middle-name'), g(au, 'last-name')].filter(Boolean).join(' ') : '';
+      return cleanMeta({ title: g(ti, 'book-title'), author, year: g(pi, 'year') || (g(ti, 'date').match(/\d{4}/) || [])[0], publisher: g(pi, 'publisher'), place: g(pi, 'city'), isbn: g(pi, 'isbn'), lang: g(ti, 'lang') });
+    }
+
+    function qLoad() {
+      try { const o = JSON.parse(localStorage.getItem(QUOTES_KEY) || 'null'); if (o && Array.isArray(o.items)) qStore = Object.assign({ v: 1, style: 'iso' }, o); } catch (e) {}
+    }
+    async function qLoadIdb() {
+      try {
+        if (qStore.items.length) return;
+        const o = await idbGet('quotes');
+        if (o && Array.isArray(o.items) && o.items.length) { qStore = Object.assign({ v: 1, style: 'iso' }, o); renderQuotes(); renderReader(); }
+      } catch (e) {}
+    }
+    function qSave() {
+      let ok = true;
+      try { localStorage.setItem(QUOTES_KEY, JSON.stringify(qStore)); } catch (e) { ok = false; }
+      try { idbSet('quotes', JSON.parse(JSON.stringify(qStore))).catch(() => {}); } catch (e) {}
+      return ok;
+    }
+    function setQStyle(v) { qStore.style = v === 'apa' ? 'apa' : 'iso'; qSave(); renderQuotes(); }
+
+    function toast(msg, actLabel, actFn) {
+      const el = document.getElementById('toast'); if (!el) return;
+      el.innerHTML = '<span></span>'; el.firstChild.textContent = msg;
+      if (actLabel) { const b = document.createElement('button'); b.textContent = actLabel; b.onclick = () => { el.classList.add('hidden'); if (actFn) actFn(); }; el.appendChild(b); }
+      el.classList.remove('hidden'); clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.add('hidden'), actLabel ? 6500 : 2600);
+    }
+    function openQModal(html) { document.getElementById('qModalBody').innerHTML = html; document.getElementById('qModal').classList.remove('hidden'); }
+    function closeQModal() { document.getElementById('qModal').classList.add('hidden'); }
+
+    // ---- opis bibliograficzny
+    function bibOf(rec) {
+      const b = bookOf(rec) || {}, m = b.meta || {};
+      return { title: (m.title || b.title || recTitle(rec) || '').trim(), author: m.author || '', publisher: m.publisher || '', year: m.year || '', place: m.place || '', isbn: m.isbn || '', source: m.source || '', lang: m.lang || '' };
+    }
+    function endDot(x) { x = String(x || '').trim(); return !x ? '' : (/[.!?…]$/.test(x) ? x : x + '.'); }
+    function chapLabel(c) {
+      if (!c) return '';
+      const generic = /^\W*(rozdzia[łl]|chapter|kapitel|cap[ií]tulo|розділ|глава|część|part|teil|parte)\s*[0-9IVXLC]+\W*$/i.test(c.title || '');
+      return t('qChapter', { i: (c.i || 0) + 1 }) + (c.title && !generic ? ': ' + c.title : '');
+    }
+    function citeBib(q, style, noChapter) {
+      const b = q.bib || {}, ch = noChapter ? '' : chapLabel(q.chapter), p = [];
+      if (style === 'apa') {
+        if (b.author) p.push(endDot(b.author));
+        p.push('(' + (b.year || t('qNoYear')) + ').', endDot(b.title));
+        if (b.publisher) p.push(endDot(b.publisher));
+        if (ch) p.push(endDot(ch));
+        if (b.source) p.push(b.source);
+      } else {
+        if (b.author) p.push(endDot(b.author));
+        p.push(endDot(b.title));
+        let imp = b.place && b.publisher ? b.place + ': ' + b.publisher : (b.publisher || b.place || '');
+        if (b.year) imp = imp ? imp + ', ' + b.year : String(b.year);
+        if (imp) p.push(endDot(imp));
+        if (ch) p.push(endDot(ch));
+        if (b.isbn) p.push('ISBN ' + b.isbn + '.');
+        if (b.source) p.push(t('qAvail') + ' ' + b.source);
+      }
+      return p.filter(Boolean).join(' ');
+    }
+    function quoteWrap(text) { const m = QMARKS[state.lang] || QMARKS.en; return m[0] + text.replace(/\n/g, ' ') + m[1]; }
+    function fullCite(q) {
+      return (q.type === 'quote' ? quoteWrap(q.text) + '\n' : '') + '— ' + citeBib(q, qStore.style) + (q.note ? '\n' + t('qNote') + ': ' + q.note : '');
+    }
+
+    // ---- zaznaczanie tekstu w czytniku
+    function normSel(x) { return String(x || '').replace(/ /g, ' ').split(/\n+/).map(l => l.replace(/[ \t]+/g, ' ').trim()).filter(Boolean).join('\n'); }
+    function curSel() {
+      const tabEl = document.getElementById('tab-reader');
+      if (!tabEl || tabEl.classList.contains('hidden')) return null;
+      const sel = window.getSelection && window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+      const inner = document.getElementById('pagerInner');
+      if (!inner || !inner.contains(sel.getRangeAt(0).commonAncestorContainer)) return null;
+      const text = normSel(sel.toString());
+      return text.length >= 3 ? { text } : null;
+    }
+    function readerCtx() {
+      if (review) { const rec = state.books.find(r => r.id === review.bookId); return rec ? { rec, idx: review.idx } : null; }
+      const rec = activeRec(), book = rec && bookOf(rec);
+      return book ? { rec, idx: Math.min(rec.currentIndex, book.chapters.length - 1) } : null;
+    }
+    function ctxSnip(str, cutStart, cutEnd) {
+      let x = str.replace(/\s+/g, ' ');
+      if (cutStart) x = x.replace(/^\S*\s/, '');
+      if (cutEnd) x = x.replace(/\s\S*$/, '');
+      return x.trim();
+    }
+    function saveSelectionAsQuote() {
+      const sel = curSel(); if (!sel) return;
+      if (sel.text.length > QUOTE_MAX) { toast(t('qTooLong')); return; }
+      const c = readerCtx(); if (!c) return;
+      const book = bookOf(c.rec), ch = book.chapters[c.idx];
+      if (qStore.items.some(x => x.type === 'quote' && x.bookId === c.rec.id && x.text === sel.text)) { toast(t('qDup')); window.getSelection().removeAllRanges(); return; }
+      const segs = sel.text.split('\n'), content = ch.content, i = content.indexOf(segs[0]);
+      let before = '', after = '';
+      if (i >= 0) {
+        before = ctxSnip(content.slice(Math.max(0, i - 260), i), i - 260 > 0, false);
+        const last = segs[segs.length - 1], j = content.indexOf(last, i), e = j >= 0 ? j + last.length : i + segs[0].length;
+        after = ctxSnip(content.slice(e, e + 260), false, e + 260 < content.length);
+      }
+      const q = { id: newId(), type: 'quote', text: sel.text, note: '', createdAt: Date.now(), bookId: c.rec.id, bib: bibOf(c.rec),
+        chapter: { i: c.idx, n: book.chapters.length, title: ch.title }, f: i >= 0 && content.length ? i / content.length : 0, before, after };
+      qStore.items.unshift(q);
+      if (!qSave()) toast(t('tooBig')); else toast(t('qSaved'), t('qAddNote'), () => editNote(q.id));
+      window.getSelection().removeAllRanges();
+      document.getElementById('selBar').classList.add('hidden');
+      renderReader();
+    }
+    function quoteRegex(bookId) {
+      const segs = [];
+      qStore.items.forEach(q => { if (q.type === 'quote' && q.bookId === bookId) q.text.split('\n').forEach(x => { if (x.length >= 6) segs.push(escapeHtml(x)); }); });
+      if (!segs.length) return null;
+      segs.sort((a, b) => b.length - a.length);
+      return new RegExp('(' + segs.map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'g');
+    }
+    function markQ(html, re) { return re ? html.replace(re, '<mark class="qm">$1</mark>') : html; }
+
+    // ---- zakładki
+    function pageBookmark() {
+      const c = readerCtx(); if (!c || !pager.pages) return null;
+      const f = pager.page / Math.max(1, pager.pages);
+      return qStore.items.find(q => q.type === 'mark' && q.bookId === c.rec.id && q.chapter && q.chapter.i === c.idx && Math.abs(q.f - f) < 0.5 / Math.max(1, pager.pages)) || null;
+    }
+    function updateMarkBtn() { const b = document.getElementById('pgMark'); if (b) b.classList.toggle('on', !!pageBookmark()); }
+    function toggleBookmark() {
+      const c = readerCtx(); if (!c) return;
+      const ex = pageBookmark();
+      if (ex) { qStore.items = qStore.items.filter(q => q.id !== ex.id); qSave(); toast(t('qMarkOff')); updateMarkBtn(); return; }
+      const book = bookOf(c.rec), ch = book.chapters[c.idx], f = pager.page / Math.max(1, pager.pages);
+      const pos = Math.floor(f * ch.content.length);
+      let snip = ch.content.slice(pos, pos + 170);
+      snip = ctxSnip(snip, pos > 0, true).slice(0, 150);
+      qStore.items.unshift({ id: newId(), type: 'mark', text: snip || ch.title, note: '', createdAt: Date.now(), bookId: c.rec.id, bib: bibOf(c.rec),
+        chapter: { i: c.idx, n: book.chapters.length, title: ch.title }, f, before: '', after: '' });
+      qSave(); toast(t('qMarkOn')); updateMarkBtn();
+    }
+
+    // ---- notatki, usuwanie, kopiowanie
+    function findQ(id) { return qStore.items.find(q => q.id === id); }
+    function editNote(id) {
+      const q = findQ(id); if (!q) return;
+      openQModal(`<h3 style="margin-top:0;">${escapeHtml(t('qNote'))}</h3><textarea id="qNoteIn" maxlength="2000" placeholder="${escapeHtml(t('qNotePh'))}">${escapeHtml(q.note || '')}</textarea>
+        <div class="q-actions" style="margin-top:10px;"><button class="btn" style="width:auto;" onclick="saveNote('${id}')">${escapeHtml(t('qSaveBtn'))}</button><button class="btn btn-secondary" style="width:auto;" onclick="closeQModal()">${escapeHtml(t('qCancel'))}</button></div>`);
+      setTimeout(() => { const a = document.getElementById('qNoteIn'); if (a) a.focus(); }, 50);
+    }
+    function saveNote(id) { const q = findQ(id), a = document.getElementById('qNoteIn'); if (q && a) { q.note = a.value.trim(); qSave(); renderQuotes(); } closeQModal(); }
+    function deleteQ(id) { if (!confirm(t('qConfirmDel'))) return; qStore.items = qStore.items.filter(q => q.id !== id); qSave(); renderQuotes(); renderReader(); }
+    async function copyQ(id) {
+      const q = findQ(id); if (!q) return; const txt = fullCite(q);
+      try { await navigator.clipboard.writeText(txt); }
+      catch (e) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) {} ta.remove(); }
+      toast(t('qCopied'));
+    }
+    function toggleCtx(id) { qCtxOpen[id] = !qCtxOpen[id]; renderQuotes(); }
+    function showCtx(q, msg) {
+      openQModal(`<p style="margin-top:0;font-size:13px;color:var(--muted);line-height:1.5;">${escapeHtml(msg)}</p>
+        <div class="q-ctx">${escapeHtml(q.before || '')} <b>${escapeHtml(q.text).replace(/\n/g, '<br>')}</b> ${escapeHtml(q.after || '')}</div>
+        <div class="q-cite">${escapeHtml(citeBib(q, qStore.style))}</div>
+        <button class="btn btn-secondary" style="width:auto;" onclick="closeQModal()">${escapeHtml(t('qClose'))}</button>`);
+    }
+
+    // ---- wracanie do miejsca w książce (także w już przeczytanych rozdziałach)
+    function locateIn(book, q) {
+      const needle = q.text.split('\n')[0].slice(0, 80);
+      for (let ci = 0; ci < book.chapters.length; ci++) {
+        const k = book.chapters[ci].content.indexOf(needle);
+        if (k >= 0) return { idx: ci, f: k / Math.max(1, book.chapters[ci].content.length), snip: needle };
+      }
+      return null;
+    }
+    function openQuote(id) {
+      const q = findQ(id); if (!q) return;
+      const rec = state.books.find(r => r.id === q.bookId), book = rec && bookOf(rec);
+      if (!book) return showCtx(q, t('qGone'));
+      const loc = locateIn(book, q); if (!loc) return showCtx(q, t('qNotFound'));
+      const cur = Math.min(rec.currentIndex, book.chapters.length - 1);
+      if (loc.idx === cur && isOpenRec(rec, cur)) {
+        state.activeBookId = rec.id; readerPicked = true; review = null; rec.pos = { i: cur, f: loc.f }; saveState(); pendingGoto = loc.snip; switchTab('reader');
+      } else if (rec.completed.includes(loc.idx) || loc.idx < cur) {
+        state.activeBookId = rec.id; readerPicked = true; saveState(); review = { bookId: rec.id, idx: loc.idx, f: loc.f, snip: loc.snip }; switchTab('reader');
+      } else showCtx(q, t('qNotYet'));
+    }
+    function exitReview() { review = null; renderReader(); window.scrollTo(0, 0); }
+    function pgBarHtml() {
+      return `<div class="pg-bar">
+            <button class="pg-btn" id="pgPrev" aria-label="${t('pagePrev')}" onclick="pagerPrev()">◀</button>
+            <div class="pg-info" id="pgInfo">1 / 1</div>
+            <button class="pg-btn" id="pgMark" aria-label="${t('qBookmark')}" onclick="toggleBookmark()">🔖</button>
+            <button class="pg-btn" id="pgFocus" aria-label="${t('fullPage')}" onclick="toggleFocus()">${focusOn ? '✕' : '⛶'}</button>
+            <button class="btn pg-next" id="pgNext" aria-label="${t('pageNext')}" onclick="pagerNext()">▶</button>
+          </div>`;
+    }
+    function renderReview(rec, book, box) {
+      const idx = review.idx, chap = book.chapters[idx]; if (!chap) return false;
+      lockedUntilMs = null;
+      const qre = quoteRegex(rec.id);
+      const paragraphs = chap.content.split(/\n+/).filter(p => p.trim()).map(p => `<p>${markQ(escapeHtml(p), qre)}</p>`).join('');
+      pagerAction = { label: t('revBackPager'), fn: exitReview };
+      pagerKey = 'review:' + rec.id + ':' + idx;
+      box.innerHTML = `<div style="font-size:12px;color:var(--muted);font-weight:600;">${escapeHtml(book.title)}</div>
+        <div class="rev-banner"><span>${t('revBanner', { t: escapeHtml(chap.title) })}</span><button class="chip" id="revBackBtn" onclick="exitReview()">${t('revBack')}</button></div>
+        <div class="pager" id="pager"><div class="pager-inner" id="pagerInner">
+          <h1 class="chapter-title">${escapeHtml(chap.title)}</h1>
+          <div class="reader-body">${paragraphs}</div>
+        </div></div>
+        ${pgBarHtml()}`;
+      initPager({ id: rec.id, pos: { i: idx, f: review.f || 0 }, review: true }, idx);
+      if (review.snip) { const sn = review.snip; review.snip = ''; setTimeout(() => pagerGoToText(sn), 60); }
+      return true;
+    }
+    function pagerGoToText(snip) {
+      const { inner } = pagerEls(); if (!inner || !snip) return;
+      const needle = snip.slice(0, 30), w = document.createTreeWalker(inner, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = w.nextNode())) {
+        const k = n.nodeValue.indexOf(needle);
+        if (k < 0) continue;
+        const r = document.createRange(); r.setStart(n, k); r.setEnd(n, Math.min(n.nodeValue.length, k + needle.length));
+        pagerGo(0, true, true);
+        const page = Math.floor((r.getBoundingClientRect().left - inner.getBoundingClientRect().left + 2) / (pager.w + PAGER_GAP));
+        pagerGo(Math.max(0, Math.min(pager.pages - 1, page)), true);
+        return;
+      }
+    }
+
+    // ---- ekran „Cytaty”
+    function renderQuotes() {
+      const list = document.getElementById('qList'); if (!list) return;
+      const items = qStore.items;
+      const sty = document.getElementById('qStyleSel'); if (sty) sty.value = qStore.style === 'apa' ? 'apa' : 'iso';
+      document.getElementById('qFilters').innerHTML = [['all', 'qAll'], ['quote', 'qQuotes'], ['mark', 'qMarks']].map(([k, lab]) =>
+        `<button class="chip ${qFilterSel === k ? 'active' : ''}" onclick="qFilterSel='${k}'; renderQuotes()">${escapeHtml(t(lab))}</button>`).join('');
+      const books = [], seen = {};
+      items.forEach(q => { if (!seen[q.bookId]) { seen[q.bookId] = 1; books.push([q.bookId, (q.bib && q.bib.title) || '?']); } });
+      if (qBookFilter !== 'all' && !seen[qBookFilter]) qBookFilter = 'all';
+      const bs = document.getElementById('qBookSel');
+      bs.innerHTML = `<option value="all">${escapeHtml(t('qAllBooks'))}</option>` + books.map(([id, ti]) => `<option value="${escapeHtml(id)}">${escapeHtml(ti)}</option>`).join('');
+      bs.value = qBookFilter; bs.classList.toggle('hidden', books.length < 2);
+      const qq = normQ(qQuery);
+      const shown = items.filter(q => (qFilterSel === 'all' || q.type === qFilterSel) && (qBookFilter === 'all' || q.bookId === qBookFilter) &&
+        (!qq || normQ(q.text + ' ' + (q.note || '') + ' ' + ((q.bib && q.bib.title) || '') + ' ' + ((q.bib && q.bib.author) || '')).includes(qq)));
+      document.getElementById('qCount').textContent = t('qCount', { n: shown.length });
+      document.getElementById('qTools').classList.toggle('hidden', !items.length);
+      if (!shown.length) { list.innerHTML = `<div class="card" style="color:var(--muted);font-size:14px;line-height:1.5;">${escapeHtml(t('qEmpty'))}</div>`; return; }
+      list.innerHTML = shown.map(q => {
+        const exists = state.books.some(r => r.id === q.bookId);
+        const hasCtx = q.before || q.after;
+        return `<div class="q-item" data-q="${escapeHtml(q.id)}">
+          <div class="q-meta">${q.type === 'mark' ? '🔖' : '💬'} ${escapeHtml((q.bib && q.bib.title) || '')}${exists ? '' : ' ' + escapeHtml(t('qBookGone'))} · ${escapeHtml(chapLabel(q.chapter))} · ${escapeHtml(new Date(q.createdAt).toLocaleDateString(loc()))}</div>
+          <blockquote class="q-text">${escapeHtml(q.text).replace(/\n/g, '<br>')}</blockquote>
+          <div class="q-cite">${escapeHtml(citeBib(q, qStore.style))}</div>
+          ${q.note ? `<div class="q-note">📝 ${escapeHtml(q.note)}</div>` : ''}
+          ${qCtxOpen[q.id] && hasCtx ? `<div class="q-ctx">${escapeHtml(q.before || '')} <b>${escapeHtml(q.text).replace(/\n/g, '<br>')}</b> ${escapeHtml(q.after || '')}</div>` : ''}
+          <div class="q-actions">
+            <button class="chip" onclick="copyQ('${q.id}')">${escapeHtml(t('qCopy'))}</button>
+            <button class="chip" onclick="editNote('${q.id}')">${escapeHtml(t('qEdit'))}</button>
+            <button class="chip" onclick="openQuote('${q.id}')">${escapeHtml(t('qOpen'))}</button>
+            ${hasCtx ? `<button class="chip" onclick="toggleCtx('${q.id}')">${escapeHtml(t('qCtx'))}</button>` : ''}
+            <button class="chip" aria-label="Delete" onclick="deleteQ('${q.id}')">🗑️</button>
+          </div></div>`;
+      }).join('');
+    }
+
+    // ---- eksport / import
+    function downloadFile(name, mime, text) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' })); a.download = name;
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    }
+    function exportQuotesMd() {
+      const groups = [], idx = {};
+      qStore.items.slice().sort((a, b) => a.createdAt - b.createdAt).forEach(q => { if (idx[q.bookId] == null) { idx[q.bookId] = groups.length; groups.push([]); } groups[idx[q.bookId]].push(q); });
+      let md = '# PaKu — ' + t('quotesTitle').replace(/^\S+\s/, '') + '\n\n';
+      groups.forEach(g => {
+        md += '## ' + ((g[0].bib && g[0].bib.title) || '') + '\n\n*' + citeBib(g[0], qStore.style, true) + '*\n\n';
+        g.forEach(q => {
+          md += (q.type === 'mark' ? '🔖 ' : '') + q.text.split('\n').map(l => '> ' + l).join('\n') + '\n>\n> — ' + chapLabel(q.chapter) + ', ' + new Date(q.createdAt).toLocaleDateString(loc()) + '\n\n';
+          if (q.note) md += t('qNote') + ': ' + q.note + '\n\n';
+        });
+      });
+      downloadFile('PaKu-quotes.md', 'text/markdown', md);
+    }
+    function exportQuotesJson() { downloadFile('PaKu-quotes-backup.json', 'application/json', JSON.stringify(qStore, null, 1)); }
+    function importQuotesJson(inp) {
+      const f = inp.files[0]; if (!f) return;
+      f.text().then(txt => {
+        const o = JSON.parse(txt); if (!o || !Array.isArray(o.items)) throw new Error('bad');
+        const have = new Set(qStore.items.map(q => q.id)); let n = 0;
+        const S = (v, m) => String(v == null ? '' : v).slice(0, m);
+        o.items.forEach(x => {
+          if (!x || (x.type !== 'quote' && x.type !== 'mark') || typeof x.text !== 'string' || !x.text) return;
+          const id = S(x.id, 40) || newId(); if (have.has(id)) return; have.add(id);
+          const b = x.bib || {}, c = x.chapter || {};
+          qStore.items.push({ id, type: x.type, text: S(x.text, 5000), note: S(x.note, 2000), createdAt: Number(x.createdAt) || Date.now(), bookId: S(x.bookId, 40),
+            bib: { title: S(b.title, 300), author: S(b.author, 300), publisher: S(b.publisher, 300), year: S(b.year, 20), place: S(b.place, 200), isbn: S(b.isbn, 40), source: S(b.source, 400), lang: S(b.lang, 20) },
+            chapter: { i: Number(c.i) || 0, n: Number(c.n) || 0, title: S(c.title, 200) }, f: Number(x.f) || 0, before: S(x.before, 600), after: S(x.after, 600) });
+          n++;
+        });
+        qStore.items.sort((a, b) => b.createdAt - a.createdAt);
+        qSave(); renderQuotes(); renderReader(); toast(t('qImported', { n }));
+      }).catch(() => toast(t('qImportBad'))).finally(() => { inp.value = ''; });
+    }
+
+    // ---- karta „Dane bibliograficzne” (Ustawienia)
+    function renderBibCard() {
+      const card = document.getElementById('bibCard'); if (!card) return;
+      const rec = activeRec(), book = bookOf(rec); if (!rec || !book) return;
+      document.getElementById('bibTitleCard').textContent = t('bibTitleCard', { t: recTitle(rec) });
+      const sample = !!rec.isDefault;
+      document.getElementById('bibForm').classList.toggle('hidden', sample);
+      document.getElementById('bibSample').classList.toggle('hidden', !sample);
+      if (sample || card.contains(document.activeElement)) return;
+      const b = bibOf(rec);
+      const set = (id, v) => { document.getElementById(id).value = v || ''; };
+      set('bibAuthor', b.author); set('bibTitleIn', b.title); set('bibPublisher', b.publisher); set('bibYear', b.year); set('bibPlace', b.place); set('bibIsbn', b.isbn); set('bibSource', b.source);
+    }
+    async function saveBib() {
+      const rec = activeRec(), book = bookOf(rec); if (!rec || !book || rec.isDefault) return;
+      const g = id => document.getElementById(id).value;
+      book.meta = cleanMeta({ title: g('bibTitleIn'), author: g('bibAuthor'), publisher: g('bibPublisher'), year: g('bibYear'), place: g('bibPlace'), isbn: g('bibIsbn'), source: g('bibSource'), lang: (book.meta && book.meta.lang) || '' });
+      try {
+        if (rec.store === 'idb' && rec.idbKey) await idbSet(rec.idbKey, book); else rec.book = book;
+        saveState();
+      } catch (e) { alert(t('tooBig')); return; }
+      let n = 0;
+      qStore.items.forEach(q => { if (q.bookId === rec.id) { q.bib = bibOf(rec); n++; } });
+      if (n) qSave();
+      document.getElementById('bibMsg').textContent = t('bibSaved', { n });
+      renderQuotes();
+    }
+
+    // zaznaczenie tekstu pokazuje przycisk „Zapisz cytat”
+    document.addEventListener('selectionchange', () => { const bar = document.getElementById('selBar'); if (bar) bar.classList.toggle('hidden', !curSel()); });
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => { const bar = document.getElementById('selBar'); if (bar) bar.addEventListener(ev, e => e.preventDefault(), { passive: false }); });
+    document.getElementById('qModal').addEventListener('click', e => { if (e.target.id === 'qModal') closeQModal(); });
+    qLoad();
+
     // Init
     initAccordion();
     applyI18n();
@@ -4820,7 +5567,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     updateRewardIcon();
     setTheme(state.theme || 'light');
     document.documentElement.style.setProperty('--reader-size', (state.fontSize || 18) + 'px');
-    restoreBooks().then(() => { renderReader(); renderLibrary(); });
+    restoreBooks().then(() => { renderReader(); renderLibrary(); qLoadIdb(); });
     setInterval(() => {
       if (!document.getElementById('tab-reader').classList.contains('hidden')) tickCountdown();
     }, 1000);
