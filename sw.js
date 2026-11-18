@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v34';
+const CACHE_NAME = 'drip-reader-pwa-v35';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -25,7 +25,9 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      // usuwamy tylko stare wersje PaKu – pozostałe aplikacje z tego samego adresu
+      // (PaKuGrounding, PaKuSteps…) mają własne pamięci offline, których nie wolno ruszać
+      Promise.all(keys.filter((k) => k.startsWith('drip-reader-pwa-') && k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -127,7 +129,9 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      for (const c of list) { if ('focus' in c) return c.focus(); }
+      // tylko okno PaKu – nie inne aplikacje z tego samego adresu
+      const scope = self.registration.scope;
+      for (const c of list) { if (c.url.startsWith(scope) && 'focus' in c) return c.focus(); }
       return self.clients.openWindow('./');
     })
   );
