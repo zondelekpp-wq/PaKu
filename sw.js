@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v39';
+const CACHE_NAME = 'drip-reader-pwa-v40';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
