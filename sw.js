@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v36';
+const CACHE_NAME = 'drip-reader-pwa-v37';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -25,7 +25,8 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      // usuwamy tylko własne stare pamięci – inne aplikacje rodziny PaKu mają ten sam adres
+      Promise.all(keys.filter((k) => k.startsWith('drip-reader-pwa-') && k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -35,7 +36,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   // Pobierane z internetu książki (inne domeny) przechodzą bez cache'owania
-  if (new URL(req.url).origin !== self.location.origin) return;
+  if (!req.url.startsWith(self.registration.scope)) return;
 
   // Strona (index.html): najpierw sieć, żeby aktualizacje były widoczne od razu; offline -> cache
   if (req.mode === 'navigate') {
@@ -112,9 +113,9 @@ async function dailyReminder() {
   const [h, m] = String(cfg.time).split(':').map(Number);
   const mins = now.getHours() * 60 + now.getMinutes(), due = (h || 0) * 60 + (m || 0);
   if (mins < due || mins > due + 12 * 60) return;
-  const bodies = (cfg.bodies && cfg.bodies.length) ? cfg.bodies : ['📖 PaKu czeka na Ciebie!'];
+  const bodies = (cfg.bodies && cfg.bodies.length) ? cfg.bodies : ['📖 PaKuReading czeka na Ciebie!'];
   const day = Math.floor(now.getTime() / 86400000);
-  await self.registration.showNotification(cfg.title || 'PaKu', {
+  await self.registration.showNotification(cfg.title || 'PaKuReading', {
     body: bodies[day % bodies.length], icon: './icon-192.png', badge: './icon-192.png', tag: 'paku-daily', data: { url: './' }
   });
   cfg.lastDate = today;
