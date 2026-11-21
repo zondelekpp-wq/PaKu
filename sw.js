@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drip-reader-pwa-v37';
+const CACHE_NAME = 'drip-reader-pwa-v38';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
   './icon-512.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
+  './install.js',
   './lib/pdf.min.mjs',
   './lib/pdf.worker.min.mjs'
 ];
